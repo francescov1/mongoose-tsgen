@@ -1,0 +1,19 @@
+{
+  "extends": [
+    "oclif",
+    "oclif-typescript"
+  ],
+  "rules": {
+    "quotes": 0,
+    "semi": 0,
+    "object-curly-spacing": 0,
+    "indent": 0,
+    "no-warning-comments": 0,
+    "no-console": 0,
+    "complexity": 0,
+    "brace-style": 0,
+    "@typescript-eslint/interface-name-prefix": 0,
+    "@typescript-eslint/member-delimiter-style": 0,
+    "@typescript-eslint/no-empty-interface": 0
+  }
+}
