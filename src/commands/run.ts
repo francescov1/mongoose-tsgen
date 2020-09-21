@@ -1,4 +1,5 @@
 import { Command, flags } from '@oclif/command'
+import cli from 'cli-ux';
 import mongoose from "mongoose";
 import * as fs from 'fs';
 import path from 'path';
@@ -318,8 +319,8 @@ export default abstract class Run extends Command {
     ]
 
     async run() {
+        cli.action.start('Generating mongoose typescript definitions')
         const { flags, args } = this.parse(Run)
-        this.log('Generating mongoose typescript definitions')
 
         let fullTemplate: string;
         try {
@@ -329,16 +330,17 @@ export default abstract class Run extends Command {
             this.error(error)
         }
 
+        cli.action.stop()
+
         if (flags["dry-run"]) {
-            this.log("Dry run detected, generated index.d.ts contents will be printed below:\n")
+            this.log("Dry run detected, generated interfaces will be printed to console:\n")
             this.log(fullTemplate)
         }
         else {
             const filePath = path.join(flags.output, "index.d.ts");
             this.log(`Writing interfaces to ${filePath}`);
             fs.writeFileSync(filePath, fullTemplate, "utf8");
+            this.log('Writing complete 🐒')
         }
-
-        this.log('Done 🐒')
     }
 }
