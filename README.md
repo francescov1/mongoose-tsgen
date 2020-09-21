@@ -63,6 +63,7 @@ OPTIONS
   -f, --fresh
   -h, --help           show CLI help
   -o, --output=output  [default: ./index.d.ts]
+  --dry-run
 ```
 
 _See code: [src/commands/gen.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/v0.0.0/src/commands/gen.ts)_
