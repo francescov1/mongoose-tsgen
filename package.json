@@ -44,7 +44,7 @@
   "main": "lib/index.js",
   "oclif": {
     "commands": "./lib/commands",
-    "bin": "mongoose-tsgen",
+    "bin": "mtgen",
     "plugins": [
       "@oclif/plugin-help"
     ]
