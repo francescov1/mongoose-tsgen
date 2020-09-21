@@ -48,25 +48,8 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`mtgen gen [PATH]`](#mtgen-gen-path)
 * [`mtgen help [COMMAND]`](#mtgen-help-command)
-
-## `mtgen gen [PATH]`
-
-generate mongoose type definitions
-
-```
-USAGE
-  $ mtgen gen [PATH]
-
-OPTIONS
-  -f, --fresh
-  -h, --help           show CLI help
-  -o, --output=output  [default: ./index.d.ts]
-  --dry-run
-```
-
-_See code: [src/commands/gen.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/v0.0.0/src/commands/gen.ts)_
+* [`mtgen run [PATH]`](#mtgen-run-path)
 
 ## `mtgen help [COMMAND]`
 
@@ -84,4 +67,21 @@ OPTIONS
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.0/src/commands/help.ts)_
+
+## `mtgen run [PATH]`
+
+generate mongoose type definitions
+
+```
+USAGE
+  $ mtgen run [PATH]
+
+OPTIONS
+  -d, --dry-run        Print output rather than writing to file
+  -f, --fresh          Fresh run, ignoring previously generated custom interfaces
+  -h, --help           show CLI help
+  -o, --output=output  [default: ./] Path of output index.d.ts file
+```
+
+_See code: [src/commands/run.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/v0.0.0/src/commands/run.ts)_
 <!-- commandsstop -->
