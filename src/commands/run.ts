@@ -324,6 +324,7 @@ export default class Run extends Command {
     // path of mongoose models
     // TODO: if not absolute path, search in sub dirs
     // - as first version, simply look for models folder
+    // TODO: once we do the todo above, we could change the first arg to be output path instead
     static args = [
         {
             name: 'path',
