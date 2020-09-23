@@ -20,8 +20,8 @@ const getSubDocName = (path: string, modelName = "") => {
   return subDocName;
 };
 
-const CUSTOM_INTERFACES_HEADER = "\t// ########################################## CUSTOM INTERFACES ########################################## //\n"
-const CUSTOM_INTERFACES_FOOTER = "\t// ######################################## END CUSTOM INTERFACES ######################################## //\n"
+const CUSTOM_INTERFACES_HEADER = "// ########################################## CUSTOM INTERFACES ########################################## //\n"
+const CUSTOM_INTERFACES_FOOTER = "// ######################################## END CUSTOM INTERFACES ######################################## //\n"
 
 const makeLine = ({
   key,
