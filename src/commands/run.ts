@@ -96,7 +96,6 @@ function parseSchema(schema: any, prefix = "") {
       valType = "{\n";
 
       valType += parseSchema(val, prefix + "\t");
-      // +"\n";
 
       valType += prefix + "}";
       isOptional = false;
@@ -106,7 +105,6 @@ function parseSchema(schema: any, prefix = "") {
       // else if (val instanceof mongoose.VirtualType) {
       if (key === "id") {
         return;
-        // valType = "string";
       }
 
       valType = "any";
@@ -168,7 +166,6 @@ function parseSchema(schema: any, prefix = "") {
 
           // console.log(key + ": ", val)
           valType += parseSchema({ tree: val }, prefix + "\t");
-          // +"\n";
 
           valType += prefix + "}";
           isOptional = false;
@@ -313,10 +310,10 @@ export const generateAllInterfaces = ({
 export default class Run extends Command {
     static description = 'generate mongoose type definitions'
 
-    // TODO: default output should be src/types/mongoose. if doesnt exist, default to ./
+    // TODO: if src/types/mongoose doesnt exist, default -o to ./
     static flags = {
         help: flags.help({char: 'h'}),
-        output: flags.string({ char: 'o', default: "./", description: "Path of output index.d.ts file" }),
+        output: flags.string({ char: 'o', default: "./src/types/mongoose", description: "Path of output index.d.ts file" }),
         "dry-run": flags.boolean({ char: 'd', default: false, description: "Print output rather than writing to file" }),
         fresh: flags.boolean({ char: 'f', description: "Fresh run, ignoring previously generated custom interfaces" }),
     }
