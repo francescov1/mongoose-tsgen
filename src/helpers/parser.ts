@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 import flatten, { unflatten } from "flat";
 import * as fs from 'fs';
-const { ObjectId, Mixed } = mongoose.Schema.Types;
+const { ObjectId } = mongoose.Schema.Types;
 
-// TODO: subsub docs working, enum strings, function params and return, pendingCharge
+// TODO: subsub docs working, enum strings, function params and return
 
 const getSubDocName = (path: string, modelName = "") => {
     let subDocName = modelName +
@@ -63,7 +63,7 @@ const getSubDocName = (path: string, modelName = "") => {
       let val = schemaTree[key];
   
       // if type is provided directly on property, expand it
-      if ([String, Number, Boolean, Date, Mixed, ObjectId].includes(val))
+      if ([String, Number, Boolean, Date, ObjectId].includes(val))
         val = { type: val, required: false };
   
       let valType;
@@ -78,7 +78,7 @@ const getSubDocName = (path: string, modelName = "") => {
         val.type = val.type[0];
         isArray = true;
       }
-  
+
       // if (isArray && !val._isSubdocArray) {
       //   console.log("IS ARRAY NOT SUB");
       //   console.log(key + ": ", val);
@@ -105,7 +105,8 @@ const getSubDocName = (path: string, modelName = "") => {
   
         valType = "any";
         isOptional = false;
-      } else if (
+      } 
+      else if (
         key &&
         [
           "get",
@@ -131,7 +132,13 @@ const getSubDocName = (path: string, modelName = "") => {
         // isArray check for second type option happens when adding line - but we do need to add the index
   
         valType = `I${docRef}["_id"] | I${docRef}`;
-      } else {
+      }
+      // NOTE: ideally we check actual type of value to ensure its Schema.Types.Mixed (the same way we do with Schema.Types.ObjectId), 
+      // but this doesnt seem to work for some reason
+      else if (val.schemaName === "Mixed" || val.type?.schemaName === "Mixed") {
+        valType = "any";
+      }   
+      else {
         switch (val.type) {
           case String:
             valType = "string";
@@ -148,9 +155,6 @@ const getSubDocName = (path: string, modelName = "") => {
             break;
           case ObjectId:
             valType = "ObjectId";
-            break;
-          case Mixed:
-            valType = "any";
             break;
           // _id fields have type as a string
           case "ObjectId":
