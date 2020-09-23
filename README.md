@@ -24,9 +24,29 @@ Coming Soon (most of the following features are already supported but use looser
 
 Would love any help with the listed features above.
 
-Once you've generated your index.d.ts file, all you need to do is make the following changes to your schema definitions:
+Once you've generated your index.d.ts file, all you need to do is add the following types to your schema definitions:
 
-TODO: model file changes
+* Before:
+
+```javascript
+import mongoose from "mongoose";
+
+const UserSchema = new Schema(...);
+
+export const User = mongoose.model("User", UserSchema);
+export default User;
+```
+
+* After:
+
+```javascript
+import mongoose, { IUser, IUserModel } from "mongoose";
+
+const UserSchema = new Schema(...);
+
+export const User: IUserModel = mongoose.model<IUser, IUserModel>("User", UserSchema);
+export default User;
+```
 
 <!-- toc -->
 * [Usage](#usage)
