@@ -1,6 +1,8 @@
 mongoose-tsgen
 ==============
 
+<strong>UNDER DEVELOPMENT: This CLI will be released as an npm module once it has been solidified and cleaned up. The current method to generate typings works well but could use a bit of work still. Any help is appreciated 🔥</strong>
+
 A Typescript interface generator for Mongoose that works out of the box.
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
