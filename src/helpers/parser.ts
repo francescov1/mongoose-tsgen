@@ -6,6 +6,8 @@ const { ObjectId } = mongoose.Schema.Types;
 // TODO: subsub docs working, function params and return
 
 // ideas: 
+// - LOOK at subpath, nested, singleNestedPaths prop
+// - for nested, use paths (see why this didnt work before and handle pieces that didnt work using our current strategy)
 // - for flat/unflatten issue, traverse and go to deepest schema, flatten/unflatten it then go 1 level up
 // - when doing nested paths, build out a string for the entire nested path by going one level deeper and treating that as a top-level interface,
 //   once its returned, the parent-scope can add it all together to the interface
@@ -245,11 +247,9 @@ const getSubDocName = (path: string, modelName = "") => {
   }
 
   export const generateAllInterfaces = ({
-    exceptions = [],
     modelsPath,
     customInterfaces = "",
   }: {
-    exceptions?: string[];
     modelsPath: string;
     customInterfaces?: string;
   }) => {
@@ -275,8 +275,6 @@ const getSubDocName = (path: string, modelName = "") => {
     Object.keys(models).forEach(modelKey => {
       // eslint-disable-next-line prefer-const
       let { modelName, schema } = (models as any)[modelKey];
-  
-      if (exceptions.includes(modelName)) return;
   
       let interfaceStr = "";
       if (schema.childSchemas.length > 0) {

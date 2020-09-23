@@ -37,7 +37,7 @@ export default class Run extends Command {
 
         let fullTemplate: string;
         try {
-            fullTemplate = parser.generateAllInterfaces({ exceptions: [], modelsPath: args.path, customInterfaces })
+            fullTemplate = parser.generateAllInterfaces({ modelsPath: args.path, customInterfaces })
         }
         catch (error) {
             this.error(error)
