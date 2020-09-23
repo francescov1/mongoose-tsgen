@@ -3,7 +3,7 @@ import flatten, { unflatten } from "flat";
 import * as fs from 'fs';
 const { ObjectId } = mongoose.Schema.Types;
 
-// TODO: subsub docs working, enum strings, function params and return
+// TODO: subsub docs working, function params and return
 
 const getSubDocName = (path: string, modelName = "") => {
     let subDocName = modelName +
@@ -83,7 +83,7 @@ const getSubDocName = (path: string, modelName = "") => {
       //   console.log("IS ARRAY NOT SUB");
       //   console.log(key + ": ", val);
       // }
-  
+
       if (val._inferredInterfaceName) {
         valType = val._inferredInterfaceName;
       } else if (val._isReplacedWithSchema) {
@@ -141,7 +141,10 @@ const getSubDocName = (path: string, modelName = "") => {
       else {
         switch (val.type) {
           case String:
-            valType = "string";
+            if (val.enum?.length > 0) {
+                valType = `"` + val.enum.join(`" | "`) + `"`;
+            }
+            else valType = "string";
             break;
           case Number:
             if (key === "__v") return;

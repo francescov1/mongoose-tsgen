@@ -18,7 +18,6 @@ Features:
 - A section for custom interfaces and types is provided at the bottom of `index.d.ts`. This will remain untouched when re-generating the interfaces unless the `--fresh` flag is provided.
 
 Coming Soon (most of the following features are already supported but use looser typing than likely desired):
-- Enum types. Currently Mongoose enum properties are treated as strings.
 - Multi-nested subdocuments. Currently subdoc interfaces are generated one level down; further nesting is compatible but is achieved using `any` for the time being.
 - Methods and statics parameter types. Currently these are typed as `Function`.
 - Support for `Model.Create`. Currently `new Model` must be used.
