@@ -5,6 +5,11 @@ const { ObjectId } = mongoose.Schema.Types;
 
 // TODO: subsub docs working, function params and return
 
+// ideas: 
+// - for flat/unflatten issue, traverse and go to deepest schema, flatten/unflatten it then go 1 level up
+// - when doing nested paths, build out a string for the entire nested path by going one level deeper and treating that as a top-level interface,
+//   once its returned, the parent-scope can add it all together to the interface
+
 const getSubDocName = (path: string, modelName = "") => {
     let subDocName = modelName +
       path
@@ -18,7 +23,7 @@ const getSubDocName = (path: string, modelName = "") => {
   
   const CUSTOM_INTERFACES_HEADER = "// ########################################## CUSTOM INTERFACES ########################################## //\n"
   const CUSTOM_INTERFACES_FOOTER = "// ######################################## END CUSTOM INTERFACES ######################################## //\n"
-  
+
   const makeLine = ({
     key,
     val,
@@ -39,7 +44,7 @@ const getSubDocName = (path: string, modelName = "") => {
       if (isOptional) line += "?";
       line += ": ";
     }
-    line += val;
+    line += val + ";";
     if (newline) line += "\n";
     return line;
   };
@@ -187,10 +192,6 @@ const getSubDocName = (path: string, modelName = "") => {
   
     if (schema.methods) {
       template += parseFunctions(schema.methods, prefix);
-    }
-  
-    if (schema.statics) {
-      template;
     }
   
     return template;
