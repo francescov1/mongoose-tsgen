@@ -52,8 +52,9 @@ const getSubDocName = (path: string, modelName = "") => {
     return template;
   }
 
-  function parseSchema({schema, modelName, header = "", footer = "", prefix = ""}: {schema: any, modelName?: string, header?: string, footer?: string, prefix?: string}) {
+  function parseSchema({schema, modelName, addModel = false, header = "", footer = "", prefix = ""}: {schema: any, modelName?: string, addModel?: boolean, header?: string, footer?: string, prefix?: string}) {
     let template = "";
+
     if (schema.childSchemas?.length > 0 && modelName) {
         const flatSchemaTree: any = flatten(schema.tree, { safe: true });
         let childInterfaces = "";
@@ -86,6 +87,12 @@ const getSubDocName = (path: string, modelName = "") => {
 
         template += childInterfaces;
         // schema = newSchema;
+    }
+
+    if (schema.statics && modelName && addModel) {
+        template += `\texport interface I${modelName}Model extends Model<I${modelName}> {\n`;
+        template += parseFunctions(schema.statics, "\t\t");
+        template += "\t}\n\n";
     }
 
     template += header;
@@ -254,15 +261,8 @@ const getSubDocName = (path: string, modelName = "") => {
   
       let interfaceStr = "";
   
-      // TODO: move to parseSchema
-      if (schema.statics) {
-        interfaceStr += `\texport interface I${modelName}Model extends Model<I${modelName}> {\n`;
-        interfaceStr += parseFunctions(schema.statics, "\t\t");
-        interfaceStr += "\t}\n\n";
-      }
-  
       // rn passing modelName causes childSchemas to be processed
-      interfaceStr += parseSchema({schema, modelName, header: `\texport interface I${modelName} extends Document {\n`, footer: "\t}\n\n", prefix: "\t\t"});
+      interfaceStr += parseSchema({schema, modelName, addModel: true, header: `\texport interface I${modelName} extends Document {\n`, footer: "\t}\n\n", prefix: "\t\t"});
       fullTemplate += interfaceStr;
     });
   
