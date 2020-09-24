@@ -52,7 +52,7 @@ const getSubDocName = (path: string, modelName = "") => {
     return template;
   }
 
-  function parseSchema({schema, modelName, addModel = false, header = "", footer = "", prefix = ""}: {schema: any, modelName?: string, addModel?: boolean, header?: string, footer?: string, prefix?: string}) {
+  function parseSchema({ schema, modelName, addModel = false, header = "", footer = "", prefix = "" }: {schema: any, modelName?: string, addModel?: boolean, header?: string, footer?: string, prefix?: string}) {
     let template = "";
 
     if (schema.childSchemas?.length > 0 && modelName) {
@@ -83,10 +83,7 @@ const getSubDocName = (path: string, modelName = "") => {
     
         const schemaTree = unflatten(flatSchemaTree);
         schema.tree = schemaTree;
-        // return { schema, childInterfaces };
-
         template += childInterfaces;
-        // schema = newSchema;
     }
 
     if (schema.statics && modelName && addModel) {
