@@ -3,15 +3,6 @@ import flatten, { unflatten } from "flat";
 import * as fs from 'fs';
 const { ObjectId } = mongoose.Schema.Types;
 
-// TODO: subsub docs working, function params and return
-
-// ideas: 
-// - LOOK at subpath, nested, singleNestedPaths prop
-// - for nested, use paths (see why this didnt work before and handle pieces that didnt work using our current strategy)
-// - for flat/unflatten issue, traverse and go to deepest schema, flatten/unflatten it then go 1 level up
-// - when doing nested paths, build out a string for the entire nested path by going one level deeper and treating that as a top-level interface,
-//   once its returned, the parent-scope can add it all together to the interface
-
 const getSubDocName = (path: string, modelName = "") => {
     let subDocName = modelName +
       path
@@ -60,11 +51,46 @@ const getSubDocName = (path: string, modelName = "") => {
   
     return template;
   }
-  
-  function parseSchema(schema: any, prefix = "") {
-    const schemaTree = schema.tree;
-  
+
+  function parseSchema({schema, modelName, header = "", footer = "", prefix = ""}: {schema: any, modelName?: string, header?: string, footer?: string, prefix?: string}) {
     let template = "";
+    if (schema.childSchemas?.length > 0 && modelName) {
+        const flatSchemaTree: any = flatten(schema.tree, { safe: true });
+        let childInterfaces = "";
+        
+        const processChild = (rootPath: string) => {
+            return (child: any) => {
+                const path = child.model.path;
+                const isSubdocArray = child.model.$isArraySubdocument;
+            
+                const name = getSubDocName(path, rootPath);
+            
+                child.schema._isReplacedWithSchema = true;
+                child.schema._inferredInterfaceName = `I${name}`;
+                child.schema._isSubdocArray = isSubdocArray;
+                flatSchemaTree[path] = isSubdocArray ? [child.schema] : child.schema;
+            
+                const header = `\tinterface I${name} extends ${
+                    isSubdocArray ? "mongoose.Types.Subdocument" : "Document"
+                    } {\n`;
+
+                childInterfaces += parseSchema({ schema: child.schema, modelName: name, header, footer: "\t}\n\n", prefix: "\t\t" });
+            };
+        };
+        
+        schema.childSchemas.forEach(processChild(modelName));
+    
+        const schemaTree = unflatten(flatSchemaTree);
+        schema.tree = schemaTree;
+        // return { schema, childInterfaces };
+
+        template += childInterfaces;
+        // schema = newSchema;
+    }
+
+    template += header;
+
+    const schemaTree = schema.tree;
   
     Object.keys(schemaTree).forEach(key => {
       let val = schemaTree[key];
@@ -86,26 +112,15 @@ const getSubDocName = (path: string, modelName = "") => {
         isArray = true;
       }
 
-      // if (isArray && !val._isSubdocArray) {
-      //   console.log("IS ARRAY NOT SUB");
-      //   console.log(key + ": ", val);
-      // }
-
       if (val._inferredInterfaceName) {
         valType = val._inferredInterfaceName;
       } else if (val._isReplacedWithSchema) {
-        // console.log("IS REPLACED BY SCHEMA (SHOULD NOT GET HERE)")
-        // console.log(key + ": ", val)
-        valType = "{\n";
-  
-        valType += parseSchema(val, prefix + "\t");
-  
-        valType += prefix + "}";
+        // TODO: should header and footer both have prefix? or neither
+        valType = parseSchema({ schema: val, header: "{\n", footer: prefix + "}", prefix: prefix + "\t" });
         isOptional = false;
       }
       // check for virtual properties
       else if (val.path && val.path && val.setters && val.getters) {
-        // else if (val instanceof mongoose.VirtualType) {
         if (key === "id") {
           return;
         }
@@ -172,12 +187,7 @@ const getSubDocName = (path: string, modelName = "") => {
           // TODO: instead we should be calling the callback func to the Object.keys func call above here
           default:
             // if we dont find it, go one level deeper
-            valType = "{\n";
-  
-            // console.log(key + ": ", val)
-            valType += parseSchema({ tree: val }, prefix + "\t");
-  
-            valType += prefix + "}";
+            valType = parseSchema({ schema: { tree: val }, header: "{\n", footer: prefix + "}", prefix: prefix + "\t"});
             isOptional = false;
             break;
         }
@@ -195,44 +205,10 @@ const getSubDocName = (path: string, modelName = "") => {
     if (schema.methods) {
       template += parseFunctions(schema.methods, prefix);
     }
+
+    template += footer;
   
     return template;
-  }
-  
-  function parseChildSchemas(schema: any, modelName: string) {
-    const flatSchemaTree: any = flatten(schema.tree, { safe: true });
-    let childInterfaces = "";
-  
-    const processChild = (rootPath: string) => {
-      return (child: any) => {
-        const path = child.model.path;
-        const isSubdocArray = child.model.$isArraySubdocument;
-  
-        const name = getSubDocName(path, rootPath);
-  
-        child.schema._isReplacedWithSchema = true;
-        child.schema._inferredInterfaceName = `I${name}`;
-        child.schema._isSubdocArray = isSubdocArray;
-        flatSchemaTree[path] = isSubdocArray ? [child.schema] : child.schema;
-  
-        childInterfaces += `\tinterface I${name} extends ${
-          isSubdocArray ? "mongoose.Types.Subdocument" : "Document"
-        } {\n`;
-        childInterfaces += parseSchema(child.schema, "\t\t");
-        childInterfaces += "\t}\n\n";
-  
-        if (child.schema.childSchemas) {
-          // console.log("Children", child.schema.childSchemas);
-          child.schema.childSchemas.forEach(processChild(name));
-        }
-      };
-    };
-  
-    schema.childSchemas.forEach(processChild(modelName));
-
-    const schemaTree = unflatten(flatSchemaTree);
-    schema.tree = schemaTree;
-    return { schema, childInterfaces };
   }
 
   export const loadCustomInterfaces = (filePath: string) => {
@@ -277,27 +253,16 @@ const getSubDocName = (path: string, modelName = "") => {
       let { modelName, schema } = (models as any)[modelKey];
   
       let interfaceStr = "";
-      if (schema.childSchemas.length > 0) {
-        interfaceStr += `\t// ${modelName} Child Schemas\n\n`;
   
-        const { childInterfaces, schema: newSchema } = parseChildSchemas(
-          schema,
-          modelName
-        );
-        interfaceStr += childInterfaces;
-        schema = newSchema;
-      }
-  
+      // TODO: move to parseSchema
       if (schema.statics) {
         interfaceStr += `\texport interface I${modelName}Model extends Model<I${modelName}> {\n`;
         interfaceStr += parseFunctions(schema.statics, "\t\t");
         interfaceStr += "\t}\n\n";
       }
   
-      interfaceStr += `\texport interface I${modelName} extends Document {\n`;
-      interfaceStr += parseSchema(schema, "\t\t");
-      interfaceStr += "\t}\n\n";
-  
+      // rn passing modelName causes childSchemas to be processed
+      interfaceStr += parseSchema({schema, modelName, header: `\texport interface I${modelName} extends Document {\n`, footer: "\t}\n\n", prefix: "\t\t"});
       fullTemplate += interfaceStr;
     });
   
