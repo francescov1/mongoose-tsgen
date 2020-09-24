@@ -10,6 +10,43 @@ A Typescript interface generator for Mongoose that works out of the box.
 
 Requires only a few lines of additional code to support, and is compatible with all Mongoose features. This CLI works by importing your schema definitions, parsing the structure and generating an index.d.ts file containing interfaces for all your schemas. A section for custom interfaces and types is provided at the bottom of `index.d.ts`. This will remain untouched when re-generating the interfaces unless the `--fresh` flag is provided.
 
+<!-- toc -->
+* [Installation](#installation)
+* [Commands](#commands)
+<!-- tocstop -->
+# Installation
+<!-- usage -->
+```sh-session
+$ npm install -g mongoose-tsgen
+$ mtgen COMMAND
+$ mtgen --help [COMMAND]
+USAGE
+  $ mtgen run
+...
+```
+<!-- usagestop -->
+# Commands
+<!-- commands -->
+* [`mtgen run [PATH]`](#mtgen-run-path)
+
+## `mtgen run [PATH]`
+
+Generate an index.d.ts file containing Mongoose Schema interfaces. If no `path` argument is provided, the tool will expect all models to be exported from `./src/models` by default.
+
+```
+USAGE
+  $ mtgen run [PATH]
+
+OPTIONS
+  -d, --dry-run        Print output rather than writing to file
+  -f, --fresh          Fresh run, ignoring previously generated custom interfaces
+  -h, --help           show CLI help
+  -o, --output=output  [default: ./src/types/mongoose] Path of output index.d.ts file
+```
+
+_See code: [src/commands/run.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/v0.0.3/src/commands/run.ts)_
+<!-- commandsstop -->
+
 ### Example
 
 NOTE: The CLI supports Mongoose Models written in both Typescript and Javascript. Examples are written in Typescript.
@@ -176,46 +213,6 @@ async function editEmail(user: IUser, newEmail: string): IUser {
   return await user.save();
 }
 ```
-
-<!-- toc -->
-* [Installation](#installation)
-* [Commands](#commands)
-<!-- tocstop -->
-# Installation
-<!-- usage -->
-```sh-session
-$ npm install -g mongoose-tsgen
-$ mtgen COMMAND
-running command...
-$ mtgen (-v|--version|version)
-mongoose-tsgen/0.0.3 darwin-x64 node-v14.3.0
-$ mtgen --help [COMMAND]
-USAGE
-  $ mtgen RUN
-...
-```
-<!-- usagestop -->
-# Commands
-<!-- commands -->
-* [`mtgen run [PATH]`](#mtgen-run-path)
-
-## `mtgen run [PATH]`
-
-Generate an index.d.ts file containing Mongoose Schema interfaces. If no `path` argument is provided, the tool will expect all models to be exported from `./src/models` by default.
-
-```
-USAGE
-  $ mtgen run [PATH]
-
-OPTIONS
-  -d, --dry-run        Print output rather than writing to file
-  -f, --fresh          Fresh run, ignoring previously generated custom interfaces
-  -h, --help           show CLI help
-  -o, --output=output  [default: ./src/types/mongoose] Path of output index.d.ts file
-```
-
-_See code: [src/commands/run.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/v0.0.3/src/commands/run.ts)_
-<!-- commandsstop -->
 
 ### Coming Soon (most of the following features are already supported but use looser typing than likely desired):
 
