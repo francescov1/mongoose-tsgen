@@ -23,7 +23,8 @@ export default class Run extends Command {
     static args = [
         {
             name: 'path',
-            default: path.join(process.cwd(), "src/models"),
+            // default: path.join(process.cwd(), "./src/models"),
+            default: "./src/models",
         },
     ]
 
