@@ -58,5 +58,6 @@
     "test": "echo NO TESTS",
     "readme": "./node_modules/@oclif/dev-cli/bin/run readme"
   },
-  "types": "lib/index.d.ts"
+  "types": "lib/index.d.ts",
+  "type": "module"
 }
