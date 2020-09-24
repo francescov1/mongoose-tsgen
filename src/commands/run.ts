@@ -6,7 +6,7 @@ import path from 'path';
 import * as parser from "../helpers/parser";
 
 export default class Run extends Command {
-    static description = 'Generate an index.d.ts file containing Mongoose Schema interfaces'
+    static description = 'Generate an index.d.ts file containing Mongoose Schema interfaces. If no `path` argument is provided, the tool will expect all models to be exported from `./src/models` by default.'
 
     // TODO: if src/types/mongoose doesnt exist, default -o to ./
     static flags = {
