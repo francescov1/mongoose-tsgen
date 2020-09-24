@@ -23,7 +23,7 @@ export default class Run extends Command {
     static args = [
         {
             name: 'path',
-            default: path.join(process.cwd(), "./src/models/index.ts"),
+            default: "./src/models/index.ts",
         },
     ]
 
@@ -37,7 +37,8 @@ export default class Run extends Command {
 
         let fullTemplate: string;
         try {
-            fullTemplate = parser.generateAllInterfaces({ modelsPath: args.path, customInterfaces })
+            const modelsPath = path.join(process.cwd(), args.path);
+            fullTemplate = parser.generateAllInterfaces({ modelsPath, customInterfaces })
         }
         catch (error) {
             this.error(error)
