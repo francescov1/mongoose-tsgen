@@ -47,7 +47,7 @@ export default class Run extends Command {
 
         if (flags["dry-run"]) {
             this.log("Dry run detected, generated interfaces will be printed to console:\n")
-            // this.log(fullTemplate)
+            this.log(fullTemplate)
         }
         else {
             this.log(`Writing interfaces to ${ouputFilePath}`);

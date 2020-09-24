@@ -18,7 +18,6 @@ Features:
 - A section for custom interfaces and types is provided at the bottom of `index.d.ts`. This will remain untouched when re-generating the interfaces unless the `--fresh` flag is provided.
 
 Coming Soon (most of the following features are already supported but use looser typing than likely desired):
-- Multi-nested subdocuments. Currently subdoc interfaces are generated one level down; further nesting is compatible but is achieved using `any` for the time being.
 - Methods and statics parameter types. Currently these are typed as `Function`.
 - Support for `Model.Create`. Currently `new Model` must be used.
 - Support for setting subdocument properties without casting to any. When setting a subdocument array, Typescript will yell at you if you try and set them directly (ie `user.friends = [{ uid, name }]`) as it expects the array to contain additional subdocument properties. For now, this can be achieved by writing `user.friends = [{ uid, name }] as any`.
