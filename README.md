@@ -10,14 +10,6 @@ A Typescript interface generator for Mongoose that works out of the box.
 
 Requires only a few lines of additional code to support, and is compatible with all Mongoose features. This CLI works by importing your schema definitions, parsing the structure and generating an index.d.ts file containing interfaces for all your schemas. A section for custom interfaces and types is provided at the bottom of `index.d.ts`. This will remain untouched when re-generating the interfaces unless the `--fresh` flag is provided.
 
-Coming Soon (most of the following features are already supported but use looser typing than likely desired):
-- Methods and statics parameter types. Currently these are typed as `Function`.
-- Support for `Model.Create`. Currently `new Model` must be used.
-- Support for setting subdocument properties without casting to any. When setting a subdocument array, Typescript will yell at you if you try and set them directly (ie `user.friends = [{ uid, name }]`) as it expects the array to contain additional subdocument properties. For now, this can be achieved by writing `user.friends = [{ uid, name }] as any`.
-- A Mongoose plugin. This will remove the need to re-run the CLI when changes to your schema are made.
-
-Would love any help with the listed features above.
-
 ### Example
 
 NOTE: The CLI supports Mongoose Models written in both Typescript and Javascript. Examples are written in Typescript.
@@ -224,3 +216,11 @@ OPTIONS
 
 _See code: [src/commands/run.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/v0.0.0/src/commands/run.ts)_
 <!-- commandsstop -->
+
+### Coming Soon (most of the following features are already supported but use looser typing than likely desired):
+- Methods and statics parameter types. Currently these are typed as `Function`.
+- Support for `Model.Create`. Currently `new Model` must be used.
+- Support for setting subdocument properties without casting to any. When setting a subdocument array, Typescript will yell at you if you try and set them directly (ie `user.friends = [{ uid, name }]`) as it expects the array to contain additional subdocument properties. For now, this can be achieved by writing `user.friends = [{ uid, name }] as any`.
+- A Mongoose plugin. This will remove the need to re-run the CLI when changes to your schema are made.
+
+Would love any help with the listed features above.
