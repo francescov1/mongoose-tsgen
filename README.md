@@ -197,25 +197,7 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`mtgen help [COMMAND]`](#mtgen-help-command)
 * [`mtgen run [PATH]`](#mtgen-run-path)
-
-## `mtgen help [COMMAND]`
-
-display help for mtgen
-
-```
-USAGE
-  $ mtgen help [COMMAND]
-
-ARGUMENTS
-  COMMAND  command to show help for
-
-OPTIONS
-  --all  see all commands in CLI
-```
-
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.0/src/commands/help.ts)_
 
 ## `mtgen run [PATH]`
 
