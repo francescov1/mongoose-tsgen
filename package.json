@@ -11,6 +11,7 @@
     "@oclif/command": "^1.8.0",
     "@oclif/config": "^1.17.0",
     "@oclif/plugin-help": "^3.2.0",
+    "cli-ux": "^5.5.0",
     "flat": "^5.0.2",
     "mongoose": "^5.10.6",
     "tslib": "^1.13.0"
