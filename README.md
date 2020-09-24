@@ -31,7 +31,7 @@ USAGE
 
 ## `mtgen run [PATH]`
 
-Generate an index.d.ts file containing Mongoose Schema interfaces. If no `path` argument is provided, the tool will expect all models to be exported from `./src/models` by default.
+Generate an index.d.ts file containing Mongoose Schema interfaces. If no `path` argument is provided, the tool will expect all models to be exported from `./src/models/index.ts` by default.
 
 ```
 USAGE
