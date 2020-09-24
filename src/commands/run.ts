@@ -41,6 +41,8 @@ export default class Run extends Command {
             fullTemplate = parser.generateAllInterfaces({ modelsPath, customInterfaces })
         }
         catch (error) {
+            Error.captureStackTrace(error, error.constructor);
+            this.log(error.stack)
             this.error(error)
         }
 
