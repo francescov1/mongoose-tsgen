@@ -188,7 +188,7 @@ $ npm install -g mongoose-tsgen
 $ mtgen COMMAND
 running command...
 $ mtgen (-v|--version|version)
-mongoose-tsgen/0.0.1 darwin-x64 node-v14.3.0
+mongoose-tsgen/0.0.2 darwin-x64 node-v14.3.0
 $ mtgen --help [COMMAND]
 USAGE
   $ mtgen COMMAND
@@ -232,7 +232,7 @@ OPTIONS
   -o, --output=output  [default: ./src/types/mongoose] Path of output index.d.ts file
 ```
 
-_See code: [src/commands/run.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/v0.0.1/src/commands/run.ts)_
+_See code: [src/commands/run.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/v0.0.2/src/commands/run.ts)_
 <!-- commandsstop -->
 
 ### Coming Soon (most of the following features are already supported but use looser typing than likely desired):
