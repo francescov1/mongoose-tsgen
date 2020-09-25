@@ -39,7 +39,12 @@
   ],
   "homepage": "https://github.com/Bounced-Inc/mongoose-tsgen",
   "keywords": [
-    "oclif"
+    "mongoose",
+    "generator",
+    "typescript",
+    "interfaces",
+    "ts",
+    "mtgen"
   ],
   "license": "MIT",
   "main": "lib/index.js",
