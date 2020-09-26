@@ -27,9 +27,9 @@ $ mtgen # print usage
 # Usage
 <!-- commands -->
 
-## `mtgen run [PATH]`
+## `mtgen run [ROOT_PATH - default = "."]`
 
-Generate an index.d.ts file containing Mongoose Schema interfaces. If no `path` argument is provided, the tool will expect all models to be exported from `./dist/models/index.js` by default.
+Generate an index.d.ts file containing Mongoose Schema interfaces. All sub-directories of `ROOT_PATH` will be searched for a `/models/` folder. If such folder contains an `index.js` file, all Mongoose models are expected to be exported from here. If such file does not exist, it will be assumed that all `.js` in this folder export a Mongoose model, and will import them from each file individually. Currently this will find only Javascript files, so ensure to run `tsc` before running this command.
 
 ```
 USAGE
@@ -47,7 +47,7 @@ _See code: [src/commands/run.ts](https://github.com/Bounced-Inc/mongoose-tsgen/b
 
 # Example
 
-NOTE: Currently the CLI requires Typescript to be transpiled to Javascript. Please ensure to provide a Javascript file as the `path` argument.
+NOTE: Currently the CLI requires Typescript to be transpiled to Javascript. Please ensure to provide a Javascript file as the `ROOT_PATH` argument.
 
 ### user.ts
 
