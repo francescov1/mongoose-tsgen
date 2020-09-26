@@ -16,15 +16,12 @@ export default class Run extends Command {
         fresh: flags.boolean({ char: 'f', description: "Fresh run, ignoring previously generated custom interfaces" }),
     }
 
-    // path of mongoose models
+    // path of mongoose models folder
     // TODO: support ts paths
-    // TODO: if not absolute path, search in sub dirs
-    // - as first version, simply look for models folder
-    // TODO: once we do the todo above, we could change the first arg to be output path instead
     static args = [
         {
             name: 'path',
-            default: "./dist/models/index.js",
+            default: ".",
         },
     ]
 
@@ -38,8 +35,8 @@ export default class Run extends Command {
 
         let fullTemplate: string;
         try {
-            const modelsPath = path.join(process.cwd(), args.path);
-            fullTemplate = parser.generateAllInterfaces({ modelsPath, customInterfaces })
+            const modelsPath = await parser.findModelsPath(args.path)
+            fullTemplate = parser.generateFileString({ modelsPath, customInterfaces })
         }
         catch (error) {
             this.error(error)
