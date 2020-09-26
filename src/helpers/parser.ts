@@ -44,17 +44,17 @@ const getSubDocName = (path: string, modelName = "") => {
     return line;
   };
   
-  function parseFunctions(methodsOrStatics: any, prefix = "") {
-    let template = "";
+  const parseFunctions = (methodsOrStatics: any, prefix = "") => {
+    let interfaceString = "";
   
     Object.keys(methodsOrStatics).forEach(key => {
-      template += makeLine({ key, val: "Function", prefix });
+      interfaceString += makeLine({ key, val: "Function", prefix });
     });
   
-    return template;
+    return interfaceString;
   }
 
-  function parseSchema({ schema, modelName, addModel = false, header = "", footer = "", prefix = "" }: {schema: any, modelName?: string, addModel?: boolean, header?: string, footer?: string, prefix?: string}) {
+  export const parseSchema = ({ schema, modelName, addModel = false, header = "", footer = "", prefix = "" }: {schema: any, modelName?: string, addModel?: boolean, header?: string, footer?: string, prefix?: string}) => {
     let template = "";
 
     if (schema.childSchemas?.length > 0 && modelName) {
@@ -97,11 +97,10 @@ const getSubDocName = (path: string, modelName = "") => {
     template += header;
 
     const schemaTree = schema.tree;
-  
-    Object.keys(schemaTree).forEach(key => {
-      let val = schemaTree[key];
-  
+
+    const parseKey = (key: string, val: any, prefix: string): string => {
       // if type is provided directly on property, expand it
+      if (!val) console.log("NO VAL. prefix: " + prefix + ", key:val - " + key + ": ", val)
       if ([String, Number, Boolean, Date, ObjectId].includes(val))
         val = { type: val, required: false };
   
@@ -120,15 +119,12 @@ const getSubDocName = (path: string, modelName = "") => {
 
       if (val._inferredInterfaceName) {
         valType = val._inferredInterfaceName;
-      } else if (val._isReplacedWithSchema) {
-        // TODO: should header and footer both have prefix? or neither
-        valType = parseSchema({ schema: val, header: "{\n", footer: prefix + "}", prefix: prefix + "\t" });
-        isOptional = false;
       }
+
       // check for virtual properties
       else if (val.path && val.path && val.setters && val.getters) {
         if (key === "id") {
-          return;
+          return "";
         }
   
         valType = "any";
@@ -148,7 +144,7 @@ const getSubDocName = (path: string, modelName = "") => {
           "__v",
         ].includes(key)
       ) {
-        return;
+        return "";
       } else if (val.ref) {
         let docRef: string;
   
@@ -175,8 +171,7 @@ const getSubDocName = (path: string, modelName = "") => {
             else valType = "string";
             break;
           case Number:
-            if (key === "__v") return;
-            valType = "number";
+            if (key !== "__v") valType = "number";
             break;
           case Boolean:
             valType = "boolean";
@@ -189,23 +184,27 @@ const getSubDocName = (path: string, modelName = "") => {
             break;
           // _id fields have type as a string
           case "ObjectId":
-            return;
+            return "";
           // TODO: instead we should be calling the callback func to the Object.keys func call above here
           default:
             // if we dont find it, go one level deeper
             valType = parseSchema({ schema: { tree: val }, header: "{\n", footer: prefix + "}", prefix: prefix + "\t"});
             isOptional = false;
-            break;
         }
       }
   
-      if (!valType) return;
+      if (!valType) return "";
   
       if (isArray)
         valType =
           `Types.${val._isSubdocArray ? "Document" : ""}Array<` + valType + ">";
   
-      template += makeLine({ key, val: valType, prefix, isOptional });
+      return makeLine({ key, val: valType, prefix, isOptional });
+  }
+  
+    Object.keys(schemaTree).forEach((key: string) => {
+      const val = schemaTree[key];
+      template += parseKey(key, val, prefix);
     });
   
     if (schema.methods) {

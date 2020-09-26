@@ -13,6 +13,7 @@
     "complexity": 0,
     "brace-style": 0,
     "no-trailing-spaces": 0,
+    "no-case-declarations": 0,
     "@typescript-eslint/interface-name-prefix": 0,
     "@typescript-eslint/member-delimiter-style": 0,
     "@typescript-eslint/no-empty-interface": 0

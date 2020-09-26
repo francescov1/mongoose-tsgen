@@ -42,7 +42,7 @@ OPTIONS
   -o, --output=output  [default: ./src/types/mongoose] Path of output index.d.ts file
 ```
 
-_See code: [src/commands/run.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/v0.0.3/src/commands/run.ts)_
+_See code: [src/commands/run.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/master/src/commands/run.ts)_
 <!-- commandsstop -->
 
 # Example
