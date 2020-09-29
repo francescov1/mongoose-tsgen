@@ -18,6 +18,13 @@ function cleanupFolderStructure(relBasePath: string) {
 }
 
 describe("findModelsPath", () => {
+    // ensure no test folders are present
+    beforeAll(() => {
+        cleanupFolderStructure("dist");
+        cleanupFolderStructure("lib");
+        cleanupFolderStructure("models");
+    })
+
     test("./dist/models/index.js", async () => {
         setupFolderStructure("./dist/models")
         const expected = path.join(__dirname, "dist/models/index.js");
@@ -100,5 +107,23 @@ describe("findModelsPath", () => {
         expect(modelsPath).toEqual(expected);
 
         cleanupFolderStructure("models");
+    })
+
+    test("no models", async () => {
+        await expect(parser.findModelsPath(".")).rejects.toThrow(
+            new Error(`No "models" folder found.`)
+        );
+    })
+
+    test("multiple index.js files ", async () => {
+        setupFolderStructure("./dist/models");
+        setupFolderStructure("./lib/models");
+
+        await expect(parser.findModelsPath(".")).rejects.toThrow(
+            new Error(`Multiple paths found ending in "models/index.js". Please specify a more specific path argument. Paths found: src/helpers/tests/dist/models/index.js,src/helpers/tests/lib/models/index.js`)
+        );
+
+        cleanupFolderStructure("dist");
+        cleanupFolderStructure("lib");
     })
 });

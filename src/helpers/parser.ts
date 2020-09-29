@@ -235,31 +235,36 @@ const getSubDocName = (path: string, modelName = "") => {
 
     return new Promise((resolve, reject) => {
       glob(pathToSearch, function (err, files) {
-        if (err) return reject(err);
+        try {
+          if (err) throw err;
 
-        const mainExportFiles = files.filter((filename: string) => {
-          return filename.endsWith("models/index.js");
-        })
-
-        let modelsPath;
-        if (mainExportFiles.length === 1) {
-          modelsPath = path.join(process.cwd(), mainExportFiles[0]) as string;
+          const mainExportFiles = files.filter((filename: string) => {
+            return filename.endsWith("models/index.js");
+          })
+  
+          let modelsPath;
+          if (mainExportFiles.length === 1) {
+            modelsPath = path.join(process.cwd(), mainExportFiles[0]) as string;
+          }
+          else if (mainExportFiles.length > 1) {
+            throw new Error(`Multiple paths found ending in "models/index.js". Please specify a more specific path argument. Paths found: ${mainExportFiles}`)
+          }
+          // if no index.js file, then well require all model files individually
+          else if (files.length > 0) {
+            modelsPath = files.map((filename: string) => {
+              // return path.join(basePath, filename);
+              return path.join(process.cwd(), filename);
+            }) as string[]
+          }
+          else {
+            throw new Error(`No "models" folder found.`)
+          }
+  
+          resolve(modelsPath)
         }
-        else if (mainExportFiles.length > 1) {
-          throw new Error(`Multiple paths found ending in "models/index.js". Please specify a more specific path argument. Paths found: ${mainExportFiles}`)
+        catch (err) {
+          reject(err)
         }
-        // if no index.js file, then well require all model files individually
-        else if (files.length > 0) {
-          modelsPath = files.map((filename: string) => {
-            // return path.join(basePath, filename);
-            return path.join(process.cwd(), filename);
-          }) as string[]
-        }
-        else {
-          throw new Error(`No "models" folder found.`)
-        }
-
-        resolve(modelsPath)
       })
     })
   }
