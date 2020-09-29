@@ -185,7 +185,6 @@ const getSubDocName = (path: string, modelName = "") => {
           // _id fields have type as a string
           case "ObjectId":
             return "";
-          // TODO: instead we should be calling the callback func to the Object.keys func call above here
           default:
             // if we dont find it, go one level deeper
             valType = parseSchema({ schema: { tree: val }, header: "{\n", footer: prefix + "}", prefix: prefix + "\t"});

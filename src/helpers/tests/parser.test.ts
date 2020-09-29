@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const rimraf = require("rimraf");
 import * as parser from "../parser";
+const mongoose = require("mongoose");
 
 function setupFolderStructure(relPath: string, { index = true, model = true}: { index?: boolean, model?: boolean } = {}) {
     const absPath = path.join(__dirname, relPath)
@@ -17,14 +18,24 @@ function cleanupFolderStructure(relBasePath: string) {
     rimraf.sync(path.join(__dirname, relBasePath));
 }
 
-describe("findModelsPath", () => {
-    // ensure no test folders are present
-    beforeAll(() => {
-        cleanupFolderStructure("dist");
-        cleanupFolderStructure("lib");
-        cleanupFolderStructure("models");
-    })
+function getExpectedInterfaceString(custom = false) {
+    return fs.readFileSync(path.join(__dirname, `artifacts/${custom ? "custom." : ""}index.d.ts`), "utf8");
+}
 
+function cleanupModelsInMemory() {
+    delete mongoose.models.User;
+    delete mongoose.connection.collections.users;
+    delete mongoose.modelSchemas.User;
+}
+
+// ensure no test folders are present
+beforeAll(() => {
+    cleanupFolderStructure("dist");
+    cleanupFolderStructure("lib");
+    cleanupFolderStructure("models");
+})
+
+describe("findModelsPath", () => {
     test("./dist/models/index.js", async () => {
         setupFolderStructure("./dist/models")
         const expected = path.join(__dirname, "dist/models/index.js");
@@ -127,3 +138,30 @@ describe("findModelsPath", () => {
         cleanupFolderStructure("lib");
     })
 });
+
+describe("generateFileString", () => {
+    test("generate file string success", async () => {
+        setupFolderStructure("./dist/models");
+        const modelsPath = await parser.findModelsPath(".");
+
+        const fileString = await parser.generateFileString({ modelsPath })
+        
+        expect(fileString).toBe(getExpectedInterfaceString());
+
+        cleanupFolderStructure("dist");
+        cleanupModelsInMemory()
+    })
+
+    test("generate string file with custom interface success", async () => {
+        setupFolderStructure("./lib/models");
+        const modelsPath = await parser.findModelsPath(".");
+
+        const customInterfaces = `\texport type IUserLean = Pick<IUser, "_id" | "firstName" | "lastName" | "name">;\n\n\texport interface OtherCustomInterface {\n\t\tfoo: string;\n\t\tbar?: number;\n\t}\n`;
+
+        const fileString = await parser.generateFileString({ modelsPath, customInterfaces })
+        expect(fileString).toBe(getExpectedInterfaceString(true));
+
+        cleanupFolderStructure("lib");
+        cleanupModelsInMemory()
+    })
+})
