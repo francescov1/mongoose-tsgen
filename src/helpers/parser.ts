@@ -229,7 +229,7 @@ const getSubDocName = (path: string, modelName = "") => {
 
   export const findModelsPath = (basePath: string): Promise<string | string[]> => {
     let pathToSearch: string;
-    if (basePath.endsWith("models")) pathToSearch = path.join(basePath, "*.js");
+    if (basePath.endsWith("models") || basePath.endsWith("models/")) pathToSearch = path.join(basePath, "*.js");
     else if (basePath.endsWith("index.js")) pathToSearch = basePath;
     else pathToSearch = path.join(basePath, "**/models/*.js")
 
