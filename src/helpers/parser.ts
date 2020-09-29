@@ -228,8 +228,13 @@ const getSubDocName = (path: string, modelName = "") => {
   }
 
   export const findModelsPath = (basePath: string): Promise<string | string[]> => {
+    let pathToSearch: string;
+    if (basePath.endsWith("models")) pathToSearch = path.join(basePath, "*.js");
+    else if (basePath.endsWith("index.js")) pathToSearch = basePath;
+    else pathToSearch = path.join(basePath, "**/models/*.js")
+
     return new Promise((resolve, reject) => {
-      glob(path.join(basePath, "**/models/*.js"), function (err, files) {
+      glob(pathToSearch, function (err, files) {
         if (err) return reject(err);
 
         const mainExportFiles = files.filter((filename: string) => {
@@ -243,8 +248,10 @@ const getSubDocName = (path: string, modelName = "") => {
         else if (mainExportFiles.length > 1) {
           throw new Error(`Multiple paths found ending in "models/index.js". Please specify a more specific path argument. Paths found: ${mainExportFiles}`)
         }
+        // if no index.js file, then well require all model files individually
         else if (files.length > 0) {
           modelsPath = files.map((filename: string) => {
+            // return path.join(basePath, filename);
             return path.join(process.cwd(), filename);
           }) as string[]
         }
