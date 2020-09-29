@@ -29,7 +29,7 @@ export default class Run extends Command {
         cli.action.start('Generating mongoose typescript definitions')
         const { flags, args } = this.parse(Run)
 
-        const ouputFilePath = path.join(flags.output, "index.d.ts");
+        const ouputFilePath = flags.output.endsWith("index.d.ts") ? flags.output : path.join(flags.output, "index.d.ts");
 
         const customInterfaces = flags.fresh ? "" : parser.loadCustomInterfaces(ouputFilePath)
 

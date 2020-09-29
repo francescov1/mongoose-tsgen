@@ -14,6 +14,10 @@
     "brace-style": 0,
     "no-trailing-spaces": 0,
     "no-case-declarations": 0,
+    "comma-dangle": 0,
+    "no-return-await": 0,
+    "unicorn/filename-case": 0,
+    "unicorn/catch-error-name": 0,
     "@typescript-eslint/interface-name-prefix": 0,
     "@typescript-eslint/member-delimiter-style": 0,
     "@typescript-eslint/no-empty-interface": 0

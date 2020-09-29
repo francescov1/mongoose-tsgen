@@ -185,7 +185,6 @@ const getSubDocName = (path: string, modelName = "") => {
           // _id fields have type as a string
           case "ObjectId":
             return "";
-          // TODO: instead we should be calling the callback func to the Object.keys func call above here
           default:
             // if we dont find it, go one level deeper
             valType = parseSchema({ schema: { tree: val }, header: "{\n", footer: prefix + "}", prefix: prefix + "\t"});
@@ -228,31 +227,43 @@ const getSubDocName = (path: string, modelName = "") => {
   }
 
   export const findModelsPath = (basePath: string): Promise<string | string[]> => {
+    let pathToSearch: string;
+    if (basePath.endsWith("models") || basePath.endsWith("models/")) pathToSearch = path.join(basePath, "*.js");
+    else if (basePath.endsWith("index.js")) pathToSearch = basePath;
+    else pathToSearch = path.join(basePath, "**/models/*.js")
+
     return new Promise((resolve, reject) => {
-      glob(path.join(basePath, "**/models/*.js"), function (err, files) {
-        if (err) return reject(err);
+      glob(pathToSearch, function (err, files) {
+        try {
+          if (err) throw err;
 
-        const mainExportFiles = files.filter((filename: string) => {
-          return filename.endsWith("models/index.js");
-        })
-
-        let modelsPath;
-        if (mainExportFiles.length === 1) {
-          modelsPath = path.join(process.cwd(), mainExportFiles[0]) as string;
+          const mainExportFiles = files.filter((filename: string) => {
+            return filename.endsWith("models/index.js");
+          })
+  
+          let modelsPath;
+          if (mainExportFiles.length === 1) {
+            modelsPath = path.join(process.cwd(), mainExportFiles[0]) as string;
+          }
+          else if (mainExportFiles.length > 1) {
+            throw new Error(`Multiple paths found ending in "models/index.js". Please specify a more specific path argument. Paths found: ${mainExportFiles}`)
+          }
+          // if no index.js file, then well require all model files individually
+          else if (files.length > 0) {
+            modelsPath = files.map((filename: string) => {
+              // return path.join(basePath, filename);
+              return path.join(process.cwd(), filename);
+            }) as string[]
+          }
+          else {
+            throw new Error(`No "models" folder found.`)
+          }
+  
+          resolve(modelsPath)
         }
-        else if (mainExportFiles.length > 1) {
-          throw new Error(`Multiple paths found ending in "models/index.js". Please specify a more specific path argument. Paths found: ${mainExportFiles}`)
+        catch (err) {
+          reject(err)
         }
-        else if (files.length > 0) {
-          modelsPath = files.map((filename: string) => {
-            return path.join(process.cwd(), filename);
-          }) as string[]
-        }
-        else {
-          throw new Error(`No "models" folder found.`)
-        }
-
-        resolve(modelsPath)
       })
     })
   }

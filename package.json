@@ -20,17 +20,22 @@
   "devDependencies": {
     "@oclif/dev-cli": "^1.22.2",
     "@types/flat": "^5.0.1",
+    "@types/jest": "^26.0.14",
     "@types/mongoose": "^5.7.36",
     "@types/node": "^10.17.35",
     "eslint": "^5.16.0",
     "eslint-config-oclif": "^3.1.0",
     "eslint-config-oclif-typescript": "^0.1.0",
     "globby": "^10.0.2",
+    "jest": "^26.4.2",
+    "mkdirp": "^1.0.4",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^26.4.1",
     "ts-node": "^9.0.0",
     "typescript": "^3.9.7"
   },
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=9.0.0"
   },
   "files": [
     "/bin",
@@ -61,7 +66,7 @@
     "postpack": "rm -f oclif.manifest.json",
     "posttest": "eslint . --ext .ts --config .eslintrc",
     "prepack": "rm -rf lib && tsc -b && oclif-dev manifest",
-    "test": "echo NO TESTS",
+    "test": "npx jest",
     "readme": "./node_modules/@oclif/dev-cli/bin/run readme"
   },
   "types": "lib/index.d.ts"
