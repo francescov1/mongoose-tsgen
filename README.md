@@ -44,6 +44,8 @@ OPTIONS
   -o, --output=output  [default: ./src/types/mongoose] Path of output index.d.ts file
 ```
 
+<i>NOTE: --output requires a folder path or a file path ending in `index.d.ts`. If the path does not exist, it will be created.</i>
+
 _See code: [src/commands/run.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/master/src/commands/run.ts)_
 <!-- commandsstop -->
 
