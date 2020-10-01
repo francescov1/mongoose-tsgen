@@ -324,12 +324,18 @@ const getSubDocName = (path: string, modelName = "") => {
   };
 
   export const writeInterfaceToFile = (outputFilePath: string, interfaceString: string) => {
+    const outputPath = outputFilePath.split("/index.d.ts")[0]
+    const outputPathComponents = outputPath.split("/");
+    
+    if (outputPathComponents[outputPathComponents.length - 1].includes(".")) {
+      throw new Error("--output parameter must reference a folder path or an index.d.ts file.")
+    }
+
     try {
       fs.writeFileSync(outputFilePath, interfaceString, "utf8");
     }
     catch (err) {
       if (err.message.includes("ENOENT: no such file or directory")) {
-        const outputPath = outputFilePath.split("/index.d.ts")[0]
         console.log(`Path ${outputPath} not found; creating...`)
         mkdirp.sync(outputPath);
         console.log(`Attempting write index.d.ts file in new path`);
