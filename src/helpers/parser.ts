@@ -221,7 +221,8 @@ const getSubDocName = (path: string, modelName = "") => {
       const customInterfaces = prevInterfaces?.split(CUSTOM_INTERFACES_HEADER).pop()?.split(CUSTOM_INTERFACES_FOOTER)[0];
       return customInterfaces;
     }
-    catch (error) {
+    catch (err) {
+      console.log("File not found, returning empty custom interface");
       return ""
     }
   }

@@ -5,13 +5,17 @@ const rimraf = require("rimraf");
 import * as parser from "../parser";
 const mongoose = require("mongoose");
 
-function setupFolderStructure(relPath: string, { index = true, model = true}: { index?: boolean, model?: boolean } = {}) {
+function setupFolderStructure(relPath: string, { index = true, model = true, typeFile = false, customTypeFile = false }: { index?: boolean, model?: boolean, typeFile?: boolean, customTypeFile?: boolean } = {}) {
     const absPath = path.join(__dirname, relPath)
     mkdirp.sync(absPath);
 
     if (index) fs.copyFileSync(path.join(__dirname, 'artifacts/index.js'), path.join(absPath, 'index.js'));
     if (model) 
     fs.copyFileSync(path.join(__dirname, 'artifacts/user.js'), path.join(absPath, 'user.js'));
+    if (typeFile)
+    fs.copyFileSync(path.join(__dirname, 'artifacts/index.d.ts'), path.join(absPath, 'index.d.ts'));
+    if (customTypeFile)
+    fs.copyFileSync(path.join(__dirname, 'artifacts/custom.index.d.ts'), path.join(absPath, 'custom.index.d.ts'));
 }
 
 function cleanupFolderStructure(relBasePath: string) {
@@ -33,6 +37,7 @@ beforeAll(() => {
     cleanupFolderStructure("dist");
     cleanupFolderStructure("lib");
     cleanupFolderStructure("models");
+    cleanupFolderStructure("src");
 })
 
 describe("findModelsPath", () => {
@@ -163,5 +168,26 @@ describe("generateFileString", () => {
 
         cleanupFolderStructure("lib");
         cleanupModelsInMemory()
+    })
+})
+
+describe("loadCustomInterfaces", () => {
+    // let expectedInterfaceString: string;
+    beforeAll(() => {
+        cleanupFolderStructure("src");
+        // expectedInterfaceString = fs.readFileSync(path.join(__dirname, "artifacts/index.d.ts"), "utf8");
+    })
+
+    test("load custom interface file path missing", () => {
+        const interfaceString = parser.loadCustomInterfaces("./src/types/mongoose")
+        expect(interfaceString).toBe("");
+        cleanupFolderStructure("src");
+    })
+
+    test("load custom interface", () => {
+        setupFolderStructure("./src/types/mongoose", { model: false, index: false, customTypeFile: true });
+        const interfaceString = parser.loadCustomInterfaces("./src/helpers/tests/src/types/mongoose/custom.index.d.ts")
+        expect(interfaceString).toBe(`\texport type IUserLean = Pick<IUser, "_id" | "firstName" | "lastName" | "name">;\n\n\texport interface OtherCustomInterface {\n\t\tfoo: string;\n\t\tbar?: number;\n\t}\n`);
+        cleanupFolderStructure("src");
     })
 })
