@@ -14,6 +14,7 @@
     "cli-ux": "^5.5.0",
     "flat": "^5.0.2",
     "glob": "^7.1.6",
+    "mkdirp": "^1.0.4",
     "mongoose": "^5.10.6",
     "tslib": "^1.13.0"
   },
@@ -21,6 +22,7 @@
     "@oclif/dev-cli": "^1.22.2",
     "@types/flat": "^5.0.1",
     "@types/jest": "^26.0.14",
+    "@types/mkdirp": "^1.0.1",
     "@types/mongoose": "^5.7.36",
     "@types/node": "^10.17.35",
     "eslint": "^5.16.0",
@@ -28,7 +30,6 @@
     "eslint-config-oclif-typescript": "^0.1.0",
     "globby": "^10.0.2",
     "jest": "^26.4.2",
-    "mkdirp": "^1.0.4",
     "rimraf": "^3.0.2",
     "ts-jest": "^26.4.1",
     "ts-node": "^9.0.0",

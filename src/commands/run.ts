@@ -1,6 +1,5 @@
 import { Command, flags } from '@oclif/command'
 import cli from 'cli-ux';
-import * as fs from 'fs';
 import path from 'path';
 
 import * as parser from "../helpers/parser";
@@ -29,9 +28,9 @@ export default class Run extends Command {
         cli.action.start('Generating mongoose typescript definitions')
         const { flags, args } = this.parse(Run)
 
-        const ouputFilePath = flags.output.endsWith("index.d.ts") ? flags.output : path.join(flags.output, "index.d.ts");
+        const outputFilePath = flags.output.endsWith("index.d.ts") ? flags.output : path.join(flags.output, "index.d.ts");
 
-        const customInterfaces = flags.fresh ? "" : parser.loadCustomInterfaces(ouputFilePath)
+        const customInterfaces = flags.fresh ? "" : parser.loadCustomInterfaces(outputFilePath)
 
         let fullTemplate: string;
         try {
@@ -49,8 +48,8 @@ export default class Run extends Command {
             this.log(fullTemplate)
         }
         else {
-            this.log(`Writing interfaces to ${ouputFilePath}`);
-            fs.writeFileSync(ouputFilePath, fullTemplate, "utf8");
+            this.log(`Writing interfaces to ${outputFilePath}`);
+            parser.writeInterfaceToFile(outputFilePath, fullTemplate);
             this.log('Writing complete 🐒')
         }
     }

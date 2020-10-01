@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import flatten, { unflatten } from "flat";
 import glob from "glob";
 import path from 'path';
+import mkdirp from 'mkdirp';
 import * as fs from 'fs';
 const { ObjectId } = mongoose.Schema.Types;
 
@@ -222,7 +223,7 @@ const getSubDocName = (path: string, modelName = "") => {
       return customInterfaces;
     }
     catch (err) {
-      console.log("File not found, returning empty custom interface");
+      console.log("Existing index.d.ts file not found. index.d.ts file will have an empty custom interface");
       return ""
     }
   }
@@ -321,3 +322,18 @@ const getSubDocName = (path: string, modelName = "") => {
   
     return fullTemplate;
   };
+
+  export const writeInterfaceToFile = (outputFilePath: string, interfaceString: string) => {
+    try {
+      fs.writeFileSync(outputFilePath, interfaceString, "utf8");
+    }
+    catch (err) {
+      if (err.message.includes("ENOENT: no such file or directory")) {
+        const outputPath = outputFilePath.split("/index.d.ts")[0]
+        console.log(`Path ${outputPath} not found; creating...`)
+        mkdirp.sync(outputPath);
+        console.log(`Attempting write index.d.ts file in new path`);
+        fs.writeFileSync(outputFilePath, interfaceString, "utf8");
+      }
+    }
+  }
