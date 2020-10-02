@@ -283,24 +283,60 @@ const getSubDocName = (path: string, modelName = "") => {
     fullTemplate += `declare module "mongoose" {\n\n`;
   
     let models: any;
-    try {
-      if (Array.isArray(modelsPath)) {
-        models = modelsPath.map((singleModelPath: string) => {
-          const model = require(singleModelPath);
-          if (model.default) return model.default;
-          return model;
-        });
-      }
-      else {
+
+    // if models folder does not export all schemas from an index.js file, we check each file's export object
+    // for property names that would commonly export the schema. Here is the priority (using the filename as a starting point to determine model name): 
+    // default export, model name (ie `User`), model name lowercase (ie `user`), collection name (ie `users`), collection name uppercased (ie `Users`).
+    // If none of those exist, we assume the export object is set to the schema directly
+    if (Array.isArray(modelsPath)) {
+      models = modelsPath.map((singleModelPath: string) => {
+        let exportedData;
+        try {
+          exportedData = require(singleModelPath);
+        }
+        catch (err) {
+          if (err.message?.includes(`Cannot find module '${singleModelPath}'`))
+              throw new Error(`Path ${singleModelPath} do not contain an exported schema. Please ensure these files export a Mongoose Schema (preferably default export).`);
+          else throw err;
+        }
+
+        // if exported data has a default export, use that
+        if (exportedData.default) return exportedData.default;
+        
+        // if no default export, look for a property matching file name
+        const pathComponents = singleModelPath.split("/");
+        const filename = pathComponents[pathComponents.length - 1]
+        const filenameRoot = filename?.split(".")?.[0]
+
+        // capitalize first char
+        const modelName = filenameRoot.charAt(0).toUpperCase() + filenameRoot.slice(1)
+        const collectionNameUppercased = modelName + "s";
+
+        let modelNameLowercase = filenameRoot.endsWith("s") ? filenameRoot.slice(0, -1) : filenameRoot
+        modelNameLowercase = modelNameLowercase.toLowerCase();
+
+        const collectionName = modelNameLowercase + "s";
+
+        // TODO: search exportedData and check for instanceof mongoose.Model instead
+        // https://stackoverflow.com/questions/10827108/mongoose-check-if-object-is-mongoose-object
+        if (exportedData[modelName]) return exportedData[modelName];
+        if (exportedData[modelNameLowercase]) return exportedData[modelNameLowercase];
+        if (exportedData[collectionName]) return exportedData[collectionName];
+        if (exportedData[collectionNameUppercased]) return exportedData[collectionNameUppercased];
+        if (exportedData.modelName && exportedData.schema) return exportedData
+
+        throw new Error(`Path ${singleModelPath} do not contain an exported schema. Please ensure these files export a Mongoose Schema (preferably default export).`)
+      });
+    }
+    else {
+      try {
         models = require(modelsPath);
       }
-    }
-    catch (error) {
-      if (error.message?.includes("Cannot find module")) {
-          throw new Error(`Path ${modelsPath} does not contain an exported module.`)
-      }
-      else {
-          throw error;
+      catch (err) {
+        if (err.message?.includes("Cannot find module"))
+            // TODO fix message for only index.d.ts
+            throw new Error(`Path ${modelsPath} do not contain an exported schema. Please ensure these files export a Mongoose Schema (preferably default export).`);
+        else throw err;
       }
     }
   
