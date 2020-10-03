@@ -4,6 +4,7 @@ import glob from "glob";
 import path from 'path';
 import mkdirp from 'mkdirp';
 import * as fs from 'fs';
+
 const { ObjectId } = mongoose.Schema.Types;
 
 const getSubDocName = (path: string, modelName = "") => {
@@ -228,46 +229,55 @@ const getSubDocName = (path: string, modelName = "") => {
     }
   }
 
-  export const findModelsPath = (basePath: string): Promise<string | string[]> => {
+  export const registerUserTs = (basePath: string): void => {
     let pathToSearch: string;
-    if (basePath.endsWith("models") || basePath.endsWith("models/")) pathToSearch = path.join(basePath, "*.js");
-    else if (basePath.endsWith("index.js")) pathToSearch = basePath;
-    else pathToSearch = path.join(basePath, "**/models/*.js")
+    if (basePath.endsWith("tsconfig.json")) pathToSearch = basePath;
+    else pathToSearch = path.join(basePath, "**/tsconfig.json")
 
-    return new Promise((resolve, reject) => {
-      glob(pathToSearch, function (err, files) {
-        try {
-          if (err) throw err;
+    const files = glob.sync(pathToSearch, { ignore: "**/node_modules/**"});
 
-          const mainExportFiles = files.filter((filename: string) => {
-            return filename.endsWith("models/index.js");
-          })
+    if (files.length === 0)
+      throw new Error(`No tsconfig.json file found at path "${basePath}"`);
+    else if (files.length > 1)
+      throw new Error(`Multiple tsconfig.json files found. Please specify a more specific project value. Paths found: ${files}`);
   
-          let modelsPath;
-          if (mainExportFiles.length === 1) {
-            modelsPath = path.join(process.cwd(), mainExportFiles[0]) as string;
-          }
-          else if (mainExportFiles.length > 1) {
-            throw new Error(`Multiple paths found ending in "models/index.js". Please specify a more specific path argument. Paths found: ${mainExportFiles}`)
-          }
-          // if no index.js file, then well require all model files individually
-          else if (files.length > 0) {
-            modelsPath = files.map((filename: string) => {
-              // return path.join(basePath, filename);
-              return path.join(process.cwd(), filename);
-            }) as string[]
-          }
-          else {
-            throw new Error(`No "/models" folder found at path "${basePath}"`)
-          }
-  
-          resolve(modelsPath)
-        }
-        catch (err) {
-          reject(err)
-        }
-      })
+    const foundPath = path.join(process.cwd(), files[0]);
+    require('ts-node').register({ transpileOnly: true, project: foundPath });
+  }
+
+  export const findModelsPath = (basePath: string, useJs = false): string | string[] => {
+    const extension = useJs ? "js" : "ts";
+
+    let pathToSearch: string;
+    if (basePath.endsWith("models") || basePath.endsWith("models/")) pathToSearch = path.join(basePath, `*.${extension}`);
+    else if (basePath.endsWith(`index.${extension}`)) pathToSearch = basePath;
+    else pathToSearch = path.join(basePath, `**/models/*.${extension}`)
+
+    const files = glob.sync(pathToSearch)
+
+    const mainExportFiles = files.filter((filename: string) => {
+      return filename.endsWith(`models/index.${extension}`);
     })
+
+    let modelsPath;
+    if (mainExportFiles.length === 1) {
+      modelsPath = path.join(process.cwd(), mainExportFiles[0]) as string;
+    }
+    else if (mainExportFiles.length > 1) {
+      throw new Error(`Multiple paths found ending in "models/index.${extension}". Please specify a more specific path argument. Paths found: ${mainExportFiles}`)
+    }
+    // if no index.js file, then well require all model files individually
+    else if (files.length > 0) {
+      modelsPath = files.map((filename: string) => {
+        // return path.join(basePath, filename);
+        return path.join(process.cwd(), filename);
+      }) as string[]
+    }
+    else {
+      throw new Error(`No "/models" folder found at path "${basePath}"`)
+    }
+
+    return modelsPath
   }
 
   export const generateFileString = ({

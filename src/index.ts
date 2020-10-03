@@ -6,19 +6,21 @@ import path from 'path';
 import * as parser from "./helpers/parser";
 
 class MongooseTsgen extends Command {
-  static description = 'Generate an index.d.ts file containing Mongoose Schema interfaces. The specified path ("." by default) will be searched recursively for a `models` folder, where your Mongoose Schemas should be exported from.'
+  static description = 'Generate an index.d.ts file containing Mongoose Schema interfaces. The specified root path ("." by default) will be searched recursively for a `models` folder, where your Mongoose Schemas should be exported from.'
 
   static flags = {
     help: flags.help({char: 'h'}),
     output: flags.string({ char: 'o', default: "./src/types/mongoose", description: "Path of output index.d.ts file" }),
     "dry-run": flags.boolean({ char: 'd', default: false, description: "Print output rather than writing to file" }),
     fresh: flags.boolean({ char: 'f', description: "Fresh run, ignoring previously generated custom interfaces" }),
+    js: flags.boolean({ char: 'j', default: false, description: "Search for Mongoose schemas in Javascript files rather than in Typescript files"}),
+    project: flags.string({ char: 'p', default: "./", description: "Path of tsconfig.json or its root folder"})
   }
   
    // path of mongoose models folder
    static args = [
         {
-            name: 'path',
+            name: 'root_path',
             default: "."
         }
     ]
@@ -32,7 +34,10 @@ class MongooseTsgen extends Command {
 
       let fullTemplate: string;
       try {
-          const modelsPath = await parser.findModelsPath(args.path)
+          const modelsPath = parser.findModelsPath(args.root_path, flags.js)
+          
+          if (!flags.js) parser.registerUserTs(flags.project);
+
           fullTemplate = parser.generateFileString({ modelsPath, customInterfaces })
       }
       catch (error) {
