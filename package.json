@@ -59,7 +59,7 @@
   "repository": "Bounced-Inc/mongoose-tsgen",
   "scripts": {
     "posttest": "eslint . --ext .ts --config .eslintrc",
-    "prepack": "rm -rf lib && tsc -b && oclif-dev manifest",
+    "prepack": "rm -rf lib && tsc -b",
     "test": "npx jest",
     "readme": "./node_modules/@oclif/dev-cli/bin/run readme"
   },
