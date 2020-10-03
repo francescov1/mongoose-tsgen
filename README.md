@@ -20,8 +20,8 @@ Requires only a few lines of additional code to support, and is compatible with 
 # Installation
 <!-- usage -->
 ```sh-session
-$ npm install -g mongoose-tsgen
-$ mtgen --help # print usage
+$ npm install -D mongoose-tsgen
+$ npx mtgen --help # print usage
 ```
 <!-- usagestop -->
 # Usage
