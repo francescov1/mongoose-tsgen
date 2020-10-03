@@ -258,7 +258,7 @@ const getSubDocName = (path: string, modelName = "") => {
             }) as string[]
           }
           else {
-            throw new Error(`No "models" folder found.`)
+            throw new Error(`No "/models" folder found at path "${basePath}"`)
           }
   
           resolve(modelsPath)

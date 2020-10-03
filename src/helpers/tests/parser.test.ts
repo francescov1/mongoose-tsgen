@@ -127,7 +127,7 @@ describe("findModelsPath", () => {
 
     test("no models", async () => {
         await expect(parser.findModelsPath(".")).rejects.toThrow(
-            new Error(`No "models" folder found.`)
+            new Error(`No "/models" folder found at path "."`)
         );
     })
 
