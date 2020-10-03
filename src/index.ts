@@ -10,11 +10,11 @@ class MongooseTsgen extends Command {
 
   static flags = {
     help: flags.help({char: 'h'}),
-    output: flags.string({ char: 'o', default: "./src/types/mongoose", description: "Path of output index.d.ts file" }),
-    "dry-run": flags.boolean({ char: 'd', default: false, description: "Print output rather than writing to file" }),
-    fresh: flags.boolean({ char: 'f', description: "Fresh run, ignoring previously generated custom interfaces" }),
-    js: flags.boolean({ char: 'j', default: false, description: "Search for Mongoose schemas in Javascript files rather than in Typescript files"}),
-    project: flags.string({ char: 'p', default: "./", description: "Path of tsconfig.json or its root folder"})
+    output: flags.string({ char: 'o', default: "./src/types/mongoose", description: "path of output index.d.ts file" }),
+    "dry-run": flags.boolean({ char: 'd', default: false, description: "print output rather than writing to file" }),
+    fresh: flags.boolean({ char: 'f', description: "fresh run, ignoring previously generated custom interfaces" }),
+    js: flags.boolean({ char: 'j', default: false, description: "search for Mongoose schemas in Javascript files rather than in Typescript files"}),
+    project: flags.string({ char: 'p', default: "./", description: "path of tsconfig.json or its root folder"})
   }
   
    // path of mongoose models folder
