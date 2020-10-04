@@ -45,19 +45,19 @@ describe("findModelsPath", () => {
         setupFolderStructure("./dist/models")
         const expected = path.join(__dirname, "dist/models/index.js");
 
-        let modelsPath = await parser.findModelsPath(".");
+        let modelsPath = await parser.findModelsPath(".", true);
         expect(modelsPath).toBe(expected);
 
-        modelsPath = await parser.findModelsPath("./src/helpers/tests/");
+        modelsPath = await parser.findModelsPath("./src/helpers/tests/", true);
         expect(modelsPath).toBe(expected);
 
-        modelsPath = await parser.findModelsPath("./src/helpers/tests/dist");
+        modelsPath = await parser.findModelsPath("./src/helpers/tests/dist", true);
         expect(modelsPath).toBe(expected);
 
-        modelsPath = await parser.findModelsPath("./src/helpers/tests/dist/models");
+        modelsPath = await parser.findModelsPath("./src/helpers/tests/dist/models", true);
         expect(modelsPath).toBe(expected);
 
-        modelsPath = await parser.findModelsPath("./src/helpers/tests/dist/models/index.js");
+        modelsPath = await parser.findModelsPath("./src/helpers/tests/dist/models/index.js", true);
         expect(modelsPath).toBe(expected);
 
         cleanupFolderStructure("dist");
@@ -67,19 +67,19 @@ describe("findModelsPath", () => {
         setupFolderStructure("./models");
         const expected = path.join(__dirname, "models/index.js");
 
-        let modelsPath = await parser.findModelsPath(".");
+        let modelsPath = await parser.findModelsPath(".", true);
         expect(modelsPath).toBe(expected);
 
-        modelsPath = await parser.findModelsPath("./src/helpers/tests/");
+        modelsPath = await parser.findModelsPath("./src/helpers/tests/", true);
         expect(modelsPath).toBe(expected);
 
-        modelsPath = await parser.findModelsPath("./src/helpers/tests");
+        modelsPath = await parser.findModelsPath("./src/helpers/tests", true);
         expect(modelsPath).toBe(expected);
 
-        modelsPath = await parser.findModelsPath("./src/helpers/tests/models");
+        modelsPath = await parser.findModelsPath("./src/helpers/tests/models", true);
         expect(modelsPath).toBe(expected);
 
-        modelsPath = await parser.findModelsPath("./src/helpers/tests/models/index.js");
+        modelsPath = await parser.findModelsPath("./src/helpers/tests/models/index.js", true);
         expect(modelsPath).toBe(expected);
 
         cleanupFolderStructure("models");
@@ -90,16 +90,16 @@ describe("findModelsPath", () => {
         // here the returned value should be an array containing paths of each individual schema
         const expected = [path.join(__dirname, "dist/models/user.js")]
 
-        let modelsPath = await parser.findModelsPath(".");
+        let modelsPath = await parser.findModelsPath(".", true);
         expect(modelsPath).toEqual(expected);
 
-        modelsPath = await parser.findModelsPath("./src/helpers/tests/");
+        modelsPath = await parser.findModelsPath("./src/helpers/tests/", true);
         expect(modelsPath).toEqual(expected);
 
-        modelsPath = await parser.findModelsPath("./src/helpers/tests/dist");
+        modelsPath = await parser.findModelsPath("./src/helpers/tests/dist", true);
         expect(modelsPath).toEqual(expected);
 
-        modelsPath = await parser.findModelsPath("./src/helpers/tests/dist/models");
+        modelsPath = await parser.findModelsPath("./src/helpers/tests/dist/models", true);
         expect(modelsPath).toEqual(expected);
 
         cleanupFolderStructure("dist");
@@ -110,23 +110,25 @@ describe("findModelsPath", () => {
         // here the returned value should be an array containing paths of each individual schema
         const expected = [path.join(__dirname, "models/user.js")]
 
-        let modelsPath = await parser.findModelsPath(".");
+        let modelsPath = await parser.findModelsPath(".", true);
         expect(modelsPath).toEqual(expected);
 
-        modelsPath = await parser.findModelsPath("./src/helpers/tests/");
+        modelsPath = await parser.findModelsPath("./src/helpers/tests/", true);
         expect(modelsPath).toEqual(expected);
 
-        modelsPath = await parser.findModelsPath("./src/helpers/tests");
+        modelsPath = await parser.findModelsPath("./src/helpers/tests", true);
         expect(modelsPath).toEqual(expected);
 
-        modelsPath = await parser.findModelsPath("./src/helpers/tests/models");
+        modelsPath = await parser.findModelsPath("./src/helpers/tests/models", true);
         expect(modelsPath).toEqual(expected);
 
         cleanupFolderStructure("models");
     })
 
     test("no models", async () => {
-        await expect(parser.findModelsPath(".")).rejects.toThrow(
+        expect(() => {
+            parser.findModelsPath(".", true)
+        }).toThrow(
             new Error(`No "/models" folder found at path "."`)
         );
     })
@@ -135,7 +137,9 @@ describe("findModelsPath", () => {
         setupFolderStructure("./dist/models");
         setupFolderStructure("./lib/models");
 
-        await expect(parser.findModelsPath(".")).rejects.toThrow(
+        expect(() => {
+            parser.findModelsPath(".", true)
+        }).toThrow(
             new Error(`Multiple paths found ending in "models/index.js". Please specify a more specific path argument. Paths found: src/helpers/tests/dist/models/index.js,src/helpers/tests/lib/models/index.js`)
         );
 
@@ -147,7 +151,7 @@ describe("findModelsPath", () => {
 describe("generateFileString", () => {
     test("generate file string success", async () => {
         setupFolderStructure("./dist/models");
-        const modelsPath = await parser.findModelsPath(".");
+        const modelsPath = await parser.findModelsPath(".", true);
 
         const fileString = await parser.generateFileString({ modelsPath })
         
@@ -159,7 +163,7 @@ describe("generateFileString", () => {
 
     test("generate string file with custom interface success", async () => {
         setupFolderStructure("./lib/models");
-        const modelsPath = await parser.findModelsPath(".");
+        const modelsPath = await parser.findModelsPath(".", true);
 
         const customInterfaces = `\texport type IUserLean = Pick<IUser, "_id" | "firstName" | "lastName" | "name">;\n\n\texport interface OtherCustomInterface {\n\t\tfoo: string;\n\t\tbar?: number;\n\t}\n`;
 
