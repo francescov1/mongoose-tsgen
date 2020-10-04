@@ -102,7 +102,6 @@ const getSubDocName = (path: string, modelName = "") => {
 
     const parseKey = (key: string, val: any, prefix: string): string => {
       // if type is provided directly on property, expand it
-      if (!val) console.log("NO VAL. prefix: " + prefix + ", key:val - " + key + ": ", val)
       if ([String, Number, Boolean, Date, ObjectId].includes(val))
         val = { type: val, required: false };
   
@@ -229,7 +228,7 @@ const getSubDocName = (path: string, modelName = "") => {
     }
   }
 
-  export const registerUserTs = (basePath: string): void => {
+  export const registerUserTs = (basePath: string): (() => void) | null => {
     let pathToSearch: string;
     if (basePath.endsWith("tsconfig.json")) pathToSearch = basePath;
     else pathToSearch = path.join(basePath, "**/tsconfig.json")
@@ -243,6 +242,21 @@ const getSubDocName = (path: string, modelName = "") => {
   
     const foundPath = path.join(process.cwd(), files[0]);
     require('ts-node').register({ transpileOnly: true, project: foundPath });
+
+    // handle path aliases
+    const tsConfig = require(foundPath);
+
+    if (tsConfig.compilerOptions.paths) {
+      const cleanup = require("tsconfig-paths").register({
+        // Either absolute or relative path. If relative it's resolved to current working directory.
+        baseUrl: "./",
+        paths: tsConfig.compilerOptions.paths,
+      });
+
+      return cleanup;
+    }
+
+    return null;
   }
 
   export const findModelsPath = (basePath: string, useJs = false): string | string[] => {
@@ -253,7 +267,7 @@ const getSubDocName = (path: string, modelName = "") => {
     else if (basePath.endsWith(`index.${extension}`)) pathToSearch = basePath;
     else pathToSearch = path.join(basePath, `**/models/*.${extension}`)
 
-    const files = glob.sync(pathToSearch)
+    const files = glob.sync(pathToSearch, { ignore: "**/node_modules/**" })
 
     const mainExportFiles = files.filter((filename: string) => {
       return filename.endsWith(`models/index.${extension}`);
@@ -278,6 +292,12 @@ const getSubDocName = (path: string, modelName = "") => {
     }
 
     return modelsPath
+  }
+
+  // TODO: test instanceof mongoose.Model
+  // https://stackoverflow.com/questions/10827108/mongoose-check-if-object-is-mongoose-object
+  const isSchema = (obj: any): boolean => {
+    return obj?.modelName && obj?.schema;
   }
 
   export const generateFileString = ({
@@ -311,7 +331,8 @@ const getSubDocName = (path: string, modelName = "") => {
         }
 
         // if exported data has a default export, use that
-        if (exportedData.default) return exportedData.default;
+        if (isSchema(exportedData.default)) return exportedData.default;
+        if (isSchema(exportedData)) return exportedData;
         
         // if no default export, look for a property matching file name
         const pathComponents = singleModelPath.split("/");
@@ -327,13 +348,16 @@ const getSubDocName = (path: string, modelName = "") => {
 
         const collectionName = modelNameLowercase + "s";
 
-        // TODO: search exportedData and check for instanceof mongoose.Model instead
-        // https://stackoverflow.com/questions/10827108/mongoose-check-if-object-is-mongoose-object
-        if (exportedData[modelName]) return exportedData[modelName];
-        if (exportedData[modelNameLowercase]) return exportedData[modelNameLowercase];
-        if (exportedData[collectionName]) return exportedData[collectionName];
-        if (exportedData[collectionNameUppercased]) return exportedData[collectionNameUppercased];
-        if (exportedData.modelName && exportedData.schema) return exportedData
+        // check likely names that schema would be exported from
+        if (isSchema(exportedData[modelName])) return exportedData[modelName];
+        if (isSchema(exportedData[modelNameLowercase])) return exportedData[modelNameLowercase];
+        if (isSchema(exportedData[collectionName])) return exportedData[collectionName];
+        if (isSchema(exportedData[collectionNameUppercased])) return exportedData[collectionNameUppercased];
+        
+        // if none of those have it, check all properties
+        for (const obj of Object.values(exportedData)) {
+          if (isSchema(obj)) return obj;
+        }
 
         throw new Error(`Path ${singleModelPath} do not contain an exported schema. Please ensure these files export a Mongoose Schema (preferably default export).`)
       });

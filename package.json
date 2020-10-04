@@ -16,6 +16,8 @@
     "glob": "^7.1.6",
     "mkdirp": "^1.0.4",
     "mongoose": "^5.10.6",
+    "ts-node": "^9.0.0",
+    "tsconfig-paths": "^3.9.0",
     "tslib": "^1.13.0"
   },
   "devDependencies": {
@@ -32,7 +34,6 @@
     "jest": "^26.4.2",
     "rimraf": "^3.0.2",
     "ts-jest": "^26.4.1",
-    "ts-node": "^9.0.0",
     "typescript": "^3.9.7"
   },
   "engines": {

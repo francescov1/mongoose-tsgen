@@ -36,9 +36,13 @@ class MongooseTsgen extends Command {
       try {
           const modelsPath = parser.findModelsPath(args.root_path, flags.js)
           
-          if (!flags.js) parser.registerUserTs(flags.project);
+          let cleanupTs: any;
+          if (!flags.js) {
+              cleanupTs = parser.registerUserTs(flags.project);
+          }
 
-          fullTemplate = parser.generateFileString({ modelsPath, customInterfaces })
+          fullTemplate = parser.generateFileString({ modelsPath, customInterfaces });
+          cleanupTs?.();
       }
       catch (error) {
           this.error(error)
