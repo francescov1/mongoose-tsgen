@@ -246,7 +246,7 @@ const getSubDocName = (path: string, modelName = "") => {
     // handle path aliases
     const tsConfig = require(foundPath);
 
-    if (tsConfig.compilerOptions.paths) {
+    if (tsConfig?.compilerOptions?.paths) {
       const cleanup = require("tsconfig-paths").register({
         // Either absolute or relative path. If relative it's resolved to current working directory.
         baseUrl: "./",
