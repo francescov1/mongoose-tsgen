@@ -238,7 +238,7 @@ const getSubDocName = (path: string, modelName = "") => {
     if (files.length === 0)
       throw new Error(`No tsconfig.json file found at path "${basePath}"`);
     else if (files.length > 1)
-      throw new Error(`Multiple tsconfig.json files found. Please specify a more specific project value.\nPaths found: ${files}`);
+      throw new Error(`Multiple tsconfig.json files found. Please specify a more specific --project value.\nPaths found: ${files}`);
   
     const foundPath = path.join(process.cwd(), files[0]);
     require('ts-node').register({ transpileOnly: true, project: foundPath });
