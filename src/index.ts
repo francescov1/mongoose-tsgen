@@ -40,8 +40,8 @@ class MongooseTsgen extends Command {
           if (!flags.js) {
               cleanupTs = parser.registerUserTs(flags.project);
           }
-
-          fullTemplate = parser.generateFileString({ modelsPath, customInterfaces });
+          const schemas = parser.loadSchemas(modelsPath);
+          fullTemplate = parser.generateFileString({ schemas, customInterfaces });
           cleanupTs?.();
       }
       catch (error) {
