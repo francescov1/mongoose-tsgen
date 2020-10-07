@@ -358,7 +358,6 @@ const getSubDocName = (path: string, modelName = "") => {
     }
 
     // if path is not array
-
     try {
       // usually this will be the path to an index.{t|j}s file that exports all models
       let exportedData = require(modelsPath);
@@ -399,8 +398,8 @@ const getSubDocName = (path: string, modelName = "") => {
       const schema = schemas[modelName];
       let interfaceStr = "";
   
-      // rn passing modelName causes childSchemas to be processed
-      interfaceStr += parseSchema({schema, modelName, addModel: true, header: `\texport interface I${modelName} extends Document {\n`, footer: "\t}\n\n", prefix: "\t\t"});
+      // passing modelName causes childSchemas to be processed
+      interfaceStr += parseSchema({ schema, modelName, addModel: true, header: `\texport interface I${modelName} extends Document {\n`, footer: "\t}\n\n", prefix: "\t\t" });
       fullTemplate += interfaceStr;
     });
   
