@@ -397,9 +397,6 @@ const getSubDocName = (path: string, modelName = "") => {
   
     Object.keys(schemas).forEach(modelName => {
       const schema = schemas[modelName];
-      // eslint-disable-next-line prefer-const
-      // let { modelName, schema } = (models as any)[modelKey];
-        
       let interfaceStr = "";
   
       // rn passing modelName causes childSchemas to be processed
