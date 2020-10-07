@@ -237,11 +237,15 @@ describe("findModelsPath", () => {
 });
 
 // TODO: split out loadSchemas functionality, this is starting to resemble more integration tests (which should be added at top-most level, using the CLI)
+
+// TODO: each test here uses a different root folder - when the same root folder is re-used, a weird issue occurs where the 
+// `city.coordinates` field gets registered as `number` rather than `Types.Array<number>`. Theoretically all resources from prior 
+// tests should be getting cleared between each test, so we need to investigate what is not being cleaned up properly so we can address this.
 describe("generateFileString", () => {
     afterEach(cleanupModelsInMemory);
 
     test("generate file string success (js)", async () => {
-        setupFolderStructure("./dist/models", { js: true });
+        setupFolderStructure("./src/models", { js: true });
         const modelsPath = await parser.findModelsPath(".", true);
         const schemas = parser.loadSchemas(modelsPath);
         const fileString = await parser.generateFileString({ schemas })
@@ -258,7 +262,7 @@ describe("generateFileString", () => {
     })
 
     test("generate string file with custom interface success (js)", async () => {
-        setupFolderStructure("./lib/models", { js: true });
+        setupFolderStructure("./models", { js: true });
         const modelsPath = await parser.findModelsPath(".", true);
         const schemas = parser.loadSchemas(modelsPath);
 
