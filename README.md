@@ -29,7 +29,7 @@ $ npx mtgen --help # print usage
 
 ## `mtgen [ROOT_PATH]`
 
-Generate an index.d.ts file containing Mongoose Schema interfaces. All sub-directories of `ROOT_PATH` will be searched for a `/models/` folder. If such folder contains an `index.js` file, all Mongoose models are expected to be exported from here. If such file does not exist, it will be assumed that all `.js` in this folder export a Mongoose model, and will import them from each file individually.
+Generate an index.d.ts file containing Mongoose Schema interfaces. All sub-directories of `ROOT_PATH` will be searched for a `/models/` folder. If such folder contains an `index.{j|t}s` file, all Mongoose models are expected to be exported from here. If such file does not exist, it will be assumed that all `.{t|j}s` in this folder export a Mongoose model, and will import them from each file individually.
 
 <i>NOTE: Currently the CLI requires Typescript to be transpiled to Javascript. Please ensure to run `tsc` before running this command.</i>
 
@@ -38,10 +38,12 @@ USAGE
   $ mtgen [ROOT_PATH - default = "."]
 
 OPTIONS
-  -d, --dry-run        Print output rather than writing to file
-  -f, --fresh          Fresh run, ignoring previously generated custom interfaces
-  -h, --help           show CLI help
-  -o, --output=output  [default: ./src/types/mongoose] Path of output index.d.ts file
+  -d, --dry-run          print output rather than writing to file
+  -f, --fresh            fresh run, ignoring previously generated custom interfaces
+  -h, --help             show CLI help
+  -j, --js               search for Mongoose schemas in Javascript files rather than in Typescript files
+  -o, --output=output    [default: ./src/types/mongoose] path of output index.d.ts file
+  -p, --project=project  [default: ./] path of tsconfig.json or its root folder
 ```
 
 <i>NOTE: --output requires a folder path or a file path ending in `index.d.ts`. If the path does not exist, it will be created.</i>
@@ -116,8 +118,7 @@ export default User;
 ### generate interfaces
 
 ```bash
-$ tsc # need to build before running mtgen
-$ mtgen .
+$ mtgen
 ```
 
 ### generated interface file ./src/types/mongoose/index.d.ts
@@ -206,8 +207,6 @@ async function editEmail(user: IUser, newEmail: string): IUser {
 
 NOTE: most of the following features are already supported but use looser typing than likely desired.
 
-- Support running without first transpiling Typescript (run directly on Typescript files using ts-node).
-- Typescript path aliases. Typescript does not convert path aliases during build (ie `tsc`), rather it converts at runtime. Once we support running the generator with ts-node, this should be easily fixed. In the meantime, [module-alias](https://www.npmjs.com/package/module-alias) can be used.
 - Methods and statics parameter types. Currently these are typed as `Function`.
 - Support for `Model.Create`. Currently `new Model` must be used.
 - Support for setting subdocument properties without casting to any. When setting a subdocument array, Typescript will yell at you if you try and set them directly (ie `user.friends = [{ uid, name }]`) as it expects the array to contain additional subdocument properties. For now, this can be achieved by writing `user.friends = [{ uid, name }] as any`.
