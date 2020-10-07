@@ -245,11 +245,9 @@ const getSubDocName = (path: string, modelName = "") => {
 
     // handle path aliases
     const tsConfig = require(foundPath);
-
     if (tsConfig?.compilerOptions?.paths) {
       const cleanup = require("tsconfig-paths").register({
-        // Either absolute or relative path. If relative it's resolved to current working directory.
-        baseUrl: "./",
+        baseUrl: process.cwd(),
         paths: tsConfig.compilerOptions.paths,
       });
 
@@ -301,9 +299,6 @@ const getSubDocName = (path: string, modelName = "") => {
   export const loadSchemas = (modelsPath: string | string[]) => {
     const schemas: LoadedSchemas = {};
 
-    // TODO: test instanceof mongoose.Model when testing if its a model
-  // https://stackoverflow.com/questions/10827108/mongoose-check-if-object-is-mongoose-object
-  // could use the ts verify type functions
     const checkAndRegisterModel = (obj: any): boolean => {
       if (!obj?.modelName || !obj?.schema) return false;
       schemas[obj.modelName] = obj.schema;

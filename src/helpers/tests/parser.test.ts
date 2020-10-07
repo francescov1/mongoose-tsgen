@@ -40,6 +40,8 @@ const cleanup = () => {
     cleanupFolderStructure("src");
 }
 
+// TODO: test path aliases
+
 // ensure folders are cleaned before starting and after each test
 beforeEach(cleanup);
 afterAll(cleanup);
