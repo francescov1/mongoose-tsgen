@@ -31,8 +31,6 @@ $ npx mtgen --help # print usage
 
 Generate an index.d.ts file containing Mongoose Schema interfaces. All sub-directories of `ROOT_PATH` will be searched for a `/models/` folder. If such folder contains an `index.{j|t}s` file, all Mongoose models are expected to be exported from here. If such file does not exist, it will be assumed that all `.{t|j}s` in this folder export a Mongoose model, and will import them from each file individually.
 
-<i>NOTE: Currently the CLI requires Typescript to be transpiled to Javascript. Please ensure to run `tsc` before running this command.</i>
-
 ```
 USAGE
   $ mtgen [ROOT_PATH - default = "."]
