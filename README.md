@@ -1,7 +1,7 @@
 mongoose-tsgen
 ==============
 
-A Typescript interface generator for Mongoose Schemas that works out of the box.
+An out-of-the-box Typescript interface generator for Mongoose.
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/mongoose-tsgen.svg)](https://npmjs.org/package/mongoose-tsgen)
@@ -9,14 +9,34 @@ A Typescript interface generator for Mongoose Schemas that works out of the box.
 [![License](https://img.shields.io/npm/l/mongoose-tsgen.svg)](https://github.com/Bounced-Inc/mongoose-tsgen/blob/master/package.json)
 <!-- [![Downloads/week](https://img.shields.io/npm/dw/mongoose-tsgen.svg)](https://npmjs.org/package/mongoose-tsgen) -->
 
-Requires only a few lines of additional code to support, and is compatible with all Mongoose features. This tool works by importing your schema definitions, parsing the structure and generating an index.d.ts file containing interfaces for all your schemas. A section at the bottom of index.d.ts is provided for user-defined custom interfaces. This will remain untouched when re-generating interfaces unless the `--fresh` flag is provided.
-
 <!-- toc -->
+* [Features](#features)
+* [Compatibility](#compatibility)
 * [Installation](#installation)
 * [Usage](#usage)
 * [Example](#example)
-* [Coming Soon](#coming-soon)
 <!-- tocstop -->
+
+# Features
+
+- [x] Automatically generate an `index.d.ts` file containing all your Mongoose Schemas as Typescript interfaces
+- [x] Works out of the box, don't need to rewrite your schemas
+- [x] Creates an interfaces for each Mongoose document, model and all subdocuments
+- [x] Add custom interfaces (i.e. a subset of a document for use by a client)
+- [x] Multiple search patterns and import strategies to require minimal input and configuration
+
+# Compatibility
+
+- [x] All Mongoose types and arrays
+- [x] Virtual properties
+- [x] Both Typescript and Javascript schema files (if using Javascript, you will want to convert to Typescript upon generating the `index.d.ts` file)
+- [x] Typescript path aliases
+- [x] Mongoose method and static functions - These could be improved, they currently get typed as `Function` without parameter and return types
+- [ ] Support for `Model.Create`. Currently `new Model` must be used.
+- [ ] Support for setting subdocument properties without casting to `any`. When setting a subdocument array property, you need to cast to `any` as Typescript expects the array to contain additional subdocument properties (ie `user.friends = [{ uid, name }]` should be written as `user.friends = [{ uid, name }] as any`).
+
+Would love any help with the last few listed features above.
+
 # Installation
 <!-- usage -->
 ```sh-session
@@ -29,7 +49,7 @@ $ npx mtgen --help # print usage
 
 ## `mtgen [ROOT_PATH]`
 
-Generate an index.d.ts file containing Mongoose Schema interfaces. All sub-directories of `ROOT_PATH` will be searched for a `/models/` folder. If such folder contains an `index.{j|t}s` file, all Mongoose models are expected to be exported from here. If such file does not exist, it will be assumed that all `.{t|j}s` in this folder export a Mongoose model, and will import them from each file individually.
+Generate an index.d.ts file containing Mongoose Schema interfaces.
 
 ```
 USAGE
@@ -43,6 +63,8 @@ OPTIONS
   -o, --output=output    [default: ./src/types/mongoose] path of output index.d.ts file
   -p, --project=project  [default: ./] path of tsconfig.json or its root folder
 ```
+
+All sub-directories of `ROOT_PATH` will be searched for a `/models/` folder. If such folder contains an `index.{j|t}s` file, all Mongoose models are expected to be exported from here. If such file does not exist, all `*.{t|j}s` in this folder are expected to export a Mongoose model.
 
 <i>NOTE: --output requires a folder path or a file path ending in `index.d.ts`. If the path does not exist, it will be created.</i>
 
@@ -200,14 +222,3 @@ async function editEmail(user: IUser, newEmail: string): IUser {
   return await user.save();
 }
 ```
-
-# Coming Soon
-
-NOTE: most of the following features are already supported but use looser typing than likely desired.
-
-- Methods and statics parameter types. Currently these are typed as `Function`.
-- Support for `Model.Create`. Currently `new Model` must be used.
-- Support for setting subdocument properties without casting to any. When setting a subdocument array, Typescript will yell at you if you try and set them directly (ie `user.friends = [{ uid, name }]`) as it expects the array to contain additional subdocument properties. For now, this can be achieved by writing `user.friends = [{ uid, name }] as any`.
-- A Mongoose plugin. This will remove the need to re-run the CLI when changes to your schema are made.
-
-Would love any help with the listed features above.
