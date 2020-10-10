@@ -5,7 +5,7 @@ const rimraf = require("rimraf");
 import * as parser from "../parser";
 const mongoose = require("mongoose");
 
-function setupFolderStructure(relPath: string, { index = true, model = true, typeFile = false, customTypeFile = false, js = false }: { index?: boolean, model?: boolean, typeFile?: boolean, customTypeFile?: boolean, js?: boolean } = {}) {
+function setupFolderStructure(relPath: string, { index = true, model = true, typeFile = false, js = false }: { index?: boolean, model?: boolean, typeFile?: boolean, js?: boolean } = {}) {
     const absPath = path.join(__dirname, relPath)
     mkdirp.sync(absPath);
 
@@ -15,16 +15,14 @@ function setupFolderStructure(relPath: string, { index = true, model = true, typ
     fs.copyFileSync(path.join(__dirname, `artifacts/user.${extension}`), path.join(absPath, `user.${extension}`));
     if (typeFile)
     fs.copyFileSync(path.join(__dirname, 'artifacts/index.d.ts'), path.join(absPath, 'index.d.ts'));
-    if (customTypeFile)
-    fs.copyFileSync(path.join(__dirname, 'artifacts/custom.index.d.ts'), path.join(absPath, 'custom.index.d.ts'));
 }
 
 function cleanupFolderStructure(relBasePath: string) {
     rimraf.sync(path.join(__dirname, relBasePath));
 }
 
-function getExpectedInterfaceString(custom = false) {
-    return fs.readFileSync(path.join(__dirname, `artifacts/${custom ? "custom." : ""}index.d.ts`), "utf8");
+function getExpectedInterfaceString() {
+    return fs.readFileSync(path.join(__dirname, `artifacts/index.d.ts`), "utf8");
 }
 
 function cleanupModelsInMemory() {
@@ -40,7 +38,7 @@ const cleanup = () => {
     cleanupFolderStructure("src");
 }
 
-// TODO: test path aliases
+// TODO: test path aliases, writeOrCreateInterfaceFiles
 
 // ensure folders are cleaned before starting and after each test
 beforeEach(cleanup);
@@ -238,11 +236,6 @@ describe("findModelsPath", () => {
     })
 });
 
-// TODO: split out loadSchemas functionality, this is starting to resemble more integration tests (which should be added at top-most level, using the CLI)
-
-// TODO: each test here uses a different root folder - when the same root folder is re-used, a weird issue occurs where the 
-// `city.coordinates` field gets registered as `number` rather than `Types.Array<number>`. Theoretically all resources from prior 
-// tests should be getting cleared between each test, so we need to investigate what is not being cleaned up properly so we can address this.
 describe("generateFileString", () => {
     afterEach(cleanupModelsInMemory);
 
@@ -262,50 +255,31 @@ describe("generateFileString", () => {
         const fileString = await parser.generateFileString({ schemas })
         expect(fileString).toBe(getExpectedInterfaceString());
     })
+})
 
-    test("generate string file with custom interface success (js)", async () => {
-        setupFolderStructure("./models", { js: true });
-        const modelsPath = await parser.findModelsPath(".", true);
-        const schemas = parser.loadSchemas(modelsPath);
-
-        const customInterfaces = `\texport type IUserLean = Pick<IUser, "_id" | "firstName" | "lastName" | "name">;\n\n\texport interface OtherCustomInterface {\n\t\tfoo: string;\n\t\tbar?: number;\n\t}\n`;
-
-        const fileString = await parser.generateFileString({ schemas, customInterfaces })
-        expect(fileString).toBe(getExpectedInterfaceString(true));
+describe("cleanOutputPath", () => {
+    test("path ending in index.d.ts", () => {
+        const cleaned = parser.cleanOutputPath("/test/path/with/index.d.ts")
+        expect(cleaned).toBe("/test/path/with")
     })
 
-    test("generate string file with custom interface success (ts)", async () => {
-        setupFolderStructure("./lib/models");
-        const modelsPath = await parser.findModelsPath(".");
-        const schemas = parser.loadSchemas(modelsPath);
+    test("path ending in file (not index.d.ts)", () => {
+        expect(() => {
+            parser.cleanOutputPath("/test/path/with/random.ts")
+        }).toThrow(new Error("--output parameter must reference a folder path or an index.d.ts file."));
 
-        const customInterfaces = `\texport type IUserLean = Pick<IUser, "_id" | "firstName" | "lastName" | "name">;\n\n\texport interface OtherCustomInterface {\n\t\tfoo: string;\n\t\tbar?: number;\n\t}\n`;
+        expect(() => {
+            parser.cleanOutputPath("/test/path/with/index.ts")
+        }).toThrow(new Error("--output parameter must reference a folder path or an index.d.ts file."));
 
-        const fileString = await parser.generateFileString({ schemas, customInterfaces })
-        expect(fileString).toBe(getExpectedInterfaceString(true));
+        expect(() => {
+            parser.cleanOutputPath("/test/path/with/index.d.js")
+        }).toThrow(new Error("--output parameter must reference a folder path or an index.d.ts file."));
+    })
+
+    test("path pointing to directory", () => {
+        const cleaned = parser.cleanOutputPath("/test/path/to/directory")
+        expect(cleaned).toBe("/test/path/to/directory")
     })
 })
 
-describe("loadCustomInterfaces", () => {
-    // let expectedInterfaceString: string;
-    // beforeAll(() => {
-    //     expectedInterfaceString = fs.readFileSync(path.join(__dirname, "artifacts/index.d.ts"), "utf8");
-    // })
-
-    test("load custom interface file path missing", () => {
-        const interfaceString = parser.loadCustomInterfaces("./src/types/mongoose")
-        expect(interfaceString).toBe("");
-    })
-
-    test("load custom interface (js)", () => {
-        setupFolderStructure("./src/types/mongoose", { model: false, index: false, customTypeFile: true, js: true });
-        const interfaceString = parser.loadCustomInterfaces("./src/helpers/tests/src/types/mongoose/custom.index.d.ts")
-        expect(interfaceString).toBe(`\texport type IUserLean = Pick<IUser, "_id" | "firstName" | "lastName" | "name">;\n\n\texport interface OtherCustomInterface {\n\t\tfoo: string;\n\t\tbar?: number;\n\t}\n`);
-    })
-
-    test("load custom interface (ts)", () => {
-        setupFolderStructure("./src/types/mongoose", { model: false, index: false, customTypeFile: true });
-        const interfaceString = parser.loadCustomInterfaces("./src/helpers/tests/src/types/mongoose/custom.index.d.ts")
-        expect(interfaceString).toBe(`\texport type IUserLean = Pick<IUser, "_id" | "firstName" | "lastName" | "name">;\n\n\texport interface OtherCustomInterface {\n\t\tfoo: string;\n\t\tbar?: number;\n\t}\n`);
-    })
-})

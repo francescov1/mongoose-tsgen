@@ -1,7 +1,5 @@
-import {Command, flags} from '@oclif/command'
-
+import { Command, flags } from '@oclif/command'
 import cli from 'cli-ux';
-import path from 'path';
 
 import * as parser from "./helpers/parser";
 
@@ -12,7 +10,6 @@ class MongooseTsgen extends Command {
     help: flags.help({char: 'h'}),
     output: flags.string({ char: 'o', default: "./src/types/mongoose", description: "path of output index.d.ts file" }),
     "dry-run": flags.boolean({ char: 'd', default: false, description: "print output rather than writing to file" }),
-    fresh: flags.boolean({ char: 'f', description: "fresh run, ignoring previously generated custom interfaces" }),
     js: flags.boolean({ char: 'j', default: false, description: "search for Mongoose schemas in Javascript files rather than in Typescript files"}),
     project: flags.string({ char: 'p', default: "./", description: "path of tsconfig.json or its root folder"})
   }
@@ -28,9 +25,6 @@ class MongooseTsgen extends Command {
     async run() {
       cli.action.start('Generating mongoose typescript definitions')
       const { flags, args } = this.parse(MongooseTsgen)
-      const outputFilePath = flags.output.endsWith("index.d.ts") ? flags.output : path.join(flags.output, "index.d.ts");
-
-      const customInterfaces = flags.fresh ? "" : parser.loadCustomInterfaces(outputFilePath)
 
       let fullTemplate: string;
       try {
@@ -41,7 +35,7 @@ class MongooseTsgen extends Command {
               cleanupTs = parser.registerUserTs(flags.project);
           }
           const schemas = parser.loadSchemas(modelsPath);
-          fullTemplate = parser.generateFileString({ schemas, customInterfaces });
+          fullTemplate = parser.generateFileString({ schemas });
           cleanupTs?.();
       }
       catch (error) {
@@ -55,8 +49,10 @@ class MongooseTsgen extends Command {
           this.log(fullTemplate)
       }
       else {
-          this.log(`Writing interfaces to ${outputFilePath}`);
-          parser.writeInterfaceToFile(outputFilePath, fullTemplate);
+          const outputPath = parser.cleanOutputPath(flags.output);
+          this.log(`Writing interfaces to ${outputPath}`);
+          
+          parser.writeOrCreateInterfaceFiles(outputPath, fullTemplate);
           this.log('Writing complete 🐒')
       }
   }
