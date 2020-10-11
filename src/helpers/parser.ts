@@ -94,7 +94,7 @@ export const parseSchema = ({ schema, modelName, addModel = false, header = "", 
   }
 
   if (schema.statics && modelName && addModel) {
-      template += `\texport interface I${modelName}Model extends Model<I${modelName}> {\n`;
+      template += `\tinterface I${modelName}Model extends Model<I${modelName}> {\n`;
       template += parseFunctions(schema.statics, "\t\t");
       template += "\t}\n\n";
   }
@@ -390,7 +390,7 @@ export const generateFileString = ({
     let interfaceStr = "";
 
     // passing modelName causes childSchemas to be processed
-    interfaceStr += parseSchema({ schema, modelName, addModel: true, header: `\texport interface I${modelName} extends Document {\n`, footer: "\t}\n\n", prefix: "\t\t" });
+    interfaceStr += parseSchema({ schema, modelName, addModel: true, header: `\tinterface I${modelName} extends Document {\n`, footer: "\t}\n\n", prefix: "\t\t" });
     fullTemplate += interfaceStr;
   });
 

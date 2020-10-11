@@ -19,9 +19,8 @@ An out-of-the-box Typescript interface generator for Mongoose.
 
 # Features
 
-- [x] Automatically generate an `index.d.ts` file containing all your Mongoose Schemas as Typescript interfaces
+- [x] Automatically generate an `index.d.ts` file containing Typescript interfaces for each Mongoose document, model and subdocument
 - [x] Works out of the box, don't need to rewrite your schemas
-- [x] Creates an interfaces for each Mongoose document, model and all subdocuments
 - [x] Add custom interfaces (i.e. a subset of a document for use by a client)
 - [x] Multiple search patterns and import strategies to require minimal input and configuration
 
@@ -33,7 +32,7 @@ An out-of-the-box Typescript interface generator for Mongoose.
 - [x] Typescript path aliases
 - [x] Mongoose method and static functions - These could be improved, they currently get typed as `Function` without parameter and return types
 - [ ] Support for `Model.Create`. Currently `new Model` must be used.
-- [ ] Support for setting subdocument properties without casting to `any`. When setting a subdocument array property, you need to cast to `any` as Typescript expects the array to contain additional subdocument properties (ie `user.friends = [{ uid, name }]` should be written as `user.friends = [{ uid, name }] as any`).
+- [ ] Setting subdocument arrays without casting to `any` (currently you need to do `user.friends = [{ uid, name }] as any`).
 
 Would love any help with the last few listed features above.
 
