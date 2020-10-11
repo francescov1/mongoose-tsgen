@@ -66,7 +66,7 @@ All sub-directories of `ROOT_PATH` will be searched for a `/models/` folder. If 
 
 <i>NOTE: --output requires a folder path or a file path ending in `index.d.ts`. If the path does not exist, it will be created.</i>
 
-_See code: [src/commands/run.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/master/src/commands/run.ts)_
+_See code: [src/index.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/master/src/index.ts)_
 <!-- commandsstop -->
 
 # Example
