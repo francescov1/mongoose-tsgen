@@ -14,7 +14,7 @@ function setupFolderStructure(relPath: string, { index = true, model = true, typ
     if (model) 
     fs.copyFileSync(path.join(__dirname, `artifacts/user.${extension}`), path.join(absPath, `user.${extension}`));
     if (typeFile)
-    fs.copyFileSync(path.join(__dirname, 'artifacts/index.d.ts'), path.join(absPath, 'index.d.ts'));
+    fs.copyFileSync(path.join(__dirname, 'artifacts/example.index.d.ts'), path.join(absPath, 'index.d.ts'));
 }
 
 function cleanupFolderStructure(relBasePath: string) {
@@ -22,7 +22,7 @@ function cleanupFolderStructure(relBasePath: string) {
 }
 
 function getExpectedInterfaceString() {
-    return fs.readFileSync(path.join(__dirname, `artifacts/index.d.ts`), "utf8");
+    return fs.readFileSync(path.join(__dirname, `artifacts/example.index.d.ts`), "utf8");
 }
 
 function cleanupModelsInMemory() {
