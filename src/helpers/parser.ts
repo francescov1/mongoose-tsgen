@@ -53,6 +53,8 @@ const parseFunctions = (methodsOrStatics: any, prefix = "") => {
   let interfaceString = "";
 
   Object.keys(methodsOrStatics).forEach(key => {
+    if (["initializeTimestamps"].includes(key)) return;
+    
     interfaceString += makeLine({ key, val: "Function", prefix });
   });
 
