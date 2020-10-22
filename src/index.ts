@@ -54,8 +54,6 @@ class MongooseTsgen extends Command {
           
           parser.writeOrCreateInterfaceFiles(outputPath, fullTemplate);
           this.log('Writing complete 🐒')
-          // eslint-disable-next-line no-process-exit
-          // eslint-disable-next-line unicorn/no-process-exit
           process.exit()
       }
   }
