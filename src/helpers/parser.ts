@@ -205,7 +205,7 @@ export const parseSchema = ({ schema, modelName, addModel = false, header = "", 
         `Types.${val._isSubdocArray ? "Document" : ""}Array<` + valType + ">";
 
     return makeLine({ key, val: valType, prefix, isOptional });
-}
+  }
 
   Object.keys(schemaTree).forEach((key: string) => {
     const val = schemaTree[key];
@@ -266,7 +266,7 @@ export const findModelsPath = (basePath: string, useJs = false): string | string
   // get all paths ending in "models/index.ts" (or "models/index.js" if --js flag is passed)
   const mainExportFiles = files.filter((filename: string) => {
     const { base, dir } = path.parse(filename);
-    return  dir.endsWith("models") && base === `index.${extension}`
+    return dir.endsWith("models") && base === `index.${extension}`
   })
 
   let modelsPath;

@@ -1,3 +1,4 @@
+import glob from 'glob';
 import { Project, Node, SyntaxKind, MethodDeclaration, SourceFile } from "ts-morph";
 
 function getFuncDeclarations(sourceFile: SourceFile) {
@@ -60,26 +61,57 @@ function getFuncDeclarations(sourceFile: SourceFile) {
 
 function parseFuncDeclarations(declarations: MethodDeclaration[]) {
   return declarations.map(funcDeclaration => {
-    const funcName = funcDeclaration.getName();
+    const name = funcDeclaration.getName();
     const type = funcDeclaration.getType();
-    return { funcName, type: type.getText(funcDeclaration) }
+    return { name, type: type.getText(funcDeclaration) }
   })
 }
 
-export const getFunctionTypes = (modelsPath: string | string[]) => {
-    const project = new Project({});
-
-    // project.addSourceFilesAtPaths(["./src/models/**/*.ts"]);
-    // TODO: if this is not an array, need to remove 'index.ts' and add /**/*.ts 
-    project.addSourceFilesAtPaths(modelsPath);
-    
-    try {
-        // "./src/models/organization.ts"
-      const sourceFile = project.getSourceFileOrThrow(modelsPath[0]);
-      const { methodDeclarations } = getFuncDeclarations(sourceFile);
-      console.log(parseFuncDeclarations(methodDeclarations))
-      // console.log(parseFuncDeclarations(staticDeclarations))
-    } catch (err) {
-      console.error(err);
+function getModelName(sourceFile: SourceFile) {
+    const defaultExportAssignment = sourceFile.getExportAssignment(d => !d.isExportEquals())
+    if (!defaultExportAssignment) {
+        // TODO: if no default, check all exports and compare to filename until a match is found
+        throw new Error("Error determining method and static types of No default export found in file: " + sourceFile.getFilePath() + ". Either disable method and static function typing or ensure to default export your Mongoose model.")
     }
+
+    return defaultExportAssignment.getExpression().getText();
+}
+
+export const getFunctionTypes = () => {
+    const modelsPaths = glob.sync('./src/models/**/!(index).ts');
+
+    const project = new Project({});
+    project.addSourceFilesAtPaths(modelsPaths);
+    
+    // TODO: set this up to handle paths found from parser
+    
+    // if (Array.isArray(modelsPath)) {
+    //     project.addSourceFilesAtPaths(modelsPath);
+    // }
+    // else {
+    //     project.addSourceFilesAtPaths(modelsPath.replace(`index`, "**/*"));
+    //     // modelsPath = [modelsPath]
+    //     // TODO: gonna need to redo this with each model paths
+    // }
+    const results: { 
+        [key: string]: { 
+            methodTypes: { name: string, type: string }[], 
+            staticTypes: { name: string, type: string }[] 
+        }
+    } = {};
+
+    // TODO: ideally we only parse the files that we know have methods or statics, would save a lot of time
+    modelsPaths.forEach(modelPath => {
+        const sourceFile = project.getSourceFileOrThrow(modelPath);
+        const modelName = getModelName(sourceFile);
+
+        const { methodDeclarations, staticDeclarations } = getFuncDeclarations(sourceFile);
+        
+        const methodTypes = methodDeclarations.length > 0 ? parseFuncDeclarations(methodDeclarations) : [];
+        const staticTypes = staticDeclarations.length > 0 ? parseFuncDeclarations(staticDeclarations) : [];
+        
+        results[modelName] = { methodTypes, staticTypes };
+    })
+
+    return results;
 }
