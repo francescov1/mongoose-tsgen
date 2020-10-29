@@ -60,11 +60,14 @@ function getFuncDeclarations(sourceFile: SourceFile) {
 }
 
 function parseFuncDeclarations(declarations: MethodDeclaration[]) {
-  return declarations.map(funcDeclaration => {
-    const name = funcDeclaration.getName();
-    const type = funcDeclaration.getType();
-    return { name, type: type.getText(funcDeclaration) }
-  })
+    const results: { [key: string]: string } = {};
+    declarations.forEach(funcDeclaration => {
+        const name = funcDeclaration.getName();
+        const type = funcDeclaration.getType();
+        results[name] = type.getText(funcDeclaration);
+    })
+    
+    return results;
 }
 
 function getModelName(sourceFile: SourceFile) {
@@ -76,6 +79,8 @@ function getModelName(sourceFile: SourceFile) {
 
     return defaultExportAssignment.getExpression().getText();
 }
+
+// TODO: need to get any custom imports from user for generated file - ideally a config file can be used at this point since we have enough options
 
 export const getFunctionTypes = () => {
     const modelsPaths = glob.sync('./src/models/**/!(index).ts');
@@ -94,9 +99,9 @@ export const getFunctionTypes = () => {
     //     // TODO: gonna need to redo this with each model paths
     // }
     const results: { 
-        [key: string]: { 
-            methodTypes: { name: string, type: string }[], 
-            staticTypes: { name: string, type: string }[] 
+        [modelName: string]: { 
+            methods: { [funcName: string]: string }, 
+            statics: { [funcName: string]: string }, 
         }
     } = {};
 
@@ -107,10 +112,10 @@ export const getFunctionTypes = () => {
 
         const { methodDeclarations, staticDeclarations } = getFuncDeclarations(sourceFile);
         
-        const methodTypes = methodDeclarations.length > 0 ? parseFuncDeclarations(methodDeclarations) : [];
-        const staticTypes = staticDeclarations.length > 0 ? parseFuncDeclarations(staticDeclarations) : [];
+        const methods = methodDeclarations.length > 0 ? parseFuncDeclarations(methodDeclarations) : {};
+        const statics = staticDeclarations.length > 0 ? parseFuncDeclarations(staticDeclarations) : {};
         
-        results[modelName] = { methodTypes, staticTypes };
+        results[modelName] = { methods, statics };
     })
 
     return results;

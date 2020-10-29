@@ -2,6 +2,7 @@ import { Command, flags } from '@oclif/command'
 import cli from 'cli-ux';
 
 import * as parser from "./helpers/parser";
+import * as tsReader from "./helpers/tsReader";
 
 class MongooseTsgen extends Command {
   static description = 'Generate an index.d.ts file containing Mongoose Schema interfaces. The specified root path ("." by default) will be searched recursively for a `models` folder, where your Mongoose Schemas should be exported from.'
@@ -35,6 +36,10 @@ class MongooseTsgen extends Command {
               cleanupTs = parser.registerUserTs(flags.project);
           }
           const schemas = parser.loadSchemas(modelsPath);
+
+          const functionTypes = tsReader.getFunctionTypes();
+          parser.setFunctionTypes(functionTypes);
+          
           fullTemplate = parser.generateFileString({ schemas });
           cleanupTs?.();
       }
