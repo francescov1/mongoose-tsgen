@@ -87,6 +87,8 @@ export const getFunctionTypes = () => {
 
     const project = new Project({});
     project.addSourceFilesAtPaths(modelsPaths);
+
+    // TODO: replace `this: any` with `this: I{modelName}`
     
     // TODO: set this up to handle paths found from parser
     
