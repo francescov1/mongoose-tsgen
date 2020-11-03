@@ -61,13 +61,20 @@ const makeLine = ({
   return line;
 };
 
-const parseFunctions = (funcs: any, modelName: string, funcType: "methods" | "statics", prefix = "") => {
+const parseFunctions = (funcs: any, modelName: string, funcType: "methods" | "statics" | "query", prefix = "") => {
   let interfaceString = "";
 
   Object.keys(funcs).forEach(key => {
     if (["initializeTimestamps"].includes(key)) return;
     
-    const type = globalFuncTypes[modelName][funcType][key]
+    let type;
+    if (funcType === "query") {
+      key += `<Q extends mongoose.DocumentQuery<any, I${modelName}, {}>>(this: Q)`
+      type = "Q";
+    }
+    else {
+      type = globalFuncTypes[modelName][funcType][key]
+    }
     interfaceString += makeLine({ key, val: type, prefix });
   });
 
@@ -109,7 +116,19 @@ export const parseSchema = ({ schema, modelName, addModel = false, header = "", 
   }
 
   if (schema.statics && modelName && addModel) {
-      template += `\tinterface I${modelName}Model extends Model<I${modelName}> {\n`;
+      let modelExtend: string;
+      if (schema.query) {
+        template += `\tinterface I${modelName}Queries {\n`;
+        template += parseFunctions(schema.query, modelName, "query", "\t\t");
+        template += "\t}\n\n";
+
+        modelExtend = `Model<I${modelName}, I${modelName}Queries>`
+      }
+      else {
+        modelExtend = `Model<I${modelName}>`
+      }
+
+      template += `\tinterface I${modelName}Model extends ${modelExtend} {\n`;
       template += parseFunctions(schema.statics, modelName, "statics", "\t\t");
       template += "\t}\n\n";
   }
