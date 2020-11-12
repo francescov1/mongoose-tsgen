@@ -66,9 +66,11 @@ OPTIONS
   -j, --js               search for Mongoose schemas in Javascript files rather than in Typescript files
   -o, --output=output    [default: ./src/types/mongoose] path of output index.d.ts file
   -p, --project=project  [default: ./] path of tsconfig.json or its root folder
+  --no-format            disable formatting generated files with prettier and fixing with eslint
+  --no-func-types        disable using TS compiler API for method, static and query typings
 ```
 
-All sub-directories of `ROOT_PATH` will be searched for a `/models/` folder. If such folder contains an `index.ts` (or `index.js`) file, all Mongoose models are expected to be exported from here. If such file does not exist, all `*.ts` (or `*.js`) files in this folder are expected to export a Mongoose model.
+All sub-directories of `ROOT_PATH` will be searched for `models/*.ts` files (or `models/*.js`). Files in this folder are expected to export a Mongoose model.
 
 <i>NOTE: --output requires a folder path or a file path ending in `index.d.ts`. If the path does not exist, it will be created.</i>
 
