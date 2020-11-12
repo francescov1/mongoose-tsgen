@@ -218,3 +218,11 @@ async function editEmail(user: IUser, newEmail: string): IUser {
   return await user.save();
 }
 ```
+
+## Development
+
+The core functionality of mongoose-tsgen lives in `src/helpers/parser.ts`. Apologies for the messy structure, this started as a quick and simple solution we needed ready fast. Will work to clean that section up when time frees up. 
+
+
+TODO: qquery helper support on readme, instructions for supporting query helpers
+// also look at doing typing for methods similarly

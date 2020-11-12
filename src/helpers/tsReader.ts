@@ -1,31 +1,6 @@
-import glob from 'glob';
 import { Project, Node, SyntaxKind, MethodDeclaration, SourceFile } from "ts-morph";
 
 function getFuncDeclarations(sourceFile: SourceFile) {
-  // const filename = path.basename(controllerPath, ".ts");
-  // console.log(SyntaxKind.ExpressionStatement);
-
-  // for (const variable of sourceFile.getVariableDeclarations()) {
-  //   const varName = variable.getName();
-    
-  //   // console.log(variable.getInitializer().getText())
-
-  //   // TODO: may wanna refine this
-  //   if (varName.match(/[a-zA-Z]+Schema/i)) {
-  //     const identifier = variable.getNameNode()
-  //     if (Node.isIdentifier(identifier)) {
-        
-  //       // console.log(varName)
-  //       // console.log(variable.getText())
-  //       // console.log("\n========================================\n")
-  //       // const refs = identifier.findReferences()[0].getReferences();
-  //       // refs.forEach(ref => {
-  //       //   console.log(ref.getNode().getKindName())
-  //       //   console.log("\n========================================\n")
-  //       // })
-  //     }
-  //   }
-
   const methodDeclarations = [];
   const staticDeclarations = []
 
@@ -82,24 +57,12 @@ function getModelName(sourceFile: SourceFile) {
 
 // TODO: need to get any custom imports from user for generated file - ideally a config file can be used at this point since we have enough options
 
-export const getFunctionTypes = () => {
-    const modelsPaths = glob.sync('./src/models/**/!(index).ts');
-
+export const getFunctionTypes = (modelsPaths: string[]) => {
     const project = new Project({});
     project.addSourceFilesAtPaths(modelsPaths);
 
     // TODO: replace `this: any` with `this: I{modelName}`
-    
-    // TODO: set this up to handle paths found from parser
-    
-    // if (Array.isArray(modelsPath)) {
-    //     project.addSourceFilesAtPaths(modelsPath);
-    // }
-    // else {
-    //     project.addSourceFilesAtPaths(modelsPath.replace(`index`, "**/*"));
-    //     // modelsPath = [modelsPath]
-    //     // TODO: gonna need to redo this with each model paths
-    // }
+
     const results: { 
         [modelName: string]: { 
             methods: { [funcName: string]: string }, 

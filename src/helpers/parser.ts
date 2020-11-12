@@ -61,6 +61,7 @@ const makeLine = ({
   return line;
 };
 
+// TODO: this doesnt handle query funcs with params - atleast tack on some ...any param
 const parseFunctions = (funcs: any, modelName: string, funcType: "methods" | "statics" | "query", prefix = "") => {
   let interfaceString = "";
 
@@ -284,50 +285,11 @@ export const registerUserTs = (basePath: string): (() => void) | null => {
   return null;
 }
 
-export const findModelsPath = (basePath: string, useJs = false): string | string[] => {
-  const extension = useJs ? "js" : "ts";
-
-  let pathToSearch: string;
-
-  const { base: basePathEnd } = path.parse(basePath)
-  // if path ends in "models"
-  if (basePathEnd === "models") pathToSearch = path.join(basePath, `*.${extension}`);
-  else if (basePathEnd === `index.${extension}`) pathToSearch = basePath;
-  else pathToSearch = path.join(basePath, `**/models/*.${extension}`)
-
-  const files = glob.sync(pathToSearch, { ignore: "**/node_modules/**" })
-
-  // get all paths ending in "models/index.ts" (or "models/index.js" if --js flag is passed)
-  const mainExportFiles = files.filter((filename: string) => {
-    const { base, dir } = path.parse(filename);
-    return dir.endsWith("models") && base === `index.${extension}`
-  })
-
-  let modelsPath;
-  if (mainExportFiles.length === 1) {
-    modelsPath = path.join(process.cwd(), mainExportFiles[0]) as string;
-  }
-  else if (mainExportFiles.length > 1) {
-    throw new Error(`Multiple paths found ending in "models/index.${extension}". Please specify a more specific path argument. Paths found: ${mainExportFiles}`)
-  }
-  // if no index.js file, then well require all model files individually
-  else if (files.length > 0) {
-    modelsPath = files.map((filename: string) => {
-      return path.join(process.cwd(), filename);
-    }) as string[]
-  }
-  else {
-    throw new Error(`No "/models" folder found at path "${basePath}"`)
-  }
-
-  return modelsPath
-}
-
 interface LoadedSchemas {
   [modelName: string]: mongoose.Schema
 }
 
-export const loadSchemas = (modelsPath: string | string[]) => {
+export const loadSchemas = (modelsIndexOrPaths: string | string[]) => {
   const schemas: LoadedSchemas = {};
 
   const checkAndRegisterModel = (obj: any): boolean => {
@@ -340,8 +302,8 @@ export const loadSchemas = (modelsPath: string | string[]) => {
   // for property names that would commonly export the schema. Here is the priority (using the filename as a starting point to determine model name): 
   // default export, model name (ie `User`), model name lowercase (ie `user`), collection name (ie `users`), collection name uppercased (ie `Users`).
   // If none of those exist, we assume the export object is set to the schema directly
-  if (Array.isArray(modelsPath)) {
-    modelsPath.forEach((singleModelPath: string) => {
+  if (Array.isArray(modelsIndexOrPaths)) {
+    modelsIndexOrPaths.forEach((singleModelPath: string) => {
       let exportedData;
       try {
         exportedData = require(singleModelPath);
@@ -389,7 +351,7 @@ export const loadSchemas = (modelsPath: string | string[]) => {
   // if path is not array
   try {
     // usually this will be the path to an index.{t|j}s file that exports all models
-    let exportedData = require(modelsPath);
+    let exportedData = require(modelsIndexOrPaths);
     if (exportedData?.default) exportedData = exportedData.default;
 
     // if exported data is a model, likely the user only has one model in their models folder (and no index file)
@@ -402,11 +364,11 @@ export const loadSchemas = (modelsPath: string | string[]) => {
     // if any models found, return;
     if (Object.keys(schemas).length > 0) return schemas;
 
-    throw new Error(`A module was found at ${modelsPath}, but no exported models were found. Please ensure this file exports a Mongoose Model or an object containing all your Mongoose Models (preferably default export).`)
+    throw new Error(`A module was found at ${modelsIndexOrPaths}, but no exported models were found. Please ensure this file exports a Mongoose Model or an object containing all your Mongoose Models (preferably default export).`)
   }
   catch (err) {
-    if (err.message?.includes(`Cannot find module '${modelsPath}'`))
-        throw new Error(`Could not find a module at path ${modelsPath}.`);
+    if (err.message?.includes(`Cannot find module '${modelsIndexOrPaths}'`))
+        throw new Error(`Could not find a module at path ${modelsIndexOrPaths}.`);
     else throw err;
   }
 }
