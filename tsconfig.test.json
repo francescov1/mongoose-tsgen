@@ -7,8 +7,9 @@
     "rootDir": "src",
     "strict": true,
     "target": "es2017",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "types": ["node", "jest"],
+    "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["src/**/*"],
-  "exclude": ["./node_modules", "./**/tests", "./**/*.test.*", "./**/jest.*"]
+  "include": ["src/**/*"]
 }

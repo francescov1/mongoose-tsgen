@@ -1,5 +1,4 @@
-mongoose-tsgen
-==============
+# mongoose-tsgen
 
 An out-of-the-box Typescript interface generator for Mongoose.
 
@@ -7,14 +6,16 @@ An out-of-the-box Typescript interface generator for Mongoose.
 [![Version](https://img.shields.io/npm/v/mongoose-tsgen.svg)](https://npmjs.org/package/mongoose-tsgen)
 [![npm](https://img.shields.io/npm/dt/mongoose-tsgen)](https://www.npmjs.com/package/mongoose-tsgen)
 [![License](https://img.shields.io/npm/l/mongoose-tsgen.svg)](https://github.com/Bounced-Inc/mongoose-tsgen/blob/master/package.json)
+
 <!-- [![Downloads/week](https://img.shields.io/npm/dw/mongoose-tsgen.svg)](https://npmjs.org/package/mongoose-tsgen) -->
 
 <!-- toc -->
-* [Features](#features)
-* [Compatibility](#compatibility)
-* [Installation](#installation)
-* [Usage](#usage)
-* [Example](#example)
+
+- [Features](#features)
+- [Compatibility](#compatibility)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Example](#example)
 <!-- tocstop -->
 
 # Features
@@ -30,20 +31,25 @@ An out-of-the-box Typescript interface generator for Mongoose.
 - [x] Virtual properties
 - [x] Both Typescript and Javascript schema files (if using Javascript, you will want to convert to Typescript upon generating the `index.d.ts` file)
 - [x] Typescript path aliases
-- [x] Mongoose method and static functions - These could be improved, they currently get typed as `Function` without parameter and return types
+- [x] Mongoose method, static & query functions
 - [ ] Support for `Model.Create`. Currently `new Model` must be used.
 - [ ] Setting subdocument arrays without casting to `any` (currently you need to do `user.friends = [{ uid, name }] as any`).
 
 Would love any help with the last few listed features above.
 
 # Installation
+
 <!-- usage -->
+
 ```sh-session
 $ npm install -D mongoose-tsgen
 $ npx mtgen --help # print usage
 ```
+
 <!-- usagestop -->
+
 # Usage
+
 <!-- commands -->
 
 ## `mtgen [ROOT_PATH]`
@@ -60,13 +66,16 @@ OPTIONS
   -j, --js               search for Mongoose schemas in Javascript files rather than in Typescript files
   -o, --output=output    [default: ./src/types/mongoose] path of output index.d.ts file
   -p, --project=project  [default: ./] path of tsconfig.json or its root folder
+  --no-format            disable formatting generated files with prettier and fixing with eslint
+  --no-func-types        disable using TS compiler API for method, static and query typings
 ```
 
-All sub-directories of `ROOT_PATH` will be searched for a `/models/` folder. If such folder contains an `index.ts` (or `index.js`) file, all Mongoose models are expected to be exported from here. If such file does not exist, all `*.ts` (or `*.js`) files in this folder are expected to export a Mongoose model.
+All sub-directories of `ROOT_PATH` will be searched for `models/*.ts` files (or `models/*.js`). Files in this folder are expected to export a Mongoose model.
 
 <i>NOTE: --output requires a folder path or a file path ending in `index.d.ts`. If the path does not exist, it will be created.</i>
 
 _See code: [src/index.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/master/src/index.ts)_
+
 <!-- commandsstop -->
 
 # Example
@@ -76,7 +85,7 @@ _See code: [src/index.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/mas
 ```typescript
 // NOTE: you will need to import these types after your first ever run of the CLI
 // See the 'Initializing Schemas' section
-import mongoose, { IUser, IUserModel } from "mongoose";
+import mongoose, { IUser, IUserModel, IUserQueries } from "mongoose";
 const { Schema } = mongoose;
 
 const UserSchema = new Schema({
@@ -114,22 +123,38 @@ const UserSchema = new Schema({
 // NOTE: `this: IUser` and `this: IUserModel` is to tell TS the type of `this' value using the "fake this" feature
 // you will need to add these in after your first ever run of the CLI
 
-UserSchema.virtual("name").get(function(this: IUser) { return `${this.firstName} ${this.lastName}` });
+UserSchema.virtual("name").get(function (this: IUser) {
+  return `${this.firstName} ${this.lastName}`;
+});
 
 // method functions
 UserSchema.methods = {
-  isMetadataString(this: IUser) { return typeof this.metadata === "string"; }
-}
+  isMetadataString(this: IUser) {
+    return typeof this.metadata === "string";
+  }
+};
 
 // static functions
 UserSchema.statics = {
   // friendUids could also use the type `ObjectId[]` here
   async getFriends(this: IUserModel, friendUids: IUser["_id"][]) {
-    return await this.aggregate([ { $match: { _id: { $in: friendUids } } } ]);
+    return await this.aggregate([{ $match: { _id: { $in: friendUids } } }]);
   }
-}
+};
 
-export const User: IUserModel = mongoose.model<IUser, IUserModel>("User", UserSchema);
+// query functions - no `this: IUser` required here, just provide IUserQueries type
+const queryFuncs: IUserQueries = {
+  populateFriends() {
+    return this.populate("friends.uid", "firstName lastName");
+  }
+};
+
+UserSchema.query = queryFuncs;
+
+export const User: IUserModel = mongoose.model<IUser, IUserModel>(
+  "User",
+  UserSchema
+);
 export default User;
 ```
 
@@ -151,27 +176,31 @@ import mongoose from "mongoose";
 type ObjectId = mongoose.Types.ObjectId;
 
 declare module "mongoose" {
+  interface IUserFriend extends mongoose.Types.Subdocument {
+    uid: IUser["_id"] | IUser;
+    nickname?: string;
+  }
 
-	interface IUserFriend extends mongoose.Types.Subdocument {
-		uid: IUser["_id"] | IUser;
-		nickname?: string;
-	}
+  interface IUserQueries {
+    populateFriends<Q extends mongoose.DocumentQuery<any, IUser, {}>>(this: Q, ...args: any[]): Q;
+  }
 
-	export interface IUserModel extends Model<IUser> {
-		getFriends: Function;
-	}
+  interface IUserModel extends Model<IUser, IUserQueries> {
+    getFriends: (this: any, friendUids: IUser["_id"][]) => Promise<any>;
+  }
 
-	export interface IUser extends Document {
-		email: string;
-		metadata?: any;
-		firstName: string;
-		lastName: string;
-		friends: Types.DocumentArray<IUserFriend>;
-		cityCoordinates?: Types.Array<number>;
-		name: any;
-		isMetadataString: Function;
-	}
-
+  interface IUser extends Document {
+    email: string;
+    firstName: string;
+    lastName: string;
+    metadata?: any;
+    friends: Types.DocumentArray<IUserFriend>;
+    city: {
+      coordinates?: Types.Array<number>;
+    };
+    name: any;
+    isMetadataString: (this: any) => boolean;
+  }
 }
 ```
 
@@ -205,7 +234,7 @@ Then you can import the interfaces across your application from the Mongoose mod
 
 ```typescript
 // import interface from mongoose module
-import { IUser } from "mongoose"
+import { IUser } from "mongoose";
 
 async function getUser(uid: string): IUser {
   // user will be of type IUser
@@ -218,3 +247,7 @@ async function editEmail(user: IUser, newEmail: string): IUser {
   return await user.save();
 }
 ```
+
+## Development
+
+The core functionality of mongoose-tsgen lives in `src/helpers/parser.ts`. Apologies for the messy structure, this started as a quick and simple solution we needed ready fast. Will work to clean that section up when time frees up.

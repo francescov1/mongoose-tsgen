@@ -2,5 +2,10 @@ module.exports = {
   testEnvironment: "node",
   testMatch: ["<rootDir>/src/**/*.test.ts"],
   preset: "ts-jest",
-  extraGlobals: ["Math", "JSON"],
+  globals: {
+    "ts-jest": {
+      tsConfig: "tsconfig.test.json"
+    }
+  },
+  extraGlobals: ["Math", "JSON"]
 };
