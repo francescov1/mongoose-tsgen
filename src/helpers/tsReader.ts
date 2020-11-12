@@ -59,7 +59,7 @@ function getModelName(sourceFile: SourceFile) {
     throw new Error(
       "No default export found in file: " +
         sourceFile.getFilePath() +
-        ". Ensure to default export a Mongoose model from this file or disable method/static/query typings (--no-func-types | -n)."
+        ". Ensure to default export a Mongoose model from this file or disable method/static/query typings (--no-func-types)."
     );
   }
 
