@@ -6,6 +6,11 @@
   "bin": {
     "mtgen": "./bin/run"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
+  },
   "bugs": "https://github.com/Bounced-Inc/mongoose-tsgen/issues",
   "dependencies": {
     "@oclif/command": "^1.8.0",
@@ -16,6 +21,7 @@
     "glob": "^7.1.6",
     "mkdirp": "^1.0.4",
     "mongoose": "^5.10.6",
+    "prettier": "^2.1.2",
     "ts-morph": "^8.1.2",
     "ts-node": "^9.0.0",
     "tsconfig-paths": "^3.9.0",
@@ -32,7 +38,9 @@
     "eslint-config-oclif": "^3.1.0",
     "eslint-config-oclif-typescript": "^0.1.0",
     "globby": "^10.0.2",
+    "husky": "^4.3.0",
     "jest": "^26.4.2",
+    "pretty-quick": "^3.1.0",
     "rimraf": "^3.0.2",
     "ts-jest": "^26.4.1",
     "typescript": "^3.9.7"
