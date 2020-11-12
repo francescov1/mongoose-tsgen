@@ -24,3 +24,15 @@ export const getFullModelsPaths = (
   const modelsPaths = getModelsPaths(basePath, extension);
   return modelsPaths.map((filename: string) => path.join(process.cwd(), filename));
 };
+
+export const cleanOutputPath = (outputPath: string) => {
+  const { dir, base, ext } = path.parse(outputPath);
+
+  // if `ext` is not empty (meaning outputPath references a file and not a directory) and `base` != index.d.ts, the path is pointing to a file other than index.d.ts
+  if (ext !== "" && base !== "index.d.ts") {
+    throw new Error("--output parameter must reference a folder path or an index.d.ts file.");
+  }
+
+  // if extension is empty, means `base` is the last folder in the path, so append it to the end
+  return ext === "" ? path.join(dir, base) : dir;
+};

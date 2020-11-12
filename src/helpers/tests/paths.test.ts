@@ -20,16 +20,10 @@ describe("getFullModelsPaths", () => {
     modelsPath = await paths.getFullModelsPaths("./src/helpers/tests/", "js");
     expect(modelsPath).toEqual(expected);
 
-    modelsPath = await paths.getFullModelsPaths(
-      "./src/helpers/tests/dist",
-      "js"
-    );
+    modelsPath = await paths.getFullModelsPaths("./src/helpers/tests/dist", "js");
     expect(modelsPath).toEqual(expected);
 
-    modelsPath = await paths.getFullModelsPaths(
-      "./src/helpers/tests/dist/models",
-      "js"
-    );
+    modelsPath = await paths.getFullModelsPaths("./src/helpers/tests/dist/models", "js");
     expect(modelsPath).toEqual(expected);
   });
 
@@ -47,9 +41,7 @@ describe("getFullModelsPaths", () => {
     modelsPath = await paths.getFullModelsPaths("./src/helpers/tests/dist");
     expect(modelsPath).toEqual(expected);
 
-    modelsPath = await paths.getFullModelsPaths(
-      "./src/helpers/tests/dist/models"
-    );
+    modelsPath = await paths.getFullModelsPaths("./src/helpers/tests/dist/models");
     expect(modelsPath).toEqual(expected);
   });
 
@@ -67,10 +59,7 @@ describe("getFullModelsPaths", () => {
     modelsPath = await paths.getFullModelsPaths("./src/helpers/tests", "js");
     expect(modelsPath).toEqual(expected);
 
-    modelsPath = await paths.getFullModelsPaths(
-      "./src/helpers/tests/models",
-      "js"
-    );
+    modelsPath = await paths.getFullModelsPaths("./src/helpers/tests/models", "js");
     expect(modelsPath).toEqual(expected);
   });
 
@@ -102,5 +91,31 @@ describe("getFullModelsPaths", () => {
     expect(() => {
       paths.getFullModelsPaths(".");
     }).toThrow(new Error(`No "/models" folder found at path "."`));
+  });
+});
+
+describe("cleanOutputPath", () => {
+  test("path ending in index.d.ts", () => {
+    const cleaned = paths.cleanOutputPath("/test/path/with/index.d.ts");
+    expect(cleaned).toBe("/test/path/with");
+  });
+
+  test("path ending in file (not index.d.ts)", () => {
+    expect(() => {
+      paths.cleanOutputPath("/test/path/with/random.ts");
+    }).toThrow(new Error("--output parameter must reference a folder path or an index.d.ts file."));
+
+    expect(() => {
+      paths.cleanOutputPath("/test/path/with/index.ts");
+    }).toThrow(new Error("--output parameter must reference a folder path or an index.d.ts file."));
+
+    expect(() => {
+      paths.cleanOutputPath("/test/path/with/index.d.js");
+    }).toThrow(new Error("--output parameter must reference a folder path or an index.d.ts file."));
+  });
+
+  test("path pointing to directory", () => {
+    const cleaned = paths.cleanOutputPath("/test/path/to/directory");
+    expect(cleaned).toBe("/test/path/to/directory");
   });
 });

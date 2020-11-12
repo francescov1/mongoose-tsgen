@@ -81,7 +81,7 @@ class MongooseTsgen extends Command {
       this.log("Dry run detected, generated interfaces will be printed to console:\n");
       this.log(fullTemplate);
     } else {
-      const outputPath = parser.cleanOutputPath(flags.output);
+      const outputPath = paths.cleanOutputPath(flags.output);
       this.log(`Writing interfaces to ${outputPath}`);
 
       parser.writeOrCreateInterfaceFiles(outputPath, fullTemplate);

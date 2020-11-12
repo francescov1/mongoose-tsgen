@@ -7,10 +7,7 @@ const path = require("path");
 const mongoose = require("mongoose");
 
 function getExpectedInterfaceString() {
-  return fs.readFileSync(
-    path.join(__dirname, `artifacts/example.index.d.ts`),
-    "utf8"
-  );
+  return fs.readFileSync(path.join(__dirname, `artifacts/example.index.d.ts`), "utf8");
 }
 
 function cleanupModelsInMemory() {
@@ -43,43 +40,5 @@ describe("generateFileString", () => {
     const schemas = parser.loadSchemas(modelsPath);
     const fileString = await parser.generateFileString({ schemas });
     expect(fileString).toBe(getExpectedInterfaceString());
-  });
-});
-
-describe("cleanOutputPath", () => {
-  test("path ending in index.d.ts", () => {
-    const cleaned = parser.cleanOutputPath("/test/path/with/index.d.ts");
-    expect(cleaned).toBe("/test/path/with");
-  });
-
-  test("path ending in file (not index.d.ts)", () => {
-    expect(() => {
-      parser.cleanOutputPath("/test/path/with/random.ts");
-    }).toThrow(
-      new Error(
-        "--output parameter must reference a folder path or an index.d.ts file."
-      )
-    );
-
-    expect(() => {
-      parser.cleanOutputPath("/test/path/with/index.ts");
-    }).toThrow(
-      new Error(
-        "--output parameter must reference a folder path or an index.d.ts file."
-      )
-    );
-
-    expect(() => {
-      parser.cleanOutputPath("/test/path/with/index.d.js");
-    }).toThrow(
-      new Error(
-        "--output parameter must reference a folder path or an index.d.ts file."
-      )
-    );
-  });
-
-  test("path pointing to directory", () => {
-    const cleaned = parser.cleanOutputPath("/test/path/to/directory");
-    expect(cleaned).toBe("/test/path/to/directory");
   });
 });

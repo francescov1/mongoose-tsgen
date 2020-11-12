@@ -433,18 +433,6 @@ export const generateFileString = ({ schemas }: { schemas: LoadedSchemas }) => {
   return fullTemplate;
 };
 
-export const cleanOutputPath = (outputPath: string) => {
-  const { dir, base, ext } = path.parse(outputPath);
-
-  // if `ext` is not empty (meaning outputPath references a file and not a directory) and `base` != index.d.ts, the path is pointing to a file other than index.d.ts
-  if (ext !== "" && base !== "index.d.ts") {
-    throw new Error("--output parameter must reference a folder path or an index.d.ts file.");
-  }
-
-  // if extension is empty, means `base` is the last folder in the path, so append it to the end
-  return ext === "" ? path.join(dir, base) : dir;
-};
-
 // get empty custom interface template
 const getCustomTemplate = () => {
   let customTemplateString = CUSTOM_HEADER;
