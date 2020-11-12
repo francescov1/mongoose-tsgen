@@ -73,7 +73,7 @@ const parseFunctions = (
 ) => {
   let interfaceString = "";
 
-  Object.keys(funcs).forEach((key) => {
+  Object.keys(funcs).forEach(key => {
     if (["initializeTimestamps"].includes(key)) return;
 
     let type;
@@ -261,9 +261,7 @@ export const parseSchema = ({
 
     if (!valType) return "";
 
-    if (isArray)
-      valType =
-        `Types.${val._isSubdocArray ? "Document" : ""}Array<` + valType + ">";
+    if (isArray) valType = `Types.${val._isSubdocArray ? "Document" : ""}Array<` + valType + ">";
 
     return makeLine({ key, val: valType, prefix, isOptional });
   };
@@ -291,8 +289,7 @@ export const registerUserTs = (basePath: string): (() => void) | null => {
 
   const files = glob.sync(pathToSearch, { ignore: "**/node_modules/**" });
 
-  if (files.length === 0)
-    throw new Error(`No tsconfig.json file found at path "${basePath}"`);
+  if (files.length === 0) throw new Error(`No tsconfig.json file found at path "${basePath}"`);
   else if (files.length > 1)
     throw new Error(
       `Multiple tsconfig.json files found. Please specify a more specific --project value.\nPaths found: ${files}`
@@ -339,30 +336,24 @@ export const loadSchemas = (modelsIndexOrPaths: string | string[]) => {
         exportedData = require(singleModelPath);
       } catch (err) {
         if (err.message?.includes(`Cannot find module '${singleModelPath}'`))
-          throw new Error(
-            `Could not find a module at path ${singleModelPath}.`
-          );
+          throw new Error(`Could not find a module at path ${singleModelPath}.`);
         else throw err;
       }
 
       // if exported data has a default export, use that
-      if (
-        checkAndRegisterModel(exportedData.default) ||
-        checkAndRegisterModel(exportedData)
-      )
+      if (checkAndRegisterModel(exportedData.default) || checkAndRegisterModel(exportedData))
         return;
 
       // if no default export, look for a property matching file name
       const { name: filenameRoot } = path.parse(singleModelPath);
 
       // capitalize first char
-      const modelName =
-        filenameRoot.charAt(0).toUpperCase() + filenameRoot.slice(1);
+      const modelName = filenameRoot.charAt(0).toUpperCase() + filenameRoot.slice(1);
       const collectionNameUppercased = modelName + "s";
 
-      let modelNameLowercase = filenameRoot.endsWith("s")
-        ? filenameRoot.slice(0, -1)
-        : filenameRoot;
+      let modelNameLowercase = filenameRoot.endsWith("s") ?
+        filenameRoot.slice(0, -1) :
+        filenameRoot;
       modelNameLowercase = modelNameLowercase.toLowerCase();
 
       const collectionName = modelNameLowercase + "s";
@@ -421,7 +412,7 @@ export const generateFileString = ({ schemas }: { schemas: LoadedSchemas }) => {
   fullTemplate += IMPORTS;
   fullTemplate += DECLARATION_HEADER;
 
-  Object.keys(schemas).forEach((modelName) => {
+  Object.keys(schemas).forEach(modelName => {
     const schema = schemas[modelName];
     let interfaceStr = "";
 
@@ -447,9 +438,7 @@ export const cleanOutputPath = (outputPath: string) => {
 
   // if `ext` is not empty (meaning outputPath references a file and not a directory) and `base` != index.d.ts, the path is pointing to a file other than index.d.ts
   if (ext !== "" && base !== "index.d.ts") {
-    throw new Error(
-      "--output parameter must reference a folder path or an index.d.ts file."
-    );
+    throw new Error("--output parameter must reference a folder path or an index.d.ts file.");
   }
 
   // if extension is empty, means `base` is the last folder in the path, so append it to the end
@@ -465,10 +454,7 @@ const getCustomTemplate = () => {
   return customTemplateString;
 };
 
-export const writeOrCreateInterfaceFiles = (
-  outputPath: string,
-  interfaceString: string
-) => {
+export const writeOrCreateInterfaceFiles = (outputPath: string, interfaceString: string) => {
   const writeFiles = () => {
     const indexOutputPath = path.join(outputPath, "index.d.ts");
     const customOutputPath = path.join(outputPath, "custom.d.ts");

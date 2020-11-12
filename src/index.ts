@@ -24,14 +24,12 @@ class MongooseTsgen extends Command {
     "no-func-types": flags.boolean({
       char: "n",
       default: false,
-      description:
-        "disable using TS compiler API for method, static and query typings"
+      description: "disable using TS compiler API for method, static and query typings"
     }),
     js: flags.boolean({
       char: "j",
       default: false,
-      description:
-        "search for Mongoose schemas in Javascript files rather than in Typescript files"
+      description: "search for Mongoose schemas in Javascript files rather than in Typescript files"
     }),
     project: flags.string({
       char: "p",
@@ -55,17 +53,14 @@ class MongooseTsgen extends Command {
     let fullTemplate: string;
     try {
       const extension = flags.js ? "js" : "ts";
-      const modelsIndexOrPaths = paths.getFullModelsPaths(
-        args.root_path,
-        extension
-      );
+      const modelsIndexOrPaths = paths.getFullModelsPaths(args.root_path, extension);
 
       let cleanupTs: any;
       if (!flags.js) {
         cleanupTs = parser.registerUserTs(flags.project);
-        const modelsPaths = Array.isArray(modelsIndexOrPaths)
-          ? modelsIndexOrPaths
-          : paths.getModelsPaths(args.root_path, extension);
+        const modelsPaths = Array.isArray(modelsIndexOrPaths) ?
+          modelsIndexOrPaths :
+          paths.getModelsPaths(args.root_path, extension);
 
         if (!flags["no-func-types"]) {
           const functionTypes = tsReader.getFunctionTypes(modelsPaths);
@@ -83,9 +78,7 @@ class MongooseTsgen extends Command {
     cli.action.stop();
 
     if (flags["dry-run"]) {
-      this.log(
-        "Dry run detected, generated interfaces will be printed to console:\n"
-      );
+      this.log("Dry run detected, generated interfaces will be printed to console:\n");
       this.log(fullTemplate);
     } else {
       const outputPath = parser.cleanOutputPath(flags.output);

@@ -1,15 +1,10 @@
 import glob from "glob";
 import path from "path";
 
-export const getModelsPaths = (
-  basePath: string,
-  extension: "js" | "ts"
-): string[] => {
+export const getModelsPaths = (basePath: string, extension: "js" | "ts"): string[] => {
   const { base: basePathEnd } = path.parse(basePath);
   const searchPath =
-    basePathEnd === "models"
-      ? `**/!(index).${extension}`
-      : `**/models/!(index).${extension}`;
+    basePathEnd === "models" ? `**/!(index).${extension}` : `**/models/!(index).${extension}`;
   const modelsFolderPath = path.join(basePath, searchPath);
 
   const modelsPaths = glob.sync(modelsFolderPath, {
@@ -27,7 +22,5 @@ export const getFullModelsPaths = (
   extension: "js" | "ts" = "ts"
 ): string | string[] => {
   const modelsPaths = getModelsPaths(basePath, extension);
-  return modelsPaths.map((filename: string) =>
-    path.join(process.cwd(), filename)
-  );
+  return modelsPaths.map((filename: string) => path.join(process.cwd(), filename));
 };
