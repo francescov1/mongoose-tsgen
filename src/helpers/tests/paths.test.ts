@@ -84,13 +84,13 @@ describe("getFullModelsPaths", () => {
   test("no models (js)", async () => {
     expect(() => {
       paths.getFullModelsPaths(".", "js");
-    }).toThrow(new Error(`No "/models" folder found at path "."`));
+    }).toThrow(new Error(`No "models/*.js" files found at path "."`));
   });
 
   test("no models (ts)", async () => {
     expect(() => {
       paths.getFullModelsPaths(".");
-    }).toThrow(new Error(`No "/models" folder found at path "."`));
+    }).toThrow(new Error(`No "models/*.ts" files found at path "."`));
   });
 });
 

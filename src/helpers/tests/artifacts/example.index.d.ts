@@ -7,30 +7,31 @@
 // TO ADD CUSTOM INTERFACES, DEFINE THEM IN THE `custom.d.ts` FILE.
 
 import mongoose from "mongoose";
-type ObjectId = mongoose.Types.ObjectId;
 
 declare module "mongoose" {
+  interface IUserFriend extends mongoose.Types.Subdocument {
+    uid: IUser["_id"] | IUser;
+    nickname?: string;
+  }
 
-	interface IUserFriend extends mongoose.Types.Subdocument {
-		uid: IUser["_id"] | IUser;
-		nickname?: string;
-	}
+  interface IUserQueries {
+    populateFriends<Q extends mongoose.DocumentQuery<any, IUser, {}>>(this: Q, ...args: any[]): Q;
+  }
 
-	interface IUserModel extends Model<IUser> {
-		getFriends: Function;
-	}
+  interface IUserModel extends Model<IUser, IUserQueries> {
+    getFriends: (this: any, friendUids: IUser["_id"][]) => Promise<any>;
+  }
 
-	interface IUser extends Document {
-		email: string;
-		firstName: string;
-		lastName: string;
-		metadata?: any;
-		friends: Types.DocumentArray<IUserFriend>;
-		city: {
-			coordinates?: Types.Array<number>;
-		};
-		name: any;
-		isMetadataString: Function;
-	}
-
+  interface IUser extends Document {
+    email: string;
+    firstName: string;
+    lastName: string;
+    metadata?: any;
+    friends: Types.DocumentArray<IUserFriend>;
+    city: {
+      coordinates?: Types.Array<number>;
+    };
+    name: any;
+    isMetadataString: (this: any) => boolean;
+  }
 }

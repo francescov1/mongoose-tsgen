@@ -1,6 +1,7 @@
 import { setupFolderStructure, cleanup } from "./utils";
 import * as parser from "../parser";
 import * as paths from "../paths";
+import * as tsReader from "../tsReader";
 
 const fs = require("fs");
 const path = require("path");
@@ -18,6 +19,8 @@ function cleanupModelsInMemory() {
 
 // TODO: test writeOrCreateInterfaceFiles
 
+// these tests are more integration tests than unit - should split them out
+
 // ensure folders are cleaned before starting and after each test
 beforeEach(cleanup);
 afterAll(cleanup);
@@ -31,14 +34,24 @@ describe("generateFileString", () => {
     const schemas = parser.loadSchemas(modelsPath);
     const fileString = await parser.generateFileString({ schemas });
 
-    expect(fileString).toBe(getExpectedInterfaceString());
+    // since we didnt load in typed functions, replace function types in expected string with 'Function'
+    let expectedString = getExpectedInterfaceString();
+    expectedString = expectedString
+      .replace("(this: any) => boolean", "Function")
+      .replace(`(this: any, friendUids: IUser["_id"][]) => Promise<any>`, "Function");
+    expect(fileString).toBe(expectedString);
   });
 
   test("generate file string success (ts)", async () => {
     setupFolderStructure("./dist/models");
-    const modelsPath = await paths.getFullModelsPaths(".");
-    const schemas = parser.loadSchemas(modelsPath);
+    const modelsPaths = await paths.getFullModelsPaths(".");
+    const cleanupTs = parser.registerUserTs("tsconfig.test.json");
+    const functionTypes = tsReader.getFunctionTypes(modelsPaths);
+    parser.setFunctionTypes(functionTypes);
+
+    const schemas = parser.loadSchemas(modelsPaths);
     const fileString = await parser.generateFileString({ schemas });
+    cleanupTs?.();
     expect(fileString).toBe(getExpectedInterfaceString());
   });
 });

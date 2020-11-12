@@ -81,7 +81,7 @@ const parseFunctions = (
       key += `<Q extends mongoose.DocumentQuery<any, I${modelName}, {}>>(this: Q, ...args: any[])`;
       type = "Q";
     } else {
-      type = globalFuncTypes[modelName][funcType][key];
+      type = globalFuncTypes?.[modelName]?.[funcType]?.[key] ?? "Function";
     }
     interfaceString += makeLine({ key, val: type, prefix });
   });
@@ -284,7 +284,7 @@ export const parseSchema = ({
 
 export const registerUserTs = (basePath: string): (() => void) | null => {
   let pathToSearch: string;
-  if (basePath.endsWith("tsconfig.json")) pathToSearch = basePath;
+  if (basePath.endsWith(".json")) pathToSearch = basePath;
   else pathToSearch = path.join(basePath, "**/tsconfig.json");
 
   const files = glob.sync(pathToSearch, { ignore: "**/node_modules/**" });

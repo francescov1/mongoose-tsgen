@@ -66,8 +66,6 @@ function getModelName(sourceFile: SourceFile) {
   return defaultExportAssignment.getExpression().getText();
 }
 
-// TODO: need to get any custom imports from user for generated file - ideally a config file can be used at this point since we have enough options
-
 export const getFunctionTypes = (modelsPaths: string[]) => {
   const project = new Project({});
   project.addSourceFilesAtPaths(modelsPaths);

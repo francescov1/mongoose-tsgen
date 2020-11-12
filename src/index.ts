@@ -28,7 +28,7 @@ class MongooseTsgen extends Command {
     }),
     "no-format": flags.boolean({
       default: false,
-      description: "disable formatting generated output files using prettier"
+      description: "disable formatting generated files with prettier and fixing with eslint"
     }),
     js: flags.boolean({
       char: "j",
@@ -86,7 +86,7 @@ class MongooseTsgen extends Command {
       this.log(`Writing interfaces to ${outputPath}`);
 
       parser.writeOrCreateInterfaceFiles(outputPath, fullTemplate);
-      if (!flags["no-format"]) formatter.format(outputPath);
+      if (!flags["no-format"]) await formatter.format(outputPath);
       this.log("Writing complete 🐒");
       process.exit();
     }

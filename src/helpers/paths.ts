@@ -11,7 +11,7 @@ export const getModelsPaths = (basePath: string, extension: "js" | "ts"): string
     ignore: "**/node_modules/**"
   });
   if (modelsPaths.length === 0) {
-    throw new Error(`No "/models/*.${extension}" files found below path "${basePath}"`);
+    throw new Error(`No "models/*.${extension}" files found at path "${basePath}"`);
   }
 
   return modelsPaths;

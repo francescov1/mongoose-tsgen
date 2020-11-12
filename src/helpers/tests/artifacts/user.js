@@ -34,22 +34,28 @@ const UserSchema = new Schema({
   }
 });
 
-UserSchema.virtual("name").get(function () { 
-    return `${this.firstName} ${this.lastName}`;
- });
+UserSchema.virtual("name").get(function () {
+  return `${this.firstName} ${this.lastName}`;
+});
 
 // method functions
 UserSchema.methods = {
-    isMetadataString() { 
-        return typeof this.metadata === "string"; 
-    }
-}
+  isMetadataString() {
+    return typeof this.metadata === "string";
+  }
+};
 
 // static functions
 UserSchema.statics = {
   async getFriends(friendUids) {
     return await this.aggregate([{ $match: { _id: { $in: friendUids } } }]);
   }
-}
+};
+
+UserSchema.query = {
+  populateFriends() {
+    return this.populate("friends.uid", "firstName lastName");
+  }
+};
 
 module.exports = mongoose.model("User", UserSchema);
