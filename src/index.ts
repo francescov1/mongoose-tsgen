@@ -57,14 +57,11 @@ class MongooseTsgen extends Command {
     let fullTemplate: string;
     try {
       const extension = flags.js ? "js" : "ts";
-      const modelsIndexOrPaths = paths.getFullModelsPaths(args.root_path, extension);
+      const modelsPaths = paths.getFullModelsPaths(args.root_path, extension);
 
       let cleanupTs: any;
       if (!flags.js) {
         cleanupTs = parser.registerUserTs(flags.project);
-        const modelsPaths = Array.isArray(modelsIndexOrPaths) ?
-          modelsIndexOrPaths :
-          paths.getModelsPaths(args.root_path, extension);
 
         if (!flags["no-func-types"]) {
           const functionTypes = tsReader.getFunctionTypes(modelsPaths);
@@ -72,7 +69,7 @@ class MongooseTsgen extends Command {
         }
       }
 
-      const schemas = parser.loadSchemas(modelsIndexOrPaths);
+      const schemas = parser.loadSchemas(modelsPaths);
       fullTemplate = parser.generateFileString({ schemas });
       cleanupTs?.();
     } catch (error) {

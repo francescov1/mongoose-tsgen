@@ -11,16 +11,13 @@ export const getModelsPaths = (basePath: string, extension: "js" | "ts"): string
     ignore: "**/node_modules/**"
   });
   if (modelsPaths.length === 0) {
-    throw new Error(`No "/models" folder found at path "${basePath}"`);
+    throw new Error(`No "/models/*.${extension}" files found below path "${basePath}"`);
   }
 
   return modelsPaths;
 };
 
-export const getFullModelsPaths = (
-  basePath: string,
-  extension: "js" | "ts" = "ts"
-): string | string[] => {
+export const getFullModelsPaths = (basePath: string, extension: "js" | "ts" = "ts"): string[] => {
   const modelsPaths = getModelsPaths(basePath, extension);
   return modelsPaths.map((filename: string) => path.join(process.cwd(), filename));
 };

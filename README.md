@@ -31,7 +31,7 @@ An out-of-the-box Typescript interface generator for Mongoose.
 - [x] Virtual properties
 - [x] Both Typescript and Javascript schema files (if using Javascript, you will want to convert to Typescript upon generating the `index.d.ts` file)
 - [x] Typescript path aliases
-- [x] Mongoose method and static functions - These could be improved, they currently get typed as `Function` without parameter and return types
+- [x] Mongoose method, static & query functions
 - [ ] Support for `Model.Create`. Currently `new Model` must be used.
 - [ ] Setting subdocument arrays without casting to `any` (currently you need to do `user.friends = [{ uid, name }] as any`).
 
@@ -83,7 +83,7 @@ _See code: [src/index.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/mas
 ```typescript
 // NOTE: you will need to import these types after your first ever run of the CLI
 // See the 'Initializing Schemas' section
-import mongoose, { IUser, IUserModel } from "mongoose";
+import mongoose, { IUser, IUserModel, IUserQueries } from "mongoose";
 const { Schema } = mongoose;
 
 const UserSchema = new Schema({
@@ -139,6 +139,15 @@ UserSchema.statics = {
     return await this.aggregate([{ $match: { _id: { $in: friendUids } } }]);
   }
 };
+
+// query functions - no `this: IUser` required here, just provide IUserQueries type
+const queryFuncs: IUserQueries = {
+  populateFriends() {
+    return this.populate("friends.uid", "firstName lastName");
+  }
+};
+
+UserSchema.query = queryFuncs;
 
 export const User: IUserModel = mongoose.model<IUser, IUserModel>(
   "User",
