@@ -49,7 +49,7 @@ function getModelName(sourceFile: SourceFile) {
     const defaultExportAssignment = sourceFile.getExportAssignment(d => !d.isExportEquals())
     if (!defaultExportAssignment) {
         // TODO: if no default, check all exports and compare to filename until a match is found
-        throw new Error("Error determining method and static types of No default export found in file: " + sourceFile.getFilePath() + ". Either disable method and static function typing or ensure to default export your Mongoose model.")
+        throw new Error("No default export found in file: " + sourceFile.getFilePath() + ". Ensure to default export a Mongoose model from this file or disable method/static/query typings (--no-func-types | -n).")
     }
 
     return defaultExportAssignment.getExpression().getText();

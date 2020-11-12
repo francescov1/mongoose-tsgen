@@ -12,8 +12,9 @@ class MongooseTsgen extends Command {
     help: flags.help({char: 'h'}),
     output: flags.string({ char: 'o', default: "./src/types/mongoose", description: "path of output index.d.ts file" }),
     "dry-run": flags.boolean({ char: 'd', default: false, description: "print output rather than writing to file" }),
-    js: flags.boolean({ char: 'j', default: false, description: "search for Mongoose schemas in Javascript files rather than in Typescript files"}),
-    project: flags.string({ char: 'p', default: "./", description: "path of tsconfig.json or its root folder"})
+    "no-func-types": flags.boolean({ char: 'n', default: false, description: "disable using TS compiler API for method, static and query typings" }),
+    js: flags.boolean({ char: 'j', default: false, description: "search for Mongoose schemas in Javascript files rather than in Typescript files" }),
+    project: flags.string({ char: 'p', default: "./", description: "path of tsconfig.json or its root folder" })
   }
   
    // path of mongoose models folder
@@ -37,8 +38,11 @@ class MongooseTsgen extends Command {
           if (!flags.js) {
               cleanupTs = parser.registerUserTs(flags.project);
               const modelsPaths = Array.isArray(modelsIndexOrPaths) ? modelsIndexOrPaths : paths.getModelsPaths(args.root_path, extension)
-              const functionTypes = tsReader.getFunctionTypes(modelsPaths);
-              parser.setFunctionTypes(functionTypes);
+
+              if (!flags['no-func-types']) {
+                  const functionTypes = tsReader.getFunctionTypes(modelsPaths);
+                  parser.setFunctionTypes(functionTypes);
+              }
           }
 
           const schemas = parser.loadSchemas(modelsIndexOrPaths);
