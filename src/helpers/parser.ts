@@ -77,6 +77,7 @@ const parseFunctions = (
     if (["initializeTimestamps"].includes(key)) return;
 
     let type;
+    // TODO: look at typing methods and statics in the same way as queries (ie providing one type for entire methods or statics object, rather than adding `fake this` etc. on every function)
     if (funcType === "query") {
       key += `<Q extends mongoose.DocumentQuery<any, I${modelName}, {}>>(this: Q, ...args: any[])`;
       type = "Q";

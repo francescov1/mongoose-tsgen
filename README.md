@@ -179,19 +179,25 @@ declare module "mongoose" {
     nickname?: string;
   }
 
-  export interface IUserModel extends Model<IUser> {
-    getFriends: Function;
+  interface IUserQueries {
+    populateFriends<Q extends mongoose.DocumentQuery<any, IUser, {}>>(this: Q, ...args: any[]): Q;
   }
 
-  export interface IUser extends Document {
+  interface IUserModel extends Model<IUser, IUserQueries> {
+    getFriends: (this: any, friendUids: IUser["_id"][]) => Promise<any>;
+  }
+
+  interface IUser extends Document {
     email: string;
-    metadata?: any;
     firstName: string;
     lastName: string;
+    metadata?: any;
     friends: Types.DocumentArray<IUserFriend>;
-    cityCoordinates?: Types.Array<number>;
+    city: {
+      coordinates?: Types.Array<number>;
+    };
     name: any;
-    isMetadataString: Function;
+    isMetadataString: (this: any) => boolean;
   }
 }
 ```
@@ -243,6 +249,3 @@ async function editEmail(user: IUser, newEmail: string): IUser {
 ## Development
 
 The core functionality of mongoose-tsgen lives in `src/helpers/parser.ts`. Apologies for the messy structure, this started as a quick and simple solution we needed ready fast. Will work to clean that section up when time frees up.
-
-TODO: qquery helper support on readme, instructions for supporting query helpers
-// also look at doing typing for methods similarly
