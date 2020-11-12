@@ -4,6 +4,7 @@ import cli from "cli-ux";
 import * as parser from "./helpers/parser";
 import * as tsReader from "./helpers/tsReader";
 import * as paths from "./helpers/paths";
+import * as formatter from "./helpers/formatter";
 
 class MongooseTsgen extends Command {
   static description =
@@ -22,9 +23,12 @@ class MongooseTsgen extends Command {
       description: "print output rather than writing to file"
     }),
     "no-func-types": flags.boolean({
-      char: "n",
       default: false,
       description: "disable using TS compiler API for method, static and query typings"
+    }),
+    "no-format": flags.boolean({
+      default: false,
+      description: "disable formatting generated output files using prettier"
     }),
     js: flags.boolean({
       char: "j",
@@ -85,6 +89,7 @@ class MongooseTsgen extends Command {
       this.log(`Writing interfaces to ${outputPath}`);
 
       parser.writeOrCreateInterfaceFiles(outputPath, fullTemplate);
+      if (!flags["no-format"]) formatter.format(outputPath);
       this.log("Writing complete 🐒");
       process.exit();
     }
