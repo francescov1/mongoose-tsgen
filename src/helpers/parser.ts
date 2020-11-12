@@ -64,7 +64,7 @@ const makeLine = ({
   return line;
 };
 
-// TODO: this doesnt handle query funcs with params - atleast tack on some ...any param
+// TODO: this types any additional params to the query func as "...args: any[]" - we should get actual params
 const parseFunctions = (
   funcs: any,
   modelName: string,
@@ -78,7 +78,7 @@ const parseFunctions = (
 
     let type;
     if (funcType === "query") {
-      key += `<Q extends mongoose.DocumentQuery<any, I${modelName}, {}>>(this: Q)`;
+      key += `<Q extends mongoose.DocumentQuery<any, I${modelName}, {}>>(this: Q, ...args: any[])`;
       type = "Q";
     } else {
       type = globalFuncTypes[modelName][funcType][key];
