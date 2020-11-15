@@ -79,7 +79,7 @@ const parseFunctions = (
     let type;
     // TODO: look at typing methods and statics in the same way as queries (ie providing one type for entire methods or statics object, rather than adding `fake this` etc. on every function)
     if (funcType === "query") {
-      key += `<Q extends mongoose.DocumentQuery<any, I${modelName}, {}>>(this: Q, ...args: any[])`;
+      key += `<Q extends mongoose.DocumentQuery<any, I${modelName}Document, {}>>(this: Q, ...args: any[])`;
       type = "Q";
     } else {
       type = globalFuncTypes?.[modelName]?.[funcType]?.[key] ?? "Function";
@@ -94,6 +94,7 @@ export const parseSchema = ({
   schema,
   modelName,
   addModel = false,
+  isDocument,
   header = "",
   footer = "",
   prefix = ""
@@ -101,6 +102,7 @@ export const parseSchema = ({
   schema: any;
   modelName?: string;
   addModel?: boolean;
+  isDocument: boolean;
   header?: string;
   footer?: string;
   prefix?: string;
@@ -123,15 +125,16 @@ export const parseSchema = ({
         child.schema._isSubdocArray = isSubdocArray;
         flatSchemaTree[path] = isSubdocArray ? [child.schema] : child.schema;
 
-        const header = `\tinterface I${name} extends ${
-          isSubdocArray ? "mongoose.Types.Subdocument" : "Document"
-        } {\n`;
-
         childInterfaces += parseSchema({
           schema: child.schema,
           modelName: name,
-          header,
-          footer: "\t}\n\n",
+          header: isDocument ?
+            `\ttype I${name}Document = ${
+                isSubdocArray ? "mongoose.Types.Subdocument" : "mongoose.Document"
+              } & {\n` :
+            `\tinterface I${name} {`,
+          isDocument,
+          footer: `\t}${isDocument ? ` & I${name}` : ""}\n\n`,
           prefix: "\t\t"
         });
       };
@@ -144,16 +147,16 @@ export const parseSchema = ({
     template += childInterfaces;
   }
 
-  if (schema.statics && modelName && addModel) {
+  if (!isDocument && schema.statics && modelName && addModel) {
     let modelExtend: string;
     if (schema.query) {
       template += `\tinterface I${modelName}Queries {\n`;
       template += parseFunctions(schema.query, modelName, "query", "\t\t");
       template += "\t}\n\n";
 
-      modelExtend = `Model<I${modelName}, I${modelName}Queries>`;
+      modelExtend = `Model<I${modelName}Document, I${modelName}Queries>`;
     } else {
-      modelExtend = `Model<I${modelName}>`;
+      modelExtend = `Model<I${modelName}Document>`;
     }
 
     template += `\tinterface I${modelName}Model extends ${modelExtend} {\n`;
@@ -184,12 +187,11 @@ export const parseSchema = ({
     }
 
     if (val._inferredInterfaceName) {
-      valType = val._inferredInterfaceName;
+      valType = val._inferredInterfaceName + (isDocument ? "Document" : "");
     }
-
     // check for virtual properties
     else if (val.path && val.path && val.setters && val.getters) {
-      if (key === "id") {
+      if (key === "id" || !isDocument) {
         return "";
       }
 
@@ -219,14 +221,20 @@ export const parseSchema = ({
       }
 
       // isArray check for second type option happens when adding line - but we do need to add the index
-
-      valType = `I${docRef}["_id"] | I${docRef}`;
+      // TODO: if issues arise for arrays that arent typed as I{val}Document, we
+      // we would then only want to check val._isSubdocArray if its referncing itself (cause types wont allow that)
+      valType = `I${docRef}${
+        isDocument && val._isSubdocArray ? "Document" : ""
+      }["_id"] | I${docRef}${isDocument && val._isSubdocArray ? "Document" : ""}`;
     }
     // NOTE: ideally we check actual type of value to ensure its Schema.Types.Mixed (the same way we do with Schema.Types.ObjectId),
     // but this doesnt seem to work for some reason
     else if (val.schemaName === "Mixed" || val.type?.schemaName === "Mixed") {
+      if (!isDocument) return "";
       valType = "any";
     } else {
+      // if (isArray || !isDocument)
+      let typeFound = true;
       switch (val.type) {
         case String:
           if (val.enum?.length > 0) {
@@ -243,26 +251,39 @@ export const parseSchema = ({
           valType = "Date";
           break;
         case ObjectId:
-          valType = "ObjectId";
+          valType = "mongoose.Types.ObjectId";
           break;
         // _id fields have type as a string
         case "ObjectId":
-          return "";
-        default:
-          // if we dont find it, go one level deeper
-          valType = parseSchema({
-            schema: { tree: val },
-            header: "{\n",
-            footer: prefix + "}",
-            prefix: prefix + "\t"
-          });
           isOptional = false;
+          valType = "mongoose.Types.ObjectId";
+          break;
+        default:
+          typeFound = false;
       }
+
+      if (!typeFound) {
+        // if we dont find it, go one level deeper
+        valType = parseSchema({
+          schema: { tree: val },
+          header: "{\n",
+          isDocument,
+          footer: prefix + "}",
+          prefix: prefix + "\t"
+        });
+        isOptional = false;
+      }
+      // skip base types for documents
+      else if (isDocument) valType = undefined;
     }
 
     if (!valType) return "";
 
-    if (isArray) valType = `Types.${val._isSubdocArray ? "Document" : ""}Array<` + valType + ">";
+    if (isArray) {
+      valType = isDocument ?
+        `mongoose.Types.${val._isSubdocArray ? "Document" : ""}Array<` + valType + ">" :
+        `${valType}[]`;
+    }
 
     return makeLine({ key, val: valType, prefix, isOptional });
   };
@@ -273,7 +294,7 @@ export const parseSchema = ({
   });
 
   // if (schema.methods && modelName) {
-  if (schema.methods) {
+  if (isDocument && schema.methods) {
     if (!modelName) throw new Error("No model name found on schema " + schema);
     template += parseFunctions(schema.methods, modelName, "methods", prefix);
   }
@@ -423,10 +444,22 @@ export const generateFileString = ({ schemas }: { schemas: LoadedSchemas }) => {
       schema,
       modelName,
       addModel: true,
-      header: `\tinterface I${modelName} extends Document {\n`,
+      isDocument: false,
+      header: `\tinterface I${modelName} {\n`,
       footer: "\t}\n\n",
       prefix: "\t\t"
     });
+
+    interfaceStr += parseSchema({
+      schema,
+      modelName,
+      addModel: true,
+      isDocument: true,
+      header: `\ttype I${modelName}Document = mongoose.Document & {\n`,
+      footer: `\t} & I${modelName}\n\n`,
+      prefix: "\t\t"
+    });
+
     fullTemplate += interfaceStr;
   });
 
