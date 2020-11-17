@@ -1,6 +1,6 @@
 # mongoose-tsgen
 
-An out-of-the-box Typescript interface generator for Mongoose.
+An plug-n-play Typescript interface generator for Mongoose.
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/mongoose-tsgen.svg)](https://npmjs.org/package/mongoose-tsgen)
@@ -262,9 +262,10 @@ async function editEmail(user: UserDocument, newEmail: string): UserDocument {
 
 ## Development
 
-The core functionality of mongoose-tsgen lives in `src/helpers/parser.ts`. Apologies for the messy structure, this started as a quick and simple solution. Will work to clean that section up when time frees up.
-
 - [ ] The generating piece of `src/helpers/parser.ts` needs to be rewritten using [ts-morph](https://github.com/dsherret/ts-morph). Currently it builds the interfaces by appending generated lines of code to a string sequentially, with no knowledge of the AST. This leads to pretty confusing logic, using the TS compiler API would simplify it a ton.
 - [ ] Query function parameters are typed using a rest parameter `(...args: any[])`, this needs to be fine tunned to use the actual parameters and types.
 - [ ] Top-level schema fields that refer to the schema itself (i.e. an array of User friend IDs at the root of the User schema) will be typed as the barebones Mongoose-less Schema interface, rather than the Document type (in example above, would refer to `User` instead of `UserDocument`). This is because the Document type is a TS type, rather than an interface, thus it cannot reference itself. This edge-case only really arises to users if they populate that specific property, otherwise this would references an ObjectId in both cases.
+<<<<<<< HEAD
 - [ ] Generating types for specifically the method and static functions objects. This is how query functions are currently handled, it removes the need to fill in the "fake this" parameter for each function.
+=======
+>>>>>>> 68c575a618f33bda8c784f57c6e801323660fa0f
