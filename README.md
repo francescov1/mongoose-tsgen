@@ -151,10 +151,7 @@ const queryFuncs: IUserQueries = {
 
 UserSchema.query = queryFuncs;
 
-export const User: IUserModel = mongoose.model<IUser, IUserModel>(
-  "User",
-  UserSchema
-);
+export const User: IUserModel = mongoose.model<IUser, IUserModel>("User", UserSchema);
 export default User;
 ```
 

@@ -1,8 +1,5 @@
 {
-  "extends": [
-    "oclif",
-    "oclif-typescript"
-  ],
+  "extends": ["oclif", "oclif-typescript"],
   "rules": {
     "quotes": 0,
     "semi": 0,

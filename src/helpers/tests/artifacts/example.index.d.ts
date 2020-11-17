@@ -9,29 +9,43 @@
 import mongoose from "mongoose";
 
 declare module "mongoose" {
-  interface IUserFriend extends mongoose.Types.Subdocument {
+  interface IUserFriend {
     uid: IUser["_id"] | IUser;
     nickname?: string;
+    _id: mongoose.Types.ObjectId;
   }
 
   interface IUserQueries {
-    populateFriends<Q extends mongoose.DocumentQuery<any, IUser, {}>>(this: Q, ...args: any[]): Q;
+    populateFriends<Q extends mongoose.DocumentQuery<any, IUserDocument, {}>>(
+      this: Q,
+      ...args: any[]
+    ): Q;
   }
 
-  interface IUserModel extends Model<IUser, IUserQueries> {
+  interface IUserModel extends Model<IUserDocument, IUserQueries> {
     getFriends: (this: any, friendUids: IUser["_id"][]) => Promise<any>;
   }
 
-  interface IUser extends Document {
+  interface IUser {
     email: string;
     firstName: string;
     lastName: string;
-    metadata?: any;
-    friends: Types.DocumentArray<IUserFriend>;
+    friends: IUserFriend[];
     city: {
-      coordinates?: Types.Array<number>;
+      coordinates?: number[];
     };
+    _id: mongoose.Types.ObjectId;
+  }
+
+  type IUserFriendDocument = mongoose.Types.Subdocument & {
+    uid: IUserDocument["_id"] | IUserDocument;
+  } & IUserFriend;
+
+  type IUserDocument = mongoose.Document & {
+    metadata?: any;
+    friends: mongoose.Types.DocumentArray<IUserFriendDocument>;
+    city: {};
     name: any;
     isMetadataString: (this: any) => boolean;
-  }
+  } & IUser;
 }
