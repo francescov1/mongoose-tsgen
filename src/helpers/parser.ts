@@ -220,12 +220,16 @@ export const parseSchema = ({
         docRef = getSubDocName(docRef);
       }
 
-      // isArray check for second type option happens when adding line - but we do need to add the index
-      // TODO: if issues arise for arrays that arent typed as I{val}Document, we
-      // we would then only want to check val._isSubdocArray if its referncing itself (cause types wont allow that)
-      valType = `I${docRef}${
-        isDocument && val._isSubdocArray ? "Document" : ""
-      }["_id"] | I${docRef}${isDocument && val._isSubdocArray ? "Document" : ""}`;
+      if (isDocument) {
+        // NOTE: we need to do the modelName check because typescript types dont allow self-referencing. This is a subpar workaround, it means any
+        // refs to other documents in the same model won't be typed as I{model}Document, instead the non-mongoose doc version `I{model}`
+        // For the most part, this shouldnt matter since we are referencing solely the _id, but if the ref is populated then we are missing mongoose doc types
+        valType = `I${docRef}${docRef === modelName ? "" : "Document"}["_id"] | I${docRef}${
+          docRef === modelName ? "" : "Document"
+        }`;
+      } else {
+        valType = `I${docRef}["_id"] | I${docRef}`;
+      }
     }
     // NOTE: ideally we check actual type of value to ensure its Schema.Types.Mixed (the same way we do with Schema.Types.ObjectId),
     // but this doesnt seem to work for some reason
