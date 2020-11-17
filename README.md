@@ -1,6 +1,6 @@
 # mongoose-tsgen
 
-An out-of-the-box Typescript interface generator for Mongoose.
+An plug-n-play Typescript interface generator for Mongoose.
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/mongoose-tsgen.svg)](https://npmjs.org/package/mongoose-tsgen)
@@ -261,8 +261,6 @@ async function editEmail(user: UserDocument, newEmail: string): UserDocument {
 ```
 
 ## Development
-
-The core functionality of mongoose-tsgen lives in `src/helpers/parser.ts`. Apologies for the messy structure, this started as a quick and simple solution. Will work to clean that section up when time frees up.
 
 - [ ] The generating piece of `src/helpers/parser.ts` needs to be rewritten using [ts-morph](https://github.com/dsherret/ts-morph). Currently it builds the interfaces by appending generated lines of code to a string sequentially, with no knowledge of the AST. This leads to pretty confusing logic, using the TS compiler API would simplify it a ton.
 - [ ] Query function parameters are typed using a rest parameter `(...args: any[])`, this needs to be fine tunned to use the actual parameters and types.
