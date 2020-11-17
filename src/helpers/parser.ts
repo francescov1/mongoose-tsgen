@@ -22,7 +22,7 @@ let globalFuncTypes: {
   };
 };
 
-// TODO: cleanup this grossness
+// TODO: this is kinda messy to do
 export const setFunctionTypes = (funcTypes: any) => {
   globalFuncTypes = funcTypes;
 };
@@ -351,86 +351,55 @@ export const loadSchemas = (modelsPaths: string[]) => {
     return true;
   };
 
-  // if models folder does not export all schemas from an index.js file, we check each file's export object
-  // for property names that would commonly export the schema. Here is the priority (using the filename as a starting point to determine model name):
+  // we check each file's export object for property names that would commonly export the schema.
+  // Here is the priority (using the filename as a starting point to determine model name):
   // default export, model name (ie `User`), model name lowercase (ie `user`), collection name (ie `users`), collection name uppercased (ie `Users`).
   // If none of those exist, we assume the export object is set to the schema directly
-  if (Array.isArray(modelsPaths)) {
-    modelsPaths.forEach((singleModelPath: string) => {
-      let exportedData;
-      try {
-        exportedData = require(singleModelPath);
-      } catch (err) {
-        if (err.message?.includes(`Cannot find module '${singleModelPath}'`))
-          throw new Error(`Could not find a module at path ${singleModelPath}.`);
-        else throw err;
-      }
+  modelsPaths.forEach((singleModelPath: string) => {
+    let exportedData;
+    try {
+      exportedData = require(singleModelPath);
+    } catch (err) {
+      if (err.message?.includes(`Cannot find module '${singleModelPath}'`))
+        throw new Error(`Could not find a module at path ${singleModelPath}.`);
+      else throw err;
+    }
 
-      // if exported data has a default export, use that
-      if (checkAndRegisterModel(exportedData.default) || checkAndRegisterModel(exportedData))
-        return;
+    // if exported data has a default export, use that
+    if (checkAndRegisterModel(exportedData.default) || checkAndRegisterModel(exportedData)) return;
 
-      // if no default export, look for a property matching file name
-      const { name: filenameRoot } = path.parse(singleModelPath);
+    // if no default export, look for a property matching file name
+    const { name: filenameRoot } = path.parse(singleModelPath);
 
-      // capitalize first char
-      const modelName = filenameRoot.charAt(0).toUpperCase() + filenameRoot.slice(1);
-      const collectionNameUppercased = modelName + "s";
+    // capitalize first char
+    const modelName = filenameRoot.charAt(0).toUpperCase() + filenameRoot.slice(1);
+    const collectionNameUppercased = modelName + "s";
 
-      let modelNameLowercase = filenameRoot.endsWith("s") ?
-        filenameRoot.slice(0, -1) :
-        filenameRoot;
-      modelNameLowercase = modelNameLowercase.toLowerCase();
+    let modelNameLowercase = filenameRoot.endsWith("s") ? filenameRoot.slice(0, -1) : filenameRoot;
+    modelNameLowercase = modelNameLowercase.toLowerCase();
 
-      const collectionName = modelNameLowercase + "s";
+    const collectionName = modelNameLowercase + "s";
 
-      // check likely names that schema would be exported from
-      if (
-        checkAndRegisterModel(exportedData[modelName]) ||
-        checkAndRegisterModel(exportedData[modelNameLowercase]) ||
-        checkAndRegisterModel(exportedData[collectionName]) ||
-        checkAndRegisterModel(exportedData[collectionNameUppercased])
-      )
-        return;
+    // check likely names that schema would be exported from
+    if (
+      checkAndRegisterModel(exportedData[modelName]) ||
+      checkAndRegisterModel(exportedData[modelNameLowercase]) ||
+      checkAndRegisterModel(exportedData[collectionName]) ||
+      checkAndRegisterModel(exportedData[collectionNameUppercased])
+    )
+      return;
 
-      // if none of those have it, check all properties
-      for (const obj of Object.values(exportedData)) {
-        if (checkAndRegisterModel(obj)) return;
-      }
-
-      throw new Error(
-        `A module was found at ${singleModelPath}, but no exported models were found. Please ensure this file exports a Mongoose Model (preferably default export).`
-      );
-    });
-
-    return schemas;
-  }
-
-  // TODO remove this - we dont import with index.ts anymore
-  // if path is not array
-  try {
-    // usually this will be the path to an index.{t|j}s file that exports all models
-    let exportedData = require(modelsPaths);
-    if (exportedData?.default) exportedData = exportedData.default;
-
-    // if exported data is a model, likely the user only has one model in their models folder (and no index file)
-    // therefore we'll load that module in and finish
-    if (checkAndRegisterModel(exportedData)) return schemas;
-
-    // check all values in exported object
-    Object.values(exportedData).forEach(checkAndRegisterModel);
-
-    // if any models found, return;
-    if (Object.keys(schemas).length > 0) return schemas;
+    // if none of those have it, check all properties
+    for (const obj of Object.values(exportedData)) {
+      if (checkAndRegisterModel(obj)) return;
+    }
 
     throw new Error(
-      `A module was found at ${modelsPaths}, but no exported models were found. Please ensure this file exports a Mongoose Model or an object containing all your Mongoose Models (preferably default export).`
+      `A module was found at ${singleModelPath}, but no exported models were found. Please ensure this file exports a Mongoose Model (preferably default export).`
     );
-  } catch (err) {
-    if (err.message?.includes(`Cannot find module '${modelsPaths}'`))
-      throw new Error(`Could not find a module at path ${modelsPaths}.`);
-    else throw err;
-  }
+  });
+
+  return schemas;
 };
 
 export const generateFileString = ({ schemas }: { schemas: LoadedSchemas }) => {

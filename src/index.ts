@@ -6,10 +6,6 @@ import * as tsReader from "./helpers/tsReader";
 import * as paths from "./helpers/paths";
 import * as formatter from "./helpers/formatter";
 
-// TODO:
-// first: try handling document by removing `& IUser` and instead just duplicating those props (this way the arrays arent X | Y, theyre just Y)
-// second: beter population - by default, interface has solely _id type of ref, but also other overloads of interface for populated prop version
-// - https://ts-morph.com/manipulation/ https://github.com/DefinitelyTyped/DefinitelyTyped/issues/11291#issuecomment-519985094
 class MongooseTsgen extends Command {
   static description =
     'Generate an index.d.ts file containing Mongoose Schema interfaces. The specified root path ("." by default) will be searched recursively for a `models` folder, where your Mongoose Schemas should be exported from.';

@@ -70,7 +70,7 @@ export const getFunctionTypes = (modelsPaths: string[]) => {
   const project = new Project({});
   project.addSourceFilesAtPaths(modelsPaths);
 
-  // TODO: replace `this: any` with `this: I{modelName}`
+  // TODO: replace `this: any` with `this: ${modelName}`
 
   const results: {
     [modelName: string]: {
