@@ -79,7 +79,7 @@ const parseFunctions = (
     let type;
     // TODO: look at typing methods and statics in the same way as queries (ie providing one type for entire methods or statics object, rather than adding `fake this` etc. on every function)
     if (funcType === "query") {
-      key += `<Q extends mongoose.DocumentQuery<any, I${modelName}Document, {}>>(this: Q, ...args: any[])`;
+      key += `<Q extends mongoose.DocumentQuery<any, ${modelName}Document, {}>>(this: Q, ...args: any[])`;
       type = "Q";
     } else {
       type = globalFuncTypes?.[modelName]?.[funcType]?.[key] ?? "Function";
@@ -121,7 +121,7 @@ export const parseSchema = ({
         const name = getSubDocName(path, rootPath);
 
         child.schema._isReplacedWithSchema = true;
-        child.schema._inferredInterfaceName = `I${name}`;
+        child.schema._inferredInterfaceName = name;
         child.schema._isSubdocArray = isSubdocArray;
         flatSchemaTree[path] = isSubdocArray ? [child.schema] : child.schema;
 
@@ -129,12 +129,12 @@ export const parseSchema = ({
           schema: child.schema,
           modelName: name,
           header: isDocument ?
-            `\ttype I${name}Document = ${
+            `\ttype ${name}Document = ${
                 isSubdocArray ? "mongoose.Types.Subdocument" : "mongoose.Document"
               } & {\n` :
-            `\tinterface I${name} {`,
+            `\tinterface ${name} {`,
           isDocument,
-          footer: `\t}${isDocument ? ` & I${name}` : ""}\n\n`,
+          footer: `\t}${isDocument ? ` & ${name}` : ""}\n\n`,
           prefix: "\t\t"
         });
       };
@@ -150,16 +150,16 @@ export const parseSchema = ({
   if (!isDocument && schema.statics && modelName && addModel) {
     let modelExtend: string;
     if (schema.query) {
-      template += `\tinterface I${modelName}Queries {\n`;
+      template += `\tinterface ${modelName}Queries {\n`;
       template += parseFunctions(schema.query, modelName, "query", "\t\t");
       template += "\t}\n\n";
 
-      modelExtend = `Model<I${modelName}Document, I${modelName}Queries>`;
+      modelExtend = `Model<${modelName}Document, ${modelName}Queries>`;
     } else {
-      modelExtend = `Model<I${modelName}Document>`;
+      modelExtend = `Model<${modelName}Document>`;
     }
 
-    template += `\tinterface I${modelName}Model extends ${modelExtend} {\n`;
+    template += `\tinterface ${modelName}Model extends ${modelExtend} {\n`;
     template += parseFunctions(schema.statics, modelName, "statics", "\t\t");
     template += "\t}\n\n";
   }
@@ -224,11 +224,11 @@ export const parseSchema = ({
         // NOTE: we need to do the modelName check because typescript types dont allow self-referencing. This is a subpar workaround, it means any
         // refs to other documents in the same model won't be typed as I{model}Document, instead the non-mongoose doc version `I{model}`
         // For the most part, this shouldnt matter since we are referencing solely the _id, but if the ref is populated then we are missing mongoose doc types
-        valType = `I${docRef}${docRef === modelName ? "" : "Document"}["_id"] | I${docRef}${
+        valType = `${docRef}${docRef === modelName ? "" : "Document"}["_id"] | ${docRef}${
           docRef === modelName ? "" : "Document"
         }`;
       } else {
-        valType = `I${docRef}["_id"] | I${docRef}`;
+        valType = `${docRef}["_id"] | ${docRef}`;
       }
     }
     // NOTE: ideally we check actual type of value to ensure its Schema.Types.Mixed (the same way we do with Schema.Types.ObjectId),
@@ -449,7 +449,7 @@ export const generateFileString = ({ schemas }: { schemas: LoadedSchemas }) => {
       modelName,
       addModel: true,
       isDocument: false,
-      header: `\tinterface I${modelName} {\n`,
+      header: `\tinterface ${modelName} {\n`,
       footer: "\t}\n\n",
       prefix: "\t\t"
     });
@@ -459,8 +459,8 @@ export const generateFileString = ({ schemas }: { schemas: LoadedSchemas }) => {
       modelName,
       addModel: true,
       isDocument: true,
-      header: `\ttype I${modelName}Document = mongoose.Document & {\n`,
-      footer: `\t} & I${modelName}\n\n`,
+      header: `\ttype ${modelName}Document = mongoose.Document & {\n`,
+      footer: `\t} & ${modelName}\n\n`,
       prefix: "\t\t"
     });
 

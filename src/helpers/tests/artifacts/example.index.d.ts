@@ -9,43 +9,43 @@
 import mongoose from "mongoose";
 
 declare module "mongoose" {
-  interface IUserFriend {
-    uid: IUser["_id"] | IUser;
+  interface UserFriend {
+    uid: User["_id"] | User;
     nickname?: string;
     _id: mongoose.Types.ObjectId;
   }
 
-  interface IUserQueries {
-    populateFriends<Q extends mongoose.DocumentQuery<any, IUserDocument, {}>>(
+  interface UserQueries {
+    populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(
       this: Q,
       ...args: any[]
     ): Q;
   }
 
-  interface IUserModel extends Model<IUserDocument, IUserQueries> {
-    getFriends: (this: any, friendUids: IUser["_id"][]) => Promise<any>;
+  interface UserModel extends Model<UserDocument, UserQueries> {
+    getFriends: (this: any, friendUids: UserDocument["_id"][]) => Promise<any>;
   }
 
-  interface IUser {
+  interface User {
     email: string;
     firstName: string;
     lastName: string;
-    friends: IUserFriend[];
+    friends: UserFriend[];
     city: {
       coordinates?: number[];
     };
     _id: mongoose.Types.ObjectId;
   }
 
-  type IUserFriendDocument = mongoose.Types.Subdocument & {
-    uid: IUserDocument["_id"] | IUserDocument;
-  } & IUserFriend;
+  type UserFriendDocument = mongoose.Types.Subdocument & {
+    uid: UserDocument["_id"] | UserDocument;
+  } & UserFriend;
 
-  type IUserDocument = mongoose.Document & {
+  type UserDocument = mongoose.Document & {
     metadata?: any;
-    friends: mongoose.Types.DocumentArray<IUserFriendDocument>;
+    friends: mongoose.Types.DocumentArray<UserFriendDocument>;
     city: {};
     name: any;
     isMetadataString: (this: any) => boolean;
-  } & IUser;
+  } & User;
 }

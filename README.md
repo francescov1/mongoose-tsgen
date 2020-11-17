@@ -85,7 +85,7 @@ _See code: [src/index.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/mas
 ```typescript
 // NOTE: you will need to import these types after your first ever run of the CLI
 // See the 'Initializing Schemas' section
-import mongoose, { IUser, IUserModel, IUserQueries } from "mongoose";
+import mongoose, { UserDocument, UserModel, UserQueries } from "mongoose";
 const { Schema } = mongoose;
 
 const UserSchema = new Schema({
@@ -120,16 +120,16 @@ const UserSchema = new Schema({
   }
 });
 
-// NOTE: `this: IUser` and `this: IUserModel` is to tell TS the type of `this' value using the "fake this" feature
+// NOTE: `this: UserDocument` and `this: UserModel` is to tell TS the type of `this' value using the "fake this" feature
 // you will need to add these in after your first ever run of the CLI
 
-UserSchema.virtual("name").get(function (this: IUser) {
+UserSchema.virtual("name").get(function (this: UserDocument) {
   return `${this.firstName} ${this.lastName}`;
 });
 
 // method functions
 UserSchema.methods = {
-  isMetadataString(this: IUser) {
+  isMetadataString(this: UserDocument) {
     return typeof this.metadata === "string";
   }
 };
@@ -137,13 +137,13 @@ UserSchema.methods = {
 // static functions
 UserSchema.statics = {
   // friendUids could also use the type `ObjectId[]` here
-  async getFriends(this: IUserModel, friendUids: IUser["_id"][]) {
+  async getFriends(this: UserModel, friendUids: UserDocument["_id"][]) {
     return await this.aggregate([{ $match: { _id: { $in: friendUids } } }]);
   }
 };
 
-// query functions - no `this: IUser` required here, just provide IUserQueries type
-const queryFuncs: IUserQueries = {
+// query functions - no `this: UserDocument` required here, just provide UserQueries type
+const queryFuncs: UserQueries = {
   populateFriends() {
     return this.populate("friends.uid", "firstName lastName");
   }
@@ -151,7 +151,7 @@ const queryFuncs: IUserQueries = {
 
 UserSchema.query = queryFuncs;
 
-export const User: IUserModel = mongoose.model<IUser, IUserModel>("User", UserSchema);
+export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
 export default User;
 ```
 
@@ -173,25 +173,25 @@ import mongoose from "mongoose";
 type ObjectId = mongoose.Types.ObjectId;
 
 declare module "mongoose" {
-  interface IUserFriend extends mongoose.Types.Subdocument {
-    uid: IUser["_id"] | IUser;
+  interface UserFriend extends mongoose.Types.Subdocument {
+    uid: User["_id"] | User;
     nickname?: string;
   }
 
-  interface IUserQueries {
-    populateFriends<Q extends mongoose.DocumentQuery<any, IUser, {}>>(this: Q, ...args: any[]): Q;
+  interface UserQueries {
+    populateFriends<Q extends mongoose.DocumentQuery<any, User, {}>>(this: Q, ...args: any[]): Q;
   }
 
-  interface IUserModel extends Model<IUser, IUserQueries> {
-    getFriends: (this: any, friendUids: IUser["_id"][]) => Promise<any>;
+  interface UserModel extends Model<User, UserQueries> {
+    getFriends: (this: any, friendUids: User["_id"][]) => Promise<any>;
   }
 
-  interface IUser extends Document {
+  interface User extends Document {
     email: string;
     firstName: string;
     lastName: string;
     metadata?: any;
-    friends: Types.DocumentArray<IUserFriend>;
+    friends: Types.DocumentArray<UserFriend>;
     city: {
       coordinates?: Types.Array<number>;
     };
@@ -219,11 +219,11 @@ export default User;
 ### user.ts after:
 
 ```typescript
-import mongoose, { IUser, IUserModel } from "mongoose";
+import mongoose, { User, UserModel } from "mongoose";
 
 const UserSchema = new Schema(...);
 
-export const User: IUserModel = mongoose.model<IUser, IUserModel>("User", UserSchema);
+export const User: UserModel = mongoose.model<User, UserModel>("User", UserSchema);
 export default User;
 ```
 
@@ -231,15 +231,15 @@ Then you can import the interfaces across your application from the Mongoose mod
 
 ```typescript
 // import interface from mongoose module
-import { IUser } from "mongoose";
+import { User } from "mongoose";
 
-async function getUser(uid: string): IUser {
-  // user will be of type IUser
+async function getUser(uid: string): User {
+  // user will be of type User
   const user = await User.findById(uid);
   return user;
 }
 
-async function editEmail(user: IUser, newEmail: string): IUser {
+async function editEmail(user: User, newEmail: string): User {
   user.email = newEmail;
   return await user.save();
 }
