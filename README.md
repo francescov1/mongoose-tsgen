@@ -22,9 +22,9 @@ An plug-n-play Typescript interface generator for Mongoose.
 # Features
 
 - [x] Automatically generate an `index.d.ts` file containing Typescript interfaces for each Mongoose document, model and subdocument
-- [x] For each Mongoose document, an interface without Mongoose properties is also generated to be used by frontends & other services
 - [x] Works out of the box, don't need to rewrite your schemas
 - [x] Add custom interfaces to augment generated interfaces
+- [x] Includes a "Mongoose-less" version of each interface (Mongoose typings removed)
 
 # Compatibility
 
