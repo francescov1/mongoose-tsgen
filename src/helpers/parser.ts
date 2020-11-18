@@ -42,17 +42,15 @@ const getSubDocName = (path: string, modelName = "") => {
 const makeLine = ({
   key,
   val,
-  prefix,
   isOptional = false,
   newline = true
 }: {
   key: string;
   val: string;
-  prefix: string;
   isOptional?: boolean;
   newline?: boolean;
 }) => {
-  let line = prefix ? prefix : "";
+  let line = "";
 
   if (key) {
     line += key;
@@ -68,8 +66,7 @@ const makeLine = ({
 const parseFunctions = (
   funcs: any,
   modelName: string,
-  funcType: "methods" | "statics" | "query",
-  prefix = ""
+  funcType: "methods" | "statics" | "query"
 ) => {
   let interfaceString = "";
 
@@ -84,7 +81,7 @@ const parseFunctions = (
     } else {
       type = globalFuncTypes?.[modelName]?.[funcType]?.[key] ?? "Function";
     }
-    interfaceString += makeLine({ key, val: type, prefix });
+    interfaceString += makeLine({ key, val: type });
   });
 
   return interfaceString;
@@ -96,8 +93,7 @@ export const parseSchema = ({
   addModel = false,
   isDocument,
   header = "",
-  footer = "",
-  prefix = ""
+  footer = ""
 }: {
   schema: any;
   modelName?: string;
@@ -105,7 +101,6 @@ export const parseSchema = ({
   isDocument: boolean;
   header?: string;
   footer?: string;
-  prefix?: string;
 }) => {
   let template = "";
 
@@ -129,13 +124,12 @@ export const parseSchema = ({
           schema: child.schema,
           modelName: name,
           header: isDocument ?
-            `\ttype ${name}Document = ${
+            `type ${name}Document = ${
                 isSubdocArray ? "mongoose.Types.Subdocument" : "mongoose.Document"
               } & {\n` :
-            `\tinterface ${name} {`,
+            `interface ${name} {`,
           isDocument,
-          footer: `\t}${isDocument ? ` & ${name}` : ""}\n\n`,
-          prefix: "\t\t"
+          footer: `}${isDocument ? ` & ${name}` : ""}\n\n`
         });
       };
     };
@@ -150,25 +144,25 @@ export const parseSchema = ({
   if (!isDocument && schema.statics && modelName && addModel) {
     let modelExtend: string;
     if (schema.query) {
-      template += `\tinterface ${modelName}Queries {\n`;
-      template += parseFunctions(schema.query, modelName, "query", "\t\t");
-      template += "\t}\n\n";
+      template += `interface ${modelName}Queries {\n`;
+      template += parseFunctions(schema.query, modelName, "query");
+      template += "}\n\n";
 
       modelExtend = `Model<${modelName}Document, ${modelName}Queries>`;
     } else {
       modelExtend = `Model<${modelName}Document>`;
     }
 
-    template += `\tinterface ${modelName}Model extends ${modelExtend} {\n`;
-    template += parseFunctions(schema.statics, modelName, "statics", "\t\t");
-    template += "\t}\n\n";
+    template += `interface ${modelName}Model extends ${modelExtend} {\n`;
+    template += parseFunctions(schema.statics, modelName, "statics");
+    template += "}\n\n";
   }
 
   template += header;
 
   const schemaTree = schema.tree;
 
-  const parseKey = (key: string, val: any, prefix: string): string => {
+  const parseKey = (key: string, val: any): string => {
     // if type is provided directly on property, expand it
     if ([String, Number, Boolean, Date, ObjectId].includes(val))
       val = { type: val, required: false };
@@ -272,8 +266,7 @@ export const parseSchema = ({
           schema: { tree: val },
           header: "{\n",
           isDocument,
-          footer: prefix + "}",
-          prefix: prefix + "\t"
+          footer: "}"
         });
         isOptional = false;
       }
@@ -289,18 +282,18 @@ export const parseSchema = ({
         `${valType}[]`;
     }
 
-    return makeLine({ key, val: valType, prefix, isOptional });
+    return makeLine({ key, val: valType, isOptional });
   };
 
   Object.keys(schemaTree).forEach((key: string) => {
     const val = schemaTree[key];
-    template += parseKey(key, val, prefix);
+    template += parseKey(key, val);
   });
 
   // if (schema.methods && modelName) {
   if (isDocument && schema.methods) {
     if (!modelName) throw new Error("No model name found on schema " + schema);
-    template += parseFunctions(schema.methods, modelName, "methods", prefix);
+    template += parseFunctions(schema.methods, modelName, "methods");
   }
 
   template += footer;
@@ -418,9 +411,8 @@ export const generateFileString = ({ schemas }: { schemas: LoadedSchemas }) => {
       modelName,
       addModel: true,
       isDocument: false,
-      header: `\tinterface ${modelName} {\n`,
-      footer: "\t}\n\n",
-      prefix: "\t\t"
+      header: `interface ${modelName} {\n`,
+      footer: "}\n\n"
     });
 
     interfaceStr += parseSchema({
@@ -428,9 +420,8 @@ export const generateFileString = ({ schemas }: { schemas: LoadedSchemas }) => {
       modelName,
       addModel: true,
       isDocument: true,
-      header: `\ttype ${modelName}Document = mongoose.Document & {\n`,
-      footer: `\t} & ${modelName}\n\n`,
-      prefix: "\t\t"
+      header: `type ${modelName}Document = mongoose.Document & {\n`,
+      footer: `} & ${modelName}\n\n`
     });
 
     fullTemplate += interfaceStr;
