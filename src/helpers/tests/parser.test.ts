@@ -38,7 +38,7 @@ describe("generateFileString", () => {
     let expectedString = getExpectedInterfaceString();
     expectedString = expectedString
       .replace("(this: any) => boolean", "Function")
-      .replace(`(this: any, friendUids: IUser["_id"][]) => Promise<any>`, "Function");
+      .replace(`(this: any, friendUids: UserDocument["_id"][]) => Promise<any>`, "Function");
     expect(fileString).toBe(expectedString);
   });
 

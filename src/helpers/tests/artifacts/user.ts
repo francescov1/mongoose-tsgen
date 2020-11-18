@@ -1,4 +1,6 @@
-import mongoose, { IUser, IUserModel, IUserQueries } from "mongoose";
+// NOTE: you will need to import these types after your first ever run of the CLI
+// See the 'Initializing Schemas' section
+import mongoose, { UserDocument, UserModel, UserQueries } from "mongoose";
 const { Schema } = mongoose;
 
 const UserSchema = new Schema({
@@ -33,16 +35,16 @@ const UserSchema = new Schema({
   }
 });
 
-// NOTE: `this: IUser` and `this: IUserModel` is to tell TS the type of `this' value using the "fake this" feature
+// NOTE: `this: UserDocument` and `this: UserModel` is to tell TS the type of `this' value using the "fake this" feature
 // you will need to add these in after your first ever run of the CLI
 
-UserSchema.virtual("name").get(function (this: IUser) {
+UserSchema.virtual("name").get(function (this: UserDocument) {
   return `${this.firstName} ${this.lastName}`;
 });
 
 // method functions
 UserSchema.methods = {
-  isMetadataString(this: IUser) {
+  isMetadataString(this: UserDocument) {
     return typeof this.metadata === "string";
   }
 };
@@ -50,13 +52,13 @@ UserSchema.methods = {
 // static functions
 UserSchema.statics = {
   // friendUids could also use the type `ObjectId[]` here
-  async getFriends(this: IUserModel, friendUids: IUser["_id"][]) {
+  async getFriends(this: UserModel, friendUids: UserDocument["_id"][]) {
     return await this.aggregate([{ $match: { _id: { $in: friendUids } } }]);
   }
 };
 
-// query functions - no `this: IUser` required here, just provide IUserQueries type
-const queryFuncs: IUserQueries = {
+// query functions - no `this: UserDocument` required here, just provide UserQueries type
+const queryFuncs: UserQueries = {
   populateFriends() {
     return this.populate("friends.uid", "firstName lastName");
   }
@@ -64,5 +66,5 @@ const queryFuncs: IUserQueries = {
 
 UserSchema.query = queryFuncs;
 
-export const User: IUserModel = mongoose.model<IUser, IUserModel>("User", UserSchema);
+export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
 export default User;
