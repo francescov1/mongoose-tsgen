@@ -1,7 +1,7 @@
 // NOTE: you will need to import these types after your first ever run of the CLI
 // See the 'Initializing Schemas' section
 import mongoose, { UserDocument, UserModel, UserQueries } from "mongoose";
-const { Schema } = mongoose;
+const { Schema, Types } = mongoose;
 
 const UserSchema = new Schema({
   email: {
@@ -17,6 +17,7 @@ const UserSchema = new Schema({
     required: true
   },
   metadata: Schema.Types.Mixed,
+  bestFriend: Types.ObjectId,
   friends: [
     {
       uid: {

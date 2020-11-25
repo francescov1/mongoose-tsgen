@@ -27,6 +27,7 @@ interface User {
 email: string;
 firstName: string;
 lastName: string;
+bestFriend?: mongoose.Types.ObjectId;
 friends: UserFriend[];
 city: {
 coordinates?: number[];
