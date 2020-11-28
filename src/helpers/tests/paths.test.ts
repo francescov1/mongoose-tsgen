@@ -116,6 +116,6 @@ describe("cleanOutputPath", () => {
 
   test("path pointing to directory", () => {
     const cleaned = paths.cleanOutputPath("/test/path/to/directory");
-    expect(cleaned).toBe("/test/path/to/directory");
+    expect(cleaned).toBe(path.normalize("/test/path/to/directory"));
   });
 });
