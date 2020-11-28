@@ -25,11 +25,21 @@ export const getFullModelsPaths = (basePath: string, extension: "js" | "ts" = "t
 export const cleanOutputPath = (outputPath: string) => {
   const { dir, base, ext } = path.parse(outputPath);
 
-  // if `ext` is not empty (meaning outputPath references a file and not a directory) and `base` != index.d.ts, the path is pointing to a file other than index.d.ts
-  if (ext !== "" && base !== "index.d.ts") {
-    throw new Error("--output parameter must reference a folder path or an index.d.ts file.");
+  // if `ext` is not empty (meaning outputPath references a file and not a directory) and `ext` != ".ts", means user provided an ivalid filetype (must be a `.ts` file to support typescript interfaces and types)/
+  if (ext !== "" && ext !== ".ts") {
+    throw new Error(
+      "Invalid --ouput argument. Please provide either a folder pah or a Typescript file path."
+    );
   }
 
-  // if extension is empty, means `base` is the last folder in the path, so append it to the end
-  return ext === "" ? path.join(dir, base) : dir;
+  // if extension is empty, means a folder path was provided. Join dir and base to create that path. If filepath was passed, sets to enclosing folder.
+  const folderPath = ext === "" ? path.join(dir, base) : dir;
+  const genFileName = ext === "" ? "mongoose.gen.ts" : base;
+  const customFileName =
+    ext === "" ? "mongoose.custom.ts" : genFileName.replace(".ts", ".custom.ts");
+
+  return {
+    genFilePath: path.join(folderPath, genFileName),
+    customFilePath: path.join(folderPath, customFileName)
+  };
 };
