@@ -278,7 +278,7 @@ export const parseSchema = ({
     if (isArray) {
       valType = isDocument ?
         `mongoose.Types.${val._isSubdocArray ? "Document" : ""}Array<` + valType + ">" :
-        `${valType}[]`;
+        `(${valType})[]`;
     }
 
     return makeLine({ key, val: valType, isOptional });
