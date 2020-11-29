@@ -5,6 +5,7 @@ import * as parser from "./helpers/parser";
 import * as tsReader from "./helpers/tsReader";
 import * as paths from "./helpers/paths";
 import * as formatter from "./helpers/formatter";
+
 class MongooseTsgen extends Command {
   static description =
     'Generate a Typescript file containing Mongoose Schema interfaces. The specified root path ("." by default) will be searched recursively for a `models` folder, where your Mongoose Schemas should be exported from.';
@@ -13,55 +14,85 @@ class MongooseTsgen extends Command {
     help: flags.help({ char: "h" }),
     output: flags.string({
       char: "o",
-      default: "./src/interfaces",
       description:
-        "path of output file containing generated interfaces. If a folder path is passed, the generator will default to creating an `mongoose.gen.ts` file in the specified folder."
+        "Path of output file containing generated interfaces. If a folder path is passed, the generator will default to creating an `mongoose.gen.ts` file in the specified folder. Defaults to ./src/interfaces."
     }),
     "dry-run": flags.boolean({
       char: "d",
-      default: false,
-      description: "print output rather than writing to file"
+      description: "Print output rather than writing to file."
     }),
     "no-func-types": flags.boolean({
-      default: false,
-      description: "disable using TS compiler API for method, static and query typings"
+      description: "Disable using TS compiler API for method, static and query typings."
     }),
     "no-format": flags.boolean({
-      default: false,
-      description: "disable formatting generated files with prettier and fixing with eslint"
+      description: "Disable formatting generated files with prettier and fixing with eslint."
     }),
     js: flags.boolean({
       char: "j",
-      default: false,
-      description: "search for Mongoose schemas in Javascript files rather than in Typescript files"
+      description:
+        "Search for Mongoose schemas in Javascript files rather than in Typescript files."
     }),
     project: flags.string({
       char: "p",
-      default: "./",
-      description: "path of tsconfig.json or its root folder"
+      description: `Path of tsconfig.json or its root folder. Defaults to "./"`
+    }),
+    imports: flags.string({
+      char: "i",
+      description: "Custom import statements to ensure your function types are all defined",
+      multiple: true
+    }),
+    config: flags.string({
+      char: "c",
+      description:
+        "Path of mtgen.config.json or its root folder. CLI flag options will take precendence over settings in mtgen.config.json"
     }),
     module: flags.boolean({
-      default: false,
-      description: 'generate interfaces in a `declare module "mongoose"` block'
+      description: `generate interfaces in a "declare module 'mongoose'" block`
     })
   };
 
   // path of mongoose models folder
   static args = [
     {
-      name: "root_path",
+      name: "root-path",
       default: "."
     }
   ];
 
+  private getConfig() {
+    const { flags: cliFlags, args } = this.parse(MongooseTsgen);
+
+    type FlagConfig = Omit<typeof cliFlags, "config" | "output" | "project"> & {
+      output: string;
+      project: string;
+    };
+
+    const configFileFlags: Partial<FlagConfig> = paths.getConfigFromFile(cliFlags.config);
+
+    // remove "config" since its only used to grab the config file
+    delete cliFlags.config;
+
+    // we cant set flags as `default` using the official oclif method since the defaults would overwrite flags provided in the config file.
+    // instead, well just set "output" and "project" as default manually if theyre still missing after merge with configFile.
+    configFileFlags.output = configFileFlags.output ?? "./src/interfaces";
+    configFileFlags.project = configFileFlags.project ?? "./";
+
+    return {
+      flags: {
+        ...configFileFlags,
+        ...cliFlags
+      } as FlagConfig,
+      args
+    };
+  }
+
   async run() {
-    const { flags, args } = this.parse(MongooseTsgen);
-    if (flags.help as any) return;
+    const { flags, args } = this.getConfig();
 
     cli.action.start("Generating mongoose typescript definitions");
 
     if (!flags.module) {
-      const pathSegments = args.output?.split?.("/");
+      const pathSegments = flags.output?.split?.("/");
       // if no output path (used to default to /src/types/mongoose/index.d.ts) or if output path is a folder path,  warn that this library does not add typescript interfaces as declared modules by default (now requires --module flag)
       if (
         !pathSegments ||
@@ -72,10 +103,10 @@ class MongooseTsgen extends Command {
         );
       }
     }
-    let interfaceString: string;
+
     try {
       const extension = flags.js ? "js" : "ts";
-      const modelsPaths = paths.getFullModelsPaths(args.root_path, extension);
+      const modelsPaths = paths.getFullModelsPaths(args["root-path"], extension);
 
       let cleanupTs: any;
       if (!flags.js) {
@@ -89,11 +120,11 @@ class MongooseTsgen extends Command {
 
       const schemas = parser.loadSchemas(modelsPaths);
 
-      const { genFilePath, customFilePath } = paths.cleanOutputPath(flags.output);
-      interfaceString = parser.generateFileString({
+      const genFilePath = paths.cleanOutputPath(flags.output);
+      const interfaceString = parser.generateFileString({
         schemas,
         isModule: flags.module,
-        customFilePath
+        imports: flags.imports
       });
       cleanupTs?.();
 
@@ -104,13 +135,8 @@ class MongooseTsgen extends Command {
       } else {
         this.log(`Writing interfaces to ${genFilePath}`);
 
-        parser.writeOrCreateInterfaceFiles({
-          genFilePath,
-          customFilePath,
-          interfaceString,
-          isModule: flags.module
-        });
-        if (!flags["no-format"]) await formatter.format([genFilePath, customFilePath]);
+        parser.writeOrCreateInterfaceFiles({ genFilePath, interfaceString });
+        if (!flags["no-format"]) await formatter.format([genFilePath]);
         this.log("Writing complete 🐒");
         process.exit();
       }

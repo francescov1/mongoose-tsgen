@@ -1,5 +1,52 @@
 import glob from "glob";
 import path from "path";
+import * as fs from "fs";
+
+export const getConfigFromFile = (configPath?: string): object => {
+  // if no path provided, check root path for mtgen.config.json file. If doesnt exist, return empty object.
+  if (!configPath) {
+    const defaultPath = path.join(process.cwd(), "mtgen.config.json");
+    if (glob.sync(defaultPath).length === 0) return {};
+
+    configPath = defaultPath;
+  }
+
+  // const userConfig =
+  const { dir, base } = path.parse(configPath);
+
+  if (!base) configPath = path.join(dir, "mtgen.config.json");
+  else if (base !== "mtgen.config.json")
+    throw new Error(
+      `${base} is not a valid config filename. Ensure to provide a path to a mtgen.config.json file or its parent folder.`
+    );
+
+  // return await fs.readJSON(path.join(this.config.configDir, 'config.json'))
+  const rawConfig = fs.readFileSync(configPath, "utf8");
+  return JSON.parse(rawConfig);
+};
+
+// interface ParsedPath {
+//   /**
+//    * The root of the path such as '/' or 'c:\'
+//    */
+//   root: string;
+//   /**
+//    * The full directory path such as '/home/user/dir' or 'c:\path\dir'
+//    */
+//   dir: string;
+//   /**
+//    * The file name including extension (if any) such as 'index.html'
+//    */
+//   base: string;
+//   /**
+//    * The file extension (if any) such as '.html'
+//    */
+//   ext: string;
+//   /**
+//    * The file name without extension (if any) such as 'index'
+//    */
+//   name: string;
+// }
 
 export const getModelsPaths = (basePath: string, extension: "js" | "ts"): string[] => {
   const { base: basePathEnd } = path.parse(basePath);
@@ -35,11 +82,6 @@ export const cleanOutputPath = (outputPath: string) => {
   // if extension is empty, means a folder path was provided. Join dir and base to create that path. If filepath was passed, sets to enclosing folder.
   const folderPath = ext === "" ? path.join(dir, base) : dir;
   const genFileName = ext === "" ? "mongoose.gen.ts" : base;
-  const customFileName =
-    ext === "" ? "mongoose.custom.ts" : genFileName.replace(".ts", ".custom.ts");
 
-  return {
-    genFilePath: path.join(folderPath, genFileName),
-    customFilePath: path.join(folderPath, customFileName)
-  };
+  return path.join(folderPath, genFileName);
 };
