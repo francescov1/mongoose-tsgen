@@ -11,7 +11,6 @@ export const getConfigFromFile = (configPath?: string): object => {
     configPath = defaultPath;
   }
 
-  // const userConfig =
   const { dir, base } = path.parse(configPath);
 
   if (!base) configPath = path.join(dir, "mtgen.config.json");
@@ -20,7 +19,6 @@ export const getConfigFromFile = (configPath?: string): object => {
       `${base} is not a valid config filename. Ensure to provide a path to a mtgen.config.json file or its parent folder.`
     );
 
-  // return await fs.readJSON(path.join(this.config.configDir, 'config.json'))
   const rawConfig = fs.readFileSync(configPath, "utf8");
   return JSON.parse(rawConfig);
 };
