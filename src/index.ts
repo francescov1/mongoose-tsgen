@@ -46,8 +46,8 @@ class MongooseTsgen extends Command {
       description:
         "Path of mtgen.config.json or its root folder. CLI flag options will take precendence over settings in mtgen.config.json"
     }),
-    module: flags.boolean({
-      description: `generate interfaces in a "declare module 'mongoose'" block`
+    augment: flags.boolean({
+      description: `augment generated interfaces into the 'mongoose' module`
     })
   };
 
