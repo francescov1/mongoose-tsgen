@@ -38,7 +38,7 @@ class MongooseTsgen extends Command {
     }),
     imports: flags.string({
       char: "i",
-      description: "Custom import statements to ensure your function types are all defined",
+      description: "Custom import statements to add to the output file. Useful if you use third-party types in your mongoose schema definitions",
       multiple: true
     }),
     config: flags.string({
