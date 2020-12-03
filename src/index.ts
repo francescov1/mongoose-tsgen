@@ -99,7 +99,7 @@ class MongooseTsgen extends Command {
         pathSegments[pathSegments.length - 1].match(/[a-zA-Z0-9_-]*\.[A-Za-z]{2,3}/)
       ) {
         this.warn(
-          "⚠ Breaking change in update to v5.1.0 - Run `npx mtgen --help` for more details ⚠\n* Generated types and interfaces are now exported from the generated file, rather than augmented on to the mongoose module. Use `--module` for previous behaviour.\n* The default value for the --output flag has changed."
+          "⚠ Breaking change in update to v5.1.0 - Run `npx mtgen --help` for more details ⚠\n* Generated types and interfaces are now exported from the generated file, rather than augmented on to the mongoose module. Use `--augment` for previous behaviour.\n* The default value for the --output flag has changed."
         );
       }
     }
