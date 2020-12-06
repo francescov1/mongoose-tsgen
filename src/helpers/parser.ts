@@ -291,9 +291,13 @@ export const parseSchema = ({
     if (!valType) return "";
 
     if (isArray) {
-      valType = isDocument ?
-        `mongoose.Types.${val._isSubdocArray ? "Document" : ""}Array<` + valType + ">" :
-        `(${valType})[]`;
+      if (isDocument)
+        valType = `mongoose.Types.${val._isSubdocArray ? "Document" : ""}Array<` + valType + ">";
+      else {
+        // if valType includes a space, likely means its a union type (ie "number | string") so lets wrap it in brackets when adding the array to the type
+        if (valType.includes(" ")) valType = `(${valType})`;
+        valType = `${valType}[]`;
+      }
     }
 
     return makeLine({ key, val: valType, isOptional });

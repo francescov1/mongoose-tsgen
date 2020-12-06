@@ -32,7 +32,7 @@ describe("generateFileString", () => {
     setupFolderStructure("./src/models", { js: true });
     const modelsPath = await paths.getFullModelsPaths(".", "js");
     const schemas = parser.loadSchemas(modelsPath);
-    const fileString = await parser.generateFileString({ schemas });
+    const fileString = await parser.generateFileString({ schemas, isAugmented: true });
 
     // since we didnt load in typed functions, replace function types in expected string with 'Function'
     let expectedString = getExpectedInterfaceString();
@@ -50,7 +50,7 @@ describe("generateFileString", () => {
     parser.setFunctionTypes(functionTypes);
 
     const schemas = parser.loadSchemas(modelsPaths);
-    const fileString = await parser.generateFileString({ schemas });
+    const fileString = await parser.generateFileString({ schemas, isAugmented: true });
     cleanupTs?.();
     expect(fileString).toBe(getExpectedInterfaceString());
   });

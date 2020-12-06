@@ -95,9 +95,9 @@ describe("getFullModelsPaths", () => {
 });
 
 describe("cleanOutputPath", () => {
-  test("path ending in index.d.ts", () => {
+  test("path ending in custom file name", () => {
     const cleaned = paths.cleanOutputPath("/test/path/with/index.d.ts");
-    expect(cleaned).toBe("/test/path/with");
+    expect(cleaned).toBe("/test/path/with/index.d.ts");
   });
 
   test("path ending in file (not index.d.ts)", () => {
@@ -116,6 +116,6 @@ describe("cleanOutputPath", () => {
 
   test("path pointing to directory", () => {
     const cleaned = paths.cleanOutputPath("/test/path/to/directory");
-    expect(cleaned).toBe(path.normalize("/test/path/to/directory"));
+    expect(cleaned).toBe(path.normalize("/test/path/to/directory/mongoose.gen.ts"));
   });
 });
