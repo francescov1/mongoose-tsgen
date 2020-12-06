@@ -1,7 +1,7 @@
 {
   "name": "mongoose-tsgen",
   "description": "A Typescript interface generator for Mongoose that works out of the box.",
-  "version": "5.0.2",
+  "version": "5.1.0",
   "author": "Francesco Virga @francescov1",
   "bin": {
     "mtgen": "./bin/run"
@@ -72,6 +72,7 @@
     "posttest": "eslint . --ext .ts --config .eslintrc",
     "prepack": "rm -rf lib && tsc -b",
     "test": "npx jest",
+    "build": "npx tsc",
     "readme": "./node_modules/@oclif/dev-cli/bin/run readme"
   },
   "types": "lib/index.d.ts",

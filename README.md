@@ -21,10 +21,9 @@ An plug-n-play Typescript interface generator for Mongoose.
 
 # Features
 
-- [x] Automatically generate an `index.d.ts` file containing Typescript interfaces for each Mongoose document, model and subdocument
+- [x] Automatically generate a Typescript file containing typings for each Mongoose document, model and subdocument
 - [x] Works out of the box, don't need to rewrite your schemas
-- [x] Add custom interfaces to augment generated interfaces
-- [x] Includes a "Mongoose-less" version of each interface (Mongoose typings removed)
+- [x] Includes a "Mongoose-less" version of each schema interface (Mongoose typings removed)
 
 # Compatibility
 
@@ -34,7 +33,7 @@ An plug-n-play Typescript interface generator for Mongoose.
 - [x] Typescript path aliases
 - [x] Mongoose method, static & query functions
 - [x] Typesafe document creation with `Model.Create`
-- [ ] Setting subdocument arrays without casting to `any` (currently you need to do `user.friends = [{ uid, name }] as any` or you can initialize the subdocument prior to setting it).
+- [ ] Setting subdocument arrays without casting to `any` (currently you need to do `user.friends = [{ uid, name }] as any` or you can initialize the subdocument prior to setting it)
 
 # Installation
 
@@ -53,20 +52,24 @@ $ npx mtgen --help # print usage
 
 ## `mtgen [ROOT_PATH]`
 
-Generate an index.d.ts file containing Mongoose Schema interfaces.
+Generate a Typescript file containing Mongoose Schema typings.
 
 ```
 USAGE
   $ mtgen [ROOT_PATH - default = "."]
 
 OPTIONS
-  -d, --dry-run          print output rather than writing to file
-  -h, --help             show CLI help
-  -j, --js               search for Mongoose schemas in Javascript files rather than in Typescript files
-  -o, --output=output    [default: ./src/types/mongoose] path of output index.d.ts file
-  -p, --project=project  [default: ./] path of tsconfig.json or its root folder
-  --no-format            disable formatting generated files with prettier and fixing with eslint
-  --no-func-types        disable using TS compiler API for method, static and query typings
+  -c, --config=config    [default: ./] Path of mtgen.config.json or its root folder. CLI flag options will take precendence over settings in mtgen.config.json
+  -d, --dry-run          Print output rather than writing to file.
+  -h, --help             Show CLI help
+  -i, --imports=import  Custom import statements to add to the output file. Useful if you use third-party types in your mongoose schema definitions. For multiple imports, specify this flag more than once. 
+  -j, --js               Search for Mongoose schemas in Javascript files rather than in Typescript files.
+  -o, --output=output    [default: ./src/interfaces] Path of output file containing generated typings. If a folder path is passed, the generator 
+                         will default to creating an `mongoose.gen.ts` file in the specified folder.
+  -p, --project=project  [default: ./] Path of tsconfig.json or its root folder.
+  --augment              Augment generated typings into the 'mongoose' module
+  --no-format            Disable formatting generated files with prettier and fixing with eslint.
+  --no-func-types        Disable using TS compiler API for method, static and query typings.
 ```
 
 All sub-directories of `ROOT_PATH` will be searched for `models/*.ts` files (or `models/*.js`). Files in this folder (other than an index file) are expected to export a Mongoose model.
@@ -77,6 +80,19 @@ _See code: [src/index.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/mas
 
 <!-- commandsstop -->
 
+## Configuration File
+
+All CLI options can be provided using a `mtgen.config.json` file. Use the `--config` option to provide the folder path containing this file ("./" will be searched if no path is provided). CLI options will take precendence over options in the `mtgen.config.json` file.
+
+> mtgen.config.json
+
+```json
+{
+  "imports": ["import Stripe from \"stripe\""],
+  "output": "./src/custom/path/mongoose-types.ts"
+}
+```
+
 # Example
 
 ### ./src/models/user.ts
@@ -84,7 +100,9 @@ _See code: [src/index.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/mas
 ```typescript
 // NOTE: you will need to import these types after your first ever run of the CLI
 // See the 'Initializing Schemas' section
-import mongoose, { UserDocument, UserModel, UserQueries } from "mongoose";
+import mongoose from "mongoose";
+import { UserDocument, UserModel, UserQueries } from "../interfaces/mongoose.gen.ts";
+
 const { Schema } = mongoose;
 
 const UserSchema = new Schema({
@@ -154,14 +172,14 @@ export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", U
 export default User;
 ```
 
-### generate interfaces
+### generate typings
 
 ```bash
 $ mtgen
 ```
 
-### generated interface file ./src/types/mongoose/index.d.ts
-
+### generated typings file ./src/interfaces/mongoose.gen.ts
+<!-- TODO: generate test file and replace with this -->
 ```typescript
 /* tslint:disable */
 /* eslint-disable */
@@ -169,56 +187,54 @@ $ mtgen
 // ######################################## THIS FILE WAS GENERATED BY MONGOOSE-TSGEN ######################################## //
 
 // NOTE: ANY CHANGES MADE WILL BE OVERWRITTEN ON SUBSEQUENT EXECUTIONS OF MONGOOSE-TSGEN.
-// TO ADD CUSTOM INTERFACES, DEFINE THEM IN THE `custom.d.ts` FILE.
 
 import mongoose from "mongoose";
 
-declare module "mongoose" {
-  interface UserFriend {
-    uid: User["_id"] | User;
-    nickname?: string;
-    _id: mongoose.Types.ObjectId;
-  }
-
-  interface UserQueries {
-    populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(
-      this: Q,
-      ...args: any[]
-    ): Q;
-  }
-
-  interface UserModel extends Model<UserDocument, UserQueries> {
-    getFriends: (this: any, friendUids: UserDocument["_id"][]) => Promise<any>;
-  }
-
-  interface User {
-    email: string;
-    firstName: string;
-    lastName: string;
-    friends: UserFriend[];
-    city: {
-      coordinates?: number[];
-    };
-    _id: mongoose.Types.ObjectId;
-  }
-
-  type UserFriendDocument = mongoose.Types.Subdocument & {
-    uid: UserDocument["_id"] | UserDocument;
-  } & UserFriend;
-
-  type UserDocument = mongoose.Document & {
-    metadata?: any;
-    friends: mongoose.Types.DocumentArray<UserFriendDocument>;
-    city: {};
-    name: any;
-    isMetadataString: (this: any) => boolean;
-  } & User;
+export interface UserFriend {
+  uid: User["_id"] | User;
+  nickname?: string;
+  _id: mongoose.Types.ObjectId;
 }
+
+export interface UserQueries {
+  populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(
+    this: Q,
+    ...args: any[]
+  ): Q;
+}
+
+export interface UserModel extends mongoose.Model<UserDocument, UserQueries> {
+  getFriends: (this: any, friendUids: UserDocument["_id"][]) => Promise<any>;
+}
+
+export interface User {
+  email: string;
+  firstName: string;
+  lastName: string;
+  bestFriend?: mongoose.Types.ObjectId;
+  friends: UserFriend[];
+  city: {
+    coordinates?: number[];
+  };
+  _id: mongoose.Types.ObjectId;
+}
+
+export type UserFriendDocument = mongoose.Types.Subdocument & {
+  uid: UserDocument["_id"] | UserDocument;
+} & UserFriend;
+
+export type UserDocument = mongoose.Document & {
+  metadata?: any;
+  friends: mongoose.Types.DocumentArray<UserFriendDocument>;
+  city: {};
+  name: any;
+  isMetadataString: (this: any) => boolean;
+} & User;
 ```
 
 ## Initializing Schemas
 
-Once you've generated your index.d.ts file, all you need to do is add the following types to your schema definitions:
+Once you've generated your typings file, all you need to do is add the following types to your schema definitions:
 
 ### user.ts before:
 
@@ -234,7 +250,8 @@ export default User;
 ### user.ts after:
 
 ```typescript
-import mongoose, { UserDocument, UserModel } from "mongoose";
+import mongoose from "mongoose";
+import { UserDocument, UserModel } from "../interfaces/mongoose.gen.ts";
 
 const UserSchema = new Schema(...);
 
@@ -242,11 +259,11 @@ export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", U
 export default User;
 ```
 
-Then you can import the interfaces across your application from the Mongoose module and use them for document types:
+Then you can import the typings across your application from the Mongoose module and use them for document types:
 
 ```typescript
-// import interface from mongoose module
-import { UserDocument } from "mongoose";
+// import types from mongoose module
+import { UserDocument } from "./interfaces/mongoose.gen.ts";
 
 async function getUser(uid: string): UserDocument {
   // user will be of type User

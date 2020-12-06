@@ -8,56 +8,106 @@ import * as formatter from "./helpers/formatter";
 
 class MongooseTsgen extends Command {
   static description =
-    'Generate an index.d.ts file containing Mongoose Schema interfaces. The specified root path ("." by default) will be searched recursively for a `models` folder, where your Mongoose Schemas should be exported from.';
+    'Generate a Typescript file containing Mongoose Schema interfaces. The specified root path ("." by default) will be searched recursively for a `models` folder, where your Mongoose Schemas should be exported from.';
 
   static flags = {
     help: flags.help({ char: "h" }),
     output: flags.string({
       char: "o",
-      default: "./src/types/mongoose",
-      description: "path of output index.d.ts file"
+      description:
+        "[default: ./src/interfaces] Path of output file containing generated interfaces. If a folder path is passed, the generator will default to creating an `mongoose.gen.ts` file in the specified folder. Defaults to ./src/interfaces."
     }),
     "dry-run": flags.boolean({
       char: "d",
-      default: false,
-      description: "print output rather than writing to file"
+      description: "Print output rather than writing to file."
     }),
     "no-func-types": flags.boolean({
-      default: false,
-      description: "disable using TS compiler API for method, static and query typings"
+      description: "Disable using TS compiler API for method, static and query typings."
     }),
     "no-format": flags.boolean({
-      default: false,
-      description: "disable formatting generated files with prettier and fixing with eslint"
+      description: "Disable formatting generated files with prettier and fixing with eslint."
     }),
     js: flags.boolean({
       char: "j",
-      default: false,
-      description: "search for Mongoose schemas in Javascript files rather than in Typescript files"
+      description:
+        "Search for Mongoose schemas in Javascript files rather than in Typescript files."
     }),
     project: flags.string({
       char: "p",
-      default: "./",
-      description: "path of tsconfig.json or its root folder"
+      description: `[default: ./] Path of tsconfig.json or its root folder. Defaults to "./"`
+    }),
+    imports: flags.string({
+      char: "i",
+      description:
+        "Custom import statements to add to the output file. Useful if you use third-party types in your mongoose schema definitions",
+      multiple: true
+    }),
+    config: flags.string({
+      char: "c",
+      description:
+        "Path of mtgen.config.json or its root folder. CLI flag options will take precendence over settings in mtgen.config.json"
+    }),
+    augment: flags.boolean({
+      description: `Augment generated interfaces into the 'mongoose' module`
     })
   };
 
   // path of mongoose models folder
   static args = [
     {
-      name: "root_path",
+      name: "root-path",
       default: "."
     }
   ];
 
-  async run() {
-    cli.action.start("Generating mongoose typescript definitions");
-    const { flags, args } = this.parse(MongooseTsgen);
+  private getConfig() {
+    const { flags: cliFlags, args } = this.parse(MongooseTsgen);
 
-    let fullTemplate: string;
+    type FlagConfig = Omit<typeof cliFlags, "config" | "output" | "project"> & {
+      output: string;
+      project: string;
+    };
+
+    const configFileFlags: Partial<FlagConfig> = paths.getConfigFromFile(cliFlags.config);
+
+    // remove "config" since its only used to grab the config file
+    delete cliFlags.config;
+
+    // we cant set flags as `default` using the official oclif method since the defaults would overwrite flags provided in the config file.
+    // instead, well just set "output" and "project" as default manually if theyre still missing after merge with configFile.
+    configFileFlags.output = configFileFlags.output ?? "./src/interfaces";
+    configFileFlags.project = configFileFlags.project ?? "./";
+
+    return {
+      flags: {
+        ...configFileFlags,
+        ...cliFlags
+      } as FlagConfig,
+      args
+    };
+  }
+
+  async run() {
+    const { flags, args } = this.getConfig();
+
+    cli.action.start("Generating mongoose typescript definitions");
+
+    if (!flags.augment) {
+      const pathSegments = flags.output?.split?.("/");
+      // if no output path (used to default to /src/types/mongoose/index.d.ts) or if output path is a folder path,  warn that this library does not add typescript interfaces as declared modules by default (now requires --augment flag)
+      if (
+        !pathSegments ||
+        pathSegments[pathSegments.length - 1].match(/[a-zA-Z0-9_-]*\.[A-Za-z]{2,3}/)
+      ) {
+        this.warn(
+          "⚠ Breaking change in update to v5.1.0 - Run `npx mtgen --help` for more details ⚠\n* Generated types and interfaces are now exported from the generated file, rather than augmented on to the mongoose module. Use `--augment` for previous behaviour.\n* The default value for the --output flag has changed."
+        );
+      }
+    }
+
     try {
       const extension = flags.js ? "js" : "ts";
-      const modelsPaths = paths.getFullModelsPaths(args.root_path, extension);
+      const modelsPaths = paths.getFullModelsPaths(args["root-path"], extension);
 
       let cleanupTs: any;
       if (!flags.js) {
@@ -70,25 +120,29 @@ class MongooseTsgen extends Command {
       }
 
       const schemas = parser.loadSchemas(modelsPaths);
-      fullTemplate = parser.generateFileString({ schemas });
+
+      const genFilePath = paths.cleanOutputPath(flags.output);
+      const interfaceString = parser.generateFileString({
+        schemas,
+        isAugmented: flags.augment,
+        imports: flags.imports
+      });
       cleanupTs?.();
+
+      cli.action.stop();
+      if (flags["dry-run"]) {
+        this.log("Dry run detected, generated interfaces will be printed to console:\n");
+        this.log(interfaceString);
+      } else {
+        this.log(`Writing interfaces to ${genFilePath}`);
+
+        parser.writeOrCreateInterfaceFiles({ genFilePath, interfaceString });
+        if (!flags["no-format"]) await formatter.format([genFilePath]);
+        this.log("Writing complete 🐒");
+        process.exit();
+      }
     } catch (error) {
       this.error(error);
-    }
-
-    cli.action.stop();
-
-    if (flags["dry-run"]) {
-      this.log("Dry run detected, generated interfaces will be printed to console:\n");
-      this.log(fullTemplate);
-    } else {
-      const outputPath = paths.cleanOutputPath(flags.output);
-      this.log(`Writing interfaces to ${outputPath}`);
-
-      parser.writeOrCreateInterfaceFiles(outputPath, fullTemplate);
-      if (!flags["no-format"]) await formatter.format(outputPath);
-      this.log("Writing complete 🐒");
-      process.exit();
     }
   }
 }

@@ -1,4 +1,3 @@
-import path from "path";
 import fs from "fs";
 import prettier from "prettier";
 import { ESLint } from "eslint";
@@ -25,9 +24,7 @@ const fixFiles = async (filePaths: string[]) => {
   await ESLint.outputFixes(results);
 };
 
-export const format = async (folderPath: string) => {
-  const genPath = path.join(folderPath, "index.d.ts");
-  const customPath = path.join(folderPath, "custom.d.ts");
-  prettifyFiles([genPath, customPath]);
-  await fixFiles([genPath, customPath]);
+export const format = async (filePaths: string[]) => {
+  prettifyFiles(filePaths);
+  await fixFiles(filePaths);
 };

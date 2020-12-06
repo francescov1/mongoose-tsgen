@@ -7,22 +7,20 @@
 
 import mongoose from "mongoose";
 
-declare module "mongoose" {
-
-interface UserFriend {uid: User["_id"] | User;
+export interface UserFriend {uid: User["_id"] | User;
 nickname?: string;
 _id: mongoose.Types.ObjectId;
 }
 
-interface UserQueries {
+export interface UserQueries {
 populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(this: Q, ...args: any[]): Q;
 }
 
-interface UserModel extends mongoose.Model<UserDocument, UserQueries> {
+export interface UserModel extends mongoose.Model<UserDocument, UserQueries> {
 getFriends: (this: any, friendUids: UserDocument["_id"][]) => Promise<any>;
 }
 
-interface User {
+export interface User {
 email: string;
 firstName: string;
 lastName: string;
@@ -34,11 +32,11 @@ coordinates?: number[];
 _id: mongoose.Types.ObjectId;
 }
 
-type UserFriendDocument = mongoose.Types.Subdocument & {
+export type UserFriendDocument = mongoose.Types.Subdocument & {
 uid: UserDocument["_id"] | UserDocument;
 } & UserFriend
 
-type UserDocument = mongoose.Document & {
+export type UserDocument = mongoose.Document & {
 metadata?: any;
 friends: mongoose.Types.DocumentArray<UserFriendDocument>;
 city: {
@@ -47,4 +45,3 @@ name: any;
 isMetadataString: (this: any) => boolean;
 } & User
 
-}
