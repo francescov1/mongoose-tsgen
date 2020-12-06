@@ -100,18 +100,14 @@ describe("cleanOutputPath", () => {
     expect(cleaned).toBe("/test/path/with/index.d.ts");
   });
 
-  test("path ending in file (not index.d.ts)", () => {
+  test("path ending in javascript file extension error", () => {
     expect(() => {
-      paths.cleanOutputPath("/test/path/with/random.ts");
-    }).toThrow(new Error("--output parameter must reference a folder path or an index.d.ts file."));
-
-    expect(() => {
-      paths.cleanOutputPath("/test/path/with/index.ts");
-    }).toThrow(new Error("--output parameter must reference a folder path or an index.d.ts file."));
-
-    expect(() => {
-      paths.cleanOutputPath("/test/path/with/index.d.js");
-    }).toThrow(new Error("--output parameter must reference a folder path or an index.d.ts file."));
+      paths.cleanOutputPath("/test/path/with/index.js");
+    }).toThrow(
+      new Error(
+        "Invalid --ouput argument. Please provide either a folder pah or a Typescript file path."
+      )
+    );
   });
 
   test("path pointing to directory", () => {
