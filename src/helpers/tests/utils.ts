@@ -9,8 +9,9 @@ export const setupFolderStructure = (
     index = true,
     model = true,
     typeFile = false,
-    js = false
-  }: { index?: boolean; model?: boolean; typeFile?: boolean; js?: boolean } = {}
+    js = false,
+    augment = false
+  }: { index?: boolean; model?: boolean; typeFile?: boolean; js?: boolean; augment?: boolean } = {}
 ) => {
   const absPath = path.join(__dirname, relPath);
   mkdirp.sync(absPath);
@@ -26,11 +27,12 @@ export const setupFolderStructure = (
       path.join(__dirname, `artifacts/user.${extension}`),
       path.join(absPath, `user.${extension}`)
     );
-  if (typeFile)
-    fs.copyFileSync(
-      path.join(__dirname, "artifacts/example.index.d.ts"),
-      path.join(absPath, "index.d.ts")
-    );
+  if (typeFile) {
+    const filename = augment ? "example.index.d.ts" : "mongoose.gen.ts";
+    console.log("augment: ", augment);
+    console.log("filename: ", filename);
+    fs.copyFileSync(path.join(__dirname, `artifacts/${filename}`), path.join(absPath, filename));
+  }
 };
 
 export const cleanupFolderStructure = (relBasePath: string) => {
