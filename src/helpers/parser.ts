@@ -89,7 +89,7 @@ export const parseSchema = ({
   isDocument,
   header = "",
   footer = "",
-  isModule = false
+  isAugmented = false
 }: {
   schema: any;
   modelName?: string;
@@ -97,7 +97,7 @@ export const parseSchema = ({
   isDocument: boolean;
   header?: string;
   footer?: string;
-  isModule?: boolean;
+  isAugmented?: boolean;
 }) => {
   let template = "";
 
@@ -127,7 +127,7 @@ export const parseSchema = ({
             `interface ${name} {`,
           isDocument,
           footer: `}${isDocument ? ` & ${name}` : ""}\n\n`,
-          isModule
+          isAugmented
         });
       };
     };
@@ -142,7 +142,7 @@ export const parseSchema = ({
   if (!isDocument && schema.statics && modelName && addModel) {
     let modelExtend: string;
     if (schema.query) {
-      template += `${isModule ? "" : "export "}interface ${modelName}Queries {\n`;
+      template += `${isAugmented ? "" : "export "}interface ${modelName}Queries {\n`;
       template += parseFunctions(schema.query, modelName, "query");
       template += "}\n\n";
 
@@ -152,13 +152,13 @@ export const parseSchema = ({
     }
 
     template += `${
-      isModule ? "" : "export "
+      isAugmented ? "" : "export "
     }interface ${modelName}Model extends ${modelExtend} {\n`;
     template += parseFunctions(schema.statics, modelName, "statics");
     template += "}\n\n";
   }
 
-  if (!isModule) header = "export " + header;
+  if (!isAugmented) header = "export " + header;
   template += header;
 
   const schemaTree = schema.tree;
@@ -273,13 +273,13 @@ export const parseSchema = ({
 
       if (!typeFound) {
         // if we dont find it, go one level deeper
-        // here we pass isModule: true to prevent `export ` from being prepended to the header
+        // here we pass isAugmented: true to prevent `export ` from being prepended to the header
         valType = parseSchema({
           schema: { tree: val },
           header: "{\n",
           isDocument,
           footer: "}",
-          isModule: true
+          isAugmented: true
         });
 
         isOptional = false;
@@ -411,11 +411,11 @@ export const loadSchemas = (modelsPaths: string[]) => {
 
 export const generateFileString = ({
   schemas,
-  isModule,
+  isAugmented,
   imports = []
 }: {
   schemas: LoadedSchemas;
-  isModule: boolean;
+  isAugmented: boolean;
   imports?: string[];
 }) => {
   let fullTemplate = MAIN_HEADER;
@@ -426,7 +426,7 @@ export const generateFileString = ({
   // custom, user-defined imports
   fullTemplate += imports.join("\n") + "\n";
 
-  if (isModule) fullTemplate += MODULE_DECLARATION_HEADER;
+  if (isAugmented) fullTemplate += MODULE_DECLARATION_HEADER;
 
   Object.keys(schemas).forEach(modelName => {
     const schema = schemas[modelName];
@@ -440,7 +440,7 @@ export const generateFileString = ({
       isDocument: false,
       header: `interface ${modelName} {\n`,
       footer: "}\n\n",
-      isModule
+      isAugmented
     });
 
     interfaceStr += parseSchema({
@@ -450,13 +450,13 @@ export const generateFileString = ({
       isDocument: true,
       header: `type ${modelName}Document = mongoose.Document & {\n`,
       footer: `} & ${modelName}\n\n`,
-      isModule
+      isAugmented
     });
 
     fullTemplate += interfaceStr;
   });
 
-  if (isModule) fullTemplate += MODULE_DECLARATION_FOOTER;
+  if (isAugmented) fullTemplate += MODULE_DECLARATION_FOOTER;
 
   return fullTemplate;
 };
@@ -474,7 +474,10 @@ export const writeOrCreateInterfaceFiles = ({
     // if folder doesnt exist, create and then write again
     if (err.message.includes("ENOENT: no such file or directory")) {
       console.log(`Path ${genFilePath} not found; creating...`);
-      mkdirp.sync(genFilePath);
+
+      const { dir } = path.parse(genFilePath);
+      mkdirp.sync(dir);
+
       fs.writeFileSync(genFilePath, interfaceString, "utf8");
     }
   }

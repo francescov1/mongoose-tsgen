@@ -15,7 +15,7 @@ class MongooseTsgen extends Command {
     output: flags.string({
       char: "o",
       description:
-        "Path of output file containing generated interfaces. If a folder path is passed, the generator will default to creating an `mongoose.gen.ts` file in the specified folder. Defaults to ./src/interfaces."
+        "[default: ./src/interfaces] Path of output file containing generated interfaces. If a folder path is passed, the generator will default to creating an `mongoose.gen.ts` file in the specified folder. Defaults to ./src/interfaces."
     }),
     "dry-run": flags.boolean({
       char: "d",
@@ -34,11 +34,12 @@ class MongooseTsgen extends Command {
     }),
     project: flags.string({
       char: "p",
-      description: `Path of tsconfig.json or its root folder. Defaults to "./"`
+      description: `[default: ./] Path of tsconfig.json or its root folder. Defaults to "./"`
     }),
     imports: flags.string({
       char: "i",
-      description: "Custom import statements to add to the output file. Useful if you use third-party types in your mongoose schema definitions",
+      description:
+        "Custom import statements to add to the output file. Useful if you use third-party types in your mongoose schema definitions",
       multiple: true
     }),
     config: flags.string({
@@ -47,7 +48,7 @@ class MongooseTsgen extends Command {
         "Path of mtgen.config.json or its root folder. CLI flag options will take precendence over settings in mtgen.config.json"
     }),
     augment: flags.boolean({
-      description: `augment generated interfaces into the 'mongoose' module`
+      description: `Augment generated interfaces into the 'mongoose' module`
     })
   };
 
@@ -91,9 +92,9 @@ class MongooseTsgen extends Command {
 
     cli.action.start("Generating mongoose typescript definitions");
 
-    if (!flags.module) {
+    if (!flags.augment) {
       const pathSegments = flags.output?.split?.("/");
-      // if no output path (used to default to /src/types/mongoose/index.d.ts) or if output path is a folder path,  warn that this library does not add typescript interfaces as declared modules by default (now requires --module flag)
+      // if no output path (used to default to /src/types/mongoose/index.d.ts) or if output path is a folder path,  warn that this library does not add typescript interfaces as declared modules by default (now requires --augment flag)
       if (
         !pathSegments ||
         pathSegments[pathSegments.length - 1].match(/[a-zA-Z0-9_-]*\.[A-Za-z]{2,3}/)
@@ -123,7 +124,7 @@ class MongooseTsgen extends Command {
       const genFilePath = paths.cleanOutputPath(flags.output);
       const interfaceString = parser.generateFileString({
         schemas,
-        isModule: flags.module,
+        isAugmented: flags.augment,
         imports: flags.imports
       });
       cleanupTs?.();
