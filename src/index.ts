@@ -92,19 +92,6 @@ class MongooseTsgen extends Command {
 
     cli.action.start("Generating mongoose typescript definitions");
 
-    if (!flags.augment) {
-      const pathSegments = flags.output?.split?.("/");
-      // if no output path (used to default to /src/types/mongoose/index.d.ts) or if output path is a folder path,  warn that this library does not add typescript interfaces as declared modules by default (now requires --augment flag)
-      if (
-        !pathSegments ||
-        pathSegments[pathSegments.length - 1].match(/[a-zA-Z0-9_-]*\.[A-Za-z]{2,3}/)
-      ) {
-        this.warn(
-          "⚠ Breaking change in update to v5.1.0 - Run `npx mtgen --help` for more details ⚠\n* Generated types and interfaces are now exported from the generated file, rather than augmented on to the mongoose module. Use `--augment` for previous behaviour.\n* The default value for the --output flag has changed."
-        );
-      }
-    }
-
     try {
       const extension = flags.js ? "js" : "ts";
       const modelsPaths = paths.getFullModelsPaths(args["root-path"], extension);
