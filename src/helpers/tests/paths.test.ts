@@ -97,12 +97,12 @@ describe("getModelsPaths", () => {
     // js version
     expect(() => {
       paths.getModelsPaths("./non/existant", "js");
-    }).toThrow(new Error(`No files found found at path "./non/existant".`));
+    }).toThrow(new Error(`No model files found found at path "./non/existant".`));
 
     // ts version
     expect(() => {
       paths.getModelsPaths("./non/existant");
-    }).toThrow(new Error(`No files found found at path "./non/existant".`));
+    }).toThrow(new Error(`No model files found found at path "./non/existant".`));
   });
 });
 
