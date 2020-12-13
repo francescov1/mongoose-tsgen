@@ -33,7 +33,7 @@ describe("generateFileString", () => {
 
   test("generate augmented file string success (js)", async () => {
     setupFolderStructure("./src/models", { js: true, augment: true });
-    const modelsPath = await paths.getFullModelsPaths("", "js");
+    const modelsPath = await paths.getModelsPaths("", "js");
     const schemas = parser.loadSchemas(modelsPath);
     const fileString = await parser.generateFileString({ schemas, isAugmented: true });
 
@@ -47,7 +47,7 @@ describe("generateFileString", () => {
 
   test("generate augmented file string success (ts)", async () => {
     setupFolderStructure("./dist/models", { augment: true });
-    const modelsPaths = await paths.getFullModelsPaths("");
+    const modelsPaths = await paths.getModelsPaths("");
     const cleanupTs = parser.registerUserTs("tsconfig.test.json");
     const functionTypes = tsReader.getFunctionTypes(modelsPaths);
     parser.setFunctionTypes(functionTypes);
@@ -60,7 +60,7 @@ describe("generateFileString", () => {
 
   test("generate unaugmented file string success (ts)", async () => {
     setupFolderStructure("./models");
-    const modelsPaths = await paths.getFullModelsPaths("");
+    const modelsPaths = await paths.getModelsPaths("");
     const cleanupTs = parser.registerUserTs("tsconfig.test.json");
     const functionTypes = tsReader.getFunctionTypes(modelsPaths);
     parser.setFunctionTypes(functionTypes);

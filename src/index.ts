@@ -89,7 +89,7 @@ class MongooseTsgen extends Command {
 
     try {
       const extension = flags.js ? "js" : "ts";
-      const modelsPaths = paths.getFullModelsPaths(args["root-path"], extension);
+      const modelsPaths = paths.getModelsPaths(args["root-path"], extension);
 
       let cleanupTs: any;
       if (!flags.js) {

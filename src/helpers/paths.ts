@@ -23,7 +23,11 @@ export const getConfigFromFile = (configPath?: string): object => {
   return JSON.parse(rawConfig);
 };
 
-export const getModelsPaths = (basePath: string | undefined, extension: "js" | "ts"): string[] => {
+export const getModelsPaths = (
+  basePath: string | undefined,
+  extension: "js" | "ts" = "ts"
+): string[] => {
+  let modelsPaths: string[];
   if (basePath && basePath !== "") {
     // base path, only check that path
     const { ext } = path.parse(basePath);
@@ -31,36 +35,26 @@ export const getModelsPaths = (basePath: string | undefined, extension: "js" | "
     // if path points to a folder, search all files not named index.ts or index.js in that folder.
     const modelsFolderPath = ext === "" ? path.join(basePath, `!(index).${extension}`) : basePath;
 
-    const modelsPaths = glob.sync(modelsFolderPath, {
+    modelsPaths = glob.sync(modelsFolderPath, {
       ignore: "**/node_modules/**"
     });
     if (modelsPaths.length === 0) {
       throw new Error(`No files found found at path "${basePath}".`);
     }
+  } else {
+    // no base path, recursive search files in a `models/` folder
+    const modelsFolderPath = `**/models/!(index).${extension}`;
 
-    return modelsPaths;
+    modelsPaths = glob.sync(modelsFolderPath, {
+      ignore: "**/node_modules/**"
+    });
+    if (modelsPaths.length === 0) {
+      throw new Error(
+        `Recursive search did not find any "models/*.${extension}" files. Please provide an explicit path to your models folder.`
+      );
+    }
   }
 
-  // no base path, recursive search files in a `models/` folder
-  const modelsFolderPath = `**/models/!(index).${extension}`;
-
-  const modelsPaths = glob.sync(modelsFolderPath, {
-    ignore: "**/node_modules/**"
-  });
-  if (modelsPaths.length === 0) {
-    throw new Error(
-      `Recursive search did not find any "models/*.${extension}" files. Please provide an explicit path to your models folder.`
-    );
-  }
-
-  return modelsPaths;
-};
-
-export const getFullModelsPaths = (
-  basePath: string | undefined,
-  extension: "js" | "ts" = "ts"
-): string[] => {
-  const modelsPaths = getModelsPaths(basePath, extension);
   return modelsPaths.map((filename: string) => path.join(process.cwd(), filename));
 };
 
