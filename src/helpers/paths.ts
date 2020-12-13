@@ -39,7 +39,7 @@ export const getModelsPaths = (
       ignore: "**/node_modules/**"
     });
     if (modelsPaths.length === 0) {
-      throw new Error(`No files found found at path "${basePath}".`);
+      throw new Error(`No model files found found at path "${basePath}".`);
     }
   } else {
     // no base path, recursive search files in a `models/` folder
