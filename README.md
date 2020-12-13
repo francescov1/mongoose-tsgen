@@ -101,7 +101,7 @@ All CLI options can be provided using a `mtgen.config.json` file. Use the `--con
 // NOTE: you will need to import these types after your first ever run of the CLI
 // See the 'Initializing Schemas' section
 import mongoose from "mongoose";
-import { UserDocument, UserModel, UserQueries } from "../interfaces/mongoose.gen.ts";
+import { UserDocument, UserModel, UserMethods, UserStatics, UserQueries } from "../interfaces/mongoose.gen.ts";
 
 const { Schema } = mongoose;
 
@@ -137,29 +137,28 @@ const UserSchema = new Schema({
   }
 });
 
-// NOTE: `this: UserDocument` and `this: UserModel` is to tell TS the type of `this' value using the "fake this" feature
+// NOTE: `this: UserDocument` and `this: UserModel` is required for virtual properties to tell TS the type of `this' value using the "fake this" feature
 // you will need to add these in after your first ever run of the CLI
-
 UserSchema.virtual("name").get(function (this: UserDocument) {
   return `${this.firstName} ${this.lastName}`;
 });
 
-// method functions
+// method functions, cast to UserStatics
 UserSchema.methods = {
-  isMetadataString(this: UserDocument) {
+  isMetadataString() {
     return typeof this.metadata === "string";
   }
-};
+} as UserMethods;
 
-// static functions
+// static functions, cast to UserStatics
 UserSchema.statics = {
   // friendUids could also use the type `ObjectId[]` here
-  async getFriends(this: UserModel, friendUids: UserDocument["_id"][]) {
+  async getFriends(friendUids: UserDocument["_id"][]) {
     return await this.aggregate([{ $match: { _id: { $in: friendUids } } }]);
   }
-};
+} as UserStatics;
 
-// query functions - no `this: UserDocument` required here, just cast to UserQueries type
+// query functions, cast to UserQueries
 UserSchema.query = {
   populateFriends() {
     return this.populate("friends.uid", "firstName lastName");
@@ -195,14 +194,18 @@ export interface UserFriend {
 }
 
 export interface UserQueries {
-  populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(
-    this: Q
-  ): Q;
+  populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(this: Q): Q;
 }
 
-export interface UserModel extends mongoose.Model<UserDocument, UserQueries> {
-  getFriends: (this: any, friendUids: UserDocument["_id"][]) => Promise<any>;
+export interface UserMethods {
+  isMetadataString<D extends UserDocument>(this: D): boolean;
 }
+
+export interface UserStatics {
+  getFriends<M extends UserModel>(this: M, friendUids: UserDocument["_id"][]): Promise<any>;
+}
+
+export interface UserModel extends mongoose.Model<UserDocument, UserQueries>, UserStatics {}
 
 export interface User {
   email: string;
@@ -220,13 +223,13 @@ export type UserFriendDocument = mongoose.Types.Subdocument & {
   uid: UserDocument["_id"] | UserDocument;
 } & UserFriend;
 
-export type UserDocument = mongoose.Document & {
-  metadata?: any;
-  friends: mongoose.Types.DocumentArray<UserFriendDocument>;
-  city: {};
-  name: any;
-  isMetadataString: (this: any) => boolean;
-} & User;
+export type UserDocument = mongoose.Document &
+  UserMethods & {
+    metadata?: any;
+    friends: mongoose.Types.DocumentArray<UserFriendDocument>;
+    city: {};
+    name: any;
+  } & User;
 ```
 
 ## Initializing Schemas

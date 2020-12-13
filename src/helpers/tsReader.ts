@@ -87,8 +87,6 @@ export const getFunctionTypes = (modelsPaths: string[]) => {
   const project = new Project({});
   project.addSourceFilesAtPaths(modelsPaths);
 
-  // TODO: replace `this: any` with `this: ${modelName}`
-
   const results: {
     [modelName: string]: {
       methods: { [funcName: string]: string };
@@ -112,8 +110,6 @@ export const getFunctionTypes = (modelsPaths: string[]) => {
 
     results[modelName] = { methods, statics, query };
   });
-
-  console.log(results.Event);
 
   return results;
 };

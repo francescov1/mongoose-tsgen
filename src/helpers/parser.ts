@@ -74,19 +74,16 @@ const parseFunctions = (
       funcSignature.match(/\((?:this: \w*(?:, )?)?(.*)\) => (.*)/) ?? [];
     let type;
     if (funcType === "query") {
-      if (params)
-        key += `<Q extends mongoose.DocumentQuery<any, ${modelName}Document, {}>>(this: Q${
-          params.length > 0 ? ", " + params : ""
-        })`;
+      key += `<Q extends mongoose.DocumentQuery<any, ${modelName}Document, {}>>(this: Q${
+        params?.length > 0 ? ", " + params : ""
+      })`;
       // query funcs always must return a query
       type = "Q";
     } else if (funcType === "methods") {
-      if (params)
-        key += `<D extends ${modelName}Document>(this: D${params.length > 0 ? ", " + params : ""})`;
+      key += `<D extends ${modelName}Document>(this: D${params?.length > 0 ? ", " + params : ""})`;
       type = returnType ?? "any";
     } else {
-      if (params)
-        key += `<M extends ${modelName}Model>(this: M${params.length > 0 ? ", " + params : ""})`;
+      key += `<M extends ${modelName}Model>(this: M${params?.length > 0 ? ", " + params : ""})`;
       type = returnType ?? "any";
     }
 
@@ -170,7 +167,7 @@ export const parseSchema = ({
 
     template += `${
       isAugmented ? "" : "export "
-    }interface ${modelName}Model extends ${modelExtend}, ${modelName}Statics {}`;
+    }interface ${modelName}Model extends ${modelExtend}, ${modelName}Statics {}\n\n`;
   }
 
   if (!isAugmented) header = "export " + header;
@@ -322,12 +319,6 @@ export const parseSchema = ({
     const val = schemaTree[key];
     template += parseKey(key, val);
   });
-
-  // if (schema.methods && modelName) {
-  // if (isDocument && schema.methods) {
-  //   if (!modelName) throw new Error("No model name found on schema " + schema);
-  //   template += parseFunctions(schema.methods, modelName, "methods");
-  // }
 
   template += footer;
 
