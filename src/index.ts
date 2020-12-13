@@ -53,12 +53,7 @@ class MongooseTsgen extends Command {
   };
 
   // path of mongoose models folder
-  static args = [
-    {
-      name: "root-path",
-      default: "."
-    }
-  ];
+  static args = [{ name: "root-path" }];
 
   private getConfig() {
     const { flags: cliFlags, args } = this.parse(MongooseTsgen);

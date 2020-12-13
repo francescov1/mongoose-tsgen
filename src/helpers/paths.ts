@@ -23,23 +23,43 @@ export const getConfigFromFile = (configPath?: string): object => {
   return JSON.parse(rawConfig);
 };
 
-export const getModelsPaths = (basePath: string, extension: "js" | "ts"): string[] => {
-  const { base: basePathEnd } = path.parse(basePath);
-  const searchPath =
-    basePathEnd === "models" ? `**/!(index).${extension}` : `**/models/!(index).${extension}`;
-  const modelsFolderPath = path.join(basePath, searchPath);
+export const getModelsPaths = (basePath: string | undefined, extension: "js" | "ts"): string[] => {
+  if (basePath && basePath !== "") {
+    // base path, only check that path
+    const { ext } = path.parse(basePath);
+
+    // if path points to a folder, search all files not named index.ts or index.js in that folder.
+    const modelsFolderPath = ext === "" ? path.join(basePath, `!(index).${extension}`) : basePath;
+
+    const modelsPaths = glob.sync(modelsFolderPath, {
+      ignore: "**/node_modules/**"
+    });
+    if (modelsPaths.length === 0) {
+      throw new Error(`No files found found at path "${basePath}".`);
+    }
+
+    return modelsPaths;
+  }
+
+  // no base path, recursive search files in a `models/` folder
+  const modelsFolderPath = `**/models/!(index).${extension}`;
 
   const modelsPaths = glob.sync(modelsFolderPath, {
     ignore: "**/node_modules/**"
   });
   if (modelsPaths.length === 0) {
-    throw new Error(`No "models/*.${extension}" files found at path "${basePath}"`);
+    throw new Error(
+      `Recursive search did not find any "models/*.${extension}" files. Please provide an explicit path to your models folder.`
+    );
   }
 
   return modelsPaths;
 };
 
-export const getFullModelsPaths = (basePath: string, extension: "js" | "ts" = "ts"): string[] => {
+export const getFullModelsPaths = (
+  basePath: string | undefined,
+  extension: "js" | "ts" = "ts"
+): string[] => {
   const modelsPaths = getModelsPaths(basePath, extension);
   return modelsPaths.map((filename: string) => path.join(process.cwd(), filename));
 };
