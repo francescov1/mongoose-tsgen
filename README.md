@@ -159,14 +159,12 @@ UserSchema.statics = {
   }
 };
 
-// query functions - no `this: UserDocument` required here, just provide UserQueries type
-const queryFuncs: UserQueries = {
+// query functions - no `this: UserDocument` required here, just cast to UserQueries type
+UserSchema.query = {
   populateFriends() {
     return this.populate("friends.uid", "firstName lastName");
   }
-};
-
-UserSchema.query = queryFuncs;
+} as UserQueries;
 
 export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
 export default User;
@@ -198,8 +196,7 @@ export interface UserFriend {
 
 export interface UserQueries {
   populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(
-    this: Q,
-    ...args: any[]
+    this: Q
   ): Q;
 }
 
@@ -280,6 +277,5 @@ async function editEmail(user: UserDocument, newEmail: string): UserDocument {
 ## Development
 
 - [ ] The generating piece of `src/helpers/parser.ts` needs to be rewritten using [ts-morph](https://github.com/dsherret/ts-morph). Currently it builds the interfaces by appending generated lines of code to a string sequentially, with no knowledge of the AST. This leads to pretty confusing logic, using the TS compiler API would simplify it a ton.
-- [ ] Query function parameters are typed using a rest parameter `(...args: any[])`, this needs to be fine tunned to use the actual parameters and types.
 - [ ] Top-level schema fields that refer to the schema itself (i.e. an array of User friend IDs at the root of the User schema) will be typed as the barebones Mongoose-less Schema interface, rather than the Document type (in example above, would refer to `User` instead of `UserDocument`). This is because the Document type is a TS type, rather than an interface, thus it cannot reference itself. This edge-case only really arises to users if they populate that specific property, otherwise this would references an ObjectId in both cases.
 - [ ] Generating types for specifically the method and static functions objects. This is how query functions are currently handled, it removes the need to fill in the "fake this" parameter for each function.

@@ -3,6 +3,7 @@ import { Project, Node, SyntaxKind, MethodDeclaration, SourceFile } from "ts-mor
 function getFuncDeclarations(sourceFile: SourceFile) {
   const methodDeclarations = [];
   const staticDeclarations = [];
+  const queryDeclarations = [];
 
   for (const statement of sourceFile.getStatements()) {
     if (!Node.isExpressionStatement(statement)) continue;
@@ -14,7 +15,11 @@ function getFuncDeclarations(sourceFile: SourceFile) {
     const left = binaryExpr.getLeft();
     const right = binaryExpr.getRight();
     if (left.getKind() !== SyntaxKind.PropertyAccessExpression) continue;
-    if (right.getKind() !== SyntaxKind.ObjectLiteralExpression) continue;
+    if (
+      right.getKind() !== SyntaxKind.ObjectLiteralExpression &&
+      right.getKind() !== SyntaxKind.AsExpression
+    )
+      continue;
 
     const leftChildren = left.getChildren();
 
@@ -32,13 +37,25 @@ function getFuncDeclarations(sourceFile: SourceFile) {
     const hasStaticsIdentifier = leftChildren.some(
       child => child.getKind() === SyntaxKind.Identifier && child.getText() === "statics"
     );
+    const hasQueryIdentifier = leftChildren.some(
+      child => child.getKind() === SyntaxKind.Identifier && child.getText() === "query"
+    );
 
-    const rightFuncDeclarations = right.getChildrenOfKind(SyntaxKind.MethodDeclaration);
+    let rightFuncDeclarations: any[] = [];
+    if (right.getKind() === SyntaxKind.AsExpression) {
+      const objLiteralExp = right.getFirstChildByKind(SyntaxKind.ObjectLiteralExpression);
+      if (objLiteralExp)
+        rightFuncDeclarations = objLiteralExp.getChildrenOfKind(SyntaxKind.MethodDeclaration);
+    } else {
+      rightFuncDeclarations = right.getChildrenOfKind(SyntaxKind.MethodDeclaration);
+    }
+
     if (hasMethodsIdentifier) methodDeclarations.push(...rightFuncDeclarations);
     else if (hasStaticsIdentifier) staticDeclarations.push(...rightFuncDeclarations);
+    else if (hasQueryIdentifier) queryDeclarations.push(...rightFuncDeclarations);
   }
 
-  return { methodDeclarations, staticDeclarations };
+  return { methodDeclarations, staticDeclarations, queryDeclarations };
 }
 
 function parseFuncDeclarations(declarations: MethodDeclaration[]) {
@@ -76,6 +93,7 @@ export const getFunctionTypes = (modelsPaths: string[]) => {
     [modelName: string]: {
       methods: { [funcName: string]: string };
       statics: { [funcName: string]: string };
+      query: { [funcName: string]: string };
     };
   } = {};
 
@@ -84,13 +102,18 @@ export const getFunctionTypes = (modelsPaths: string[]) => {
     const sourceFile = project.getSourceFileOrThrow(modelPath);
     const modelName = getModelName(sourceFile);
 
-    const { methodDeclarations, staticDeclarations } = getFuncDeclarations(sourceFile);
+    const { methodDeclarations, staticDeclarations, queryDeclarations } = getFuncDeclarations(
+      sourceFile
+    );
 
     const methods = methodDeclarations.length > 0 ? parseFuncDeclarations(methodDeclarations) : {};
     const statics = staticDeclarations.length > 0 ? parseFuncDeclarations(staticDeclarations) : {};
+    const query = queryDeclarations.length > 0 ? parseFuncDeclarations(queryDeclarations) : {};
 
-    results[modelName] = { methods, statics };
+    results[modelName] = { methods, statics, query };
   });
+
+  console.log(results.Event);
 
   return results;
 };

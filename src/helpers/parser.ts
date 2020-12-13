@@ -14,6 +14,7 @@ let globalFuncTypes: {
   [modelName: string]: {
     methods: { [funcName: string]: string };
     statics: { [funcName: string]: string };
+    query: { [funcName: string]: string };
   };
 };
 
@@ -57,7 +58,6 @@ const makeLine = ({
   return line;
 };
 
-// TODO: this types any additional params to the query func as "...args: any[]" - we should get actual params
 const parseFunctions = (
   funcs: any,
   modelName: string,
@@ -69,10 +69,20 @@ const parseFunctions = (
     if (["initializeTimestamps"].includes(key)) return;
 
     let type;
-    // TODO: look at typing methods and statics in the same way as queries (ie providing one type for entire methods or statics object, rather than adding `fake this` etc. on every function)
     if (funcType === "query") {
-      key += `<Q extends mongoose.DocumentQuery<any, ${modelName}Document, {}>>(this: Q, ...args: any[])`;
-      type = "Q";
+      let queryType = globalFuncTypes?.[modelName]?.[funcType]?.[key] ?? "(...args: any[]) => any";
+
+      if (queryType[0] === "(" && !queryType.startsWith("(this:")) {
+        const paramEndIdx = queryType.indexOf(")");
+        queryType =
+          `(this: Q${paramEndIdx > 1 ? ", " : ""}` +
+          queryType.slice(1, paramEndIdx === -1 ? undefined : paramEndIdx + 1);
+        type = "Q";
+      } else {
+        type = "any";
+      }
+
+      key += `<Q extends mongoose.DocumentQuery<any, ${modelName}Document, {}>>${queryType}`;
     } else {
       type = globalFuncTypes?.[modelName]?.[funcType]?.[key] ?? "Function";
     }

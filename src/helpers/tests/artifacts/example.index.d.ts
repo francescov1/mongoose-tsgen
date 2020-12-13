@@ -15,7 +15,7 @@ _id: mongoose.Types.ObjectId;
 }
 
 interface UserQueries {
-populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(this: Q, ...args: any[]): Q;
+populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(this: Q): Q;
 }
 
 interface UserModel extends mongoose.Model<UserDocument, UserQueries> {

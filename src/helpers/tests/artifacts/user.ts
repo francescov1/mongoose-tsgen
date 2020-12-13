@@ -58,14 +58,12 @@ UserSchema.statics = {
   }
 };
 
-// query functions - no `this: UserDocument` required here, just provide UserQueries type
-const queryFuncs: UserQueries = {
+// query functions - no `this: UserDocument` required here, just cast tp UserQueries type
+UserSchema.query = {
   populateFriends() {
     return this.populate("friends.uid", "firstName lastName");
   }
-};
-
-UserSchema.query = queryFuncs;
+} as UserQueries
 
 export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
 export default User;

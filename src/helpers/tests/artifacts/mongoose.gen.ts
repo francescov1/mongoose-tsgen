@@ -13,7 +13,7 @@ _id: mongoose.Types.ObjectId;
 }
 
 export interface UserQueries {
-populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(this: Q, ...args: any[]): Q;
+populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(this: Q): Q;
 }
 
 export interface UserModel extends mongoose.Model<UserDocument, UserQueries> {
