@@ -56,7 +56,7 @@ Generate a Typescript file containing Mongoose Schema typings.
 
 ```
 USAGE
-  $ mtgen [ROOT_PATH - default = "."]
+  $ mtgen [MODEL_PATH]
 
 OPTIONS
   -c, --config=config    [default: ./] Path of mtgen.config.json or its root folder. CLI flag options will take precendence over settings in mtgen.config.json
@@ -72,9 +72,7 @@ OPTIONS
   --no-func-types        Disable using TS compiler API for method, static and query typings.
 ```
 
-All sub-directories of `ROOT_PATH` will be searched for `models/*.ts` files (or `models/*.js`). Files in this folder (other than an index file) are expected to export a Mongoose model.
-
-<i>NOTE: --output requires a folder path or a file path ending in `index.d.ts`. If the path does not exist, it will be created.</i>
+Specify the directory of your Mongoose model definitions using `MODEL_PATH`. If left blank, all sub-directories will be searched for `models/*.ts` files (or `models/*.js`). Files in this folder (other than an index file) are expected to export a Mongoose model. 
 
 _See code: [src/index.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/master/src/index.ts)_
 
