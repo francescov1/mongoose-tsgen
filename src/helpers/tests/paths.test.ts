@@ -79,7 +79,7 @@ describe("getModelsPaths", () => {
       paths.getModelsPaths("", "js");
     }).toThrow(
       new Error(
-        `Recursive search did not find any "models/*.js" files. Please provide an explicit path to your models folder.`
+        `Recursive search could not find any model files at "**/models/*.js". Please provide a path to your models folder.`
       )
     );
 
@@ -88,7 +88,7 @@ describe("getModelsPaths", () => {
       paths.getModelsPaths("");
     }).toThrow(
       new Error(
-        `Recursive search did not find any "models/*.ts" files. Please provide an explicit path to your models folder.`
+        `Recursive search could not find any model files at "**/models/*.ts". Please provide a path to your models folder.`
       )
     );
   });

@@ -50,7 +50,7 @@ export const getModelsPaths = (
     });
     if (modelsPaths.length === 0) {
       throw new Error(
-        `Recursive search did not find any "models/*.${extension}" files. Please provide an explicit path to your models folder.`
+        `Recursive search could not find any model files at "**/models/*.${extension}". Please provide a path to your models folder.`
       );
     }
   }
