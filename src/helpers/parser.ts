@@ -14,6 +14,7 @@ let globalFuncTypes: {
   [modelName: string]: {
     methods: { [funcName: string]: string };
     statics: { [funcName: string]: string };
+    query: { [funcName: string]: string };
   };
 };
 
@@ -57,7 +58,6 @@ const makeLine = ({
   return line;
 };
 
-// TODO: this types any additional params to the query func as "...args: any[]" - we should get actual params
 const parseFunctions = (
   funcs: any,
   modelName: string,
@@ -68,14 +68,25 @@ const parseFunctions = (
   Object.keys(funcs).forEach(key => {
     if (["initializeTimestamps"].includes(key)) return;
 
+    const funcSignature =
+      globalFuncTypes?.[modelName]?.[funcType]?.[key] ?? "(...args: any[]) => any";
+    const [, params, returnType] =
+      funcSignature.match(/\((?:this: \w*(?:, )?)?(.*)\) => (.*)/) ?? [];
     let type;
-    // TODO: look at typing methods and statics in the same way as queries (ie providing one type for entire methods or statics object, rather than adding `fake this` etc. on every function)
     if (funcType === "query") {
-      key += `<Q extends mongoose.DocumentQuery<any, ${modelName}Document, {}>>(this: Q, ...args: any[])`;
+      key += `<Q extends mongoose.DocumentQuery<any, ${modelName}Document, {}>>(this: Q${
+        params?.length > 0 ? ", " + params : ""
+      })`;
+      // query funcs always must return a query
       type = "Q";
+    } else if (funcType === "methods") {
+      key += `<D extends ${modelName}Document>(this: D${params?.length > 0 ? ", " + params : ""})`;
+      type = returnType ?? "any";
     } else {
-      type = globalFuncTypes?.[modelName]?.[funcType]?.[key] ?? "Function";
+      key += `<M extends ${modelName}Model>(this: M${params?.length > 0 ? ", " + params : ""})`;
+      type = returnType ?? "any";
     }
+
     interfaceString += makeLine({ key, val: type });
   });
 
@@ -122,7 +133,7 @@ export const parseSchema = ({
           modelName: name,
           header: isDocument ?
             `type ${name}Document = ${
-                isSubdocArray ? "mongoose.Types.Subdocument" : "mongoose.Document"
+                isSubdocArray ? "mongoose.Types.Subdocument" : `mongoose.Document & ${name}Methods`
               } & {\n` :
             `interface ${name} {`,
           isDocument,
@@ -140,22 +151,23 @@ export const parseSchema = ({
   }
 
   if (!isDocument && schema.statics && modelName && addModel) {
-    let modelExtend: string;
-    if (schema.query) {
-      template += `${isAugmented ? "" : "export "}interface ${modelName}Queries {\n`;
-      template += parseFunctions(schema.query, modelName, "query");
-      template += "}\n\n";
+    template += `${isAugmented ? "" : "export "}interface ${modelName}Queries {\n`;
+    template += parseFunctions(schema.query ?? {}, modelName, "query");
+    template += "}\n\n";
 
-      modelExtend = `mongoose.Model<${modelName}Document, ${modelName}Queries>`;
-    } else {
-      modelExtend = `mongoose.Model<${modelName}Document>`;
-    }
+    template += `${isAugmented ? "" : "export "}interface ${modelName}Methods {\n`;
+    template += parseFunctions(schema.methods, modelName, "methods");
+    template += "}\n\n";
+
+    template += `${isAugmented ? "" : "export "}interface ${modelName}Statics {\n`;
+    template += parseFunctions(schema.statics, modelName, "statics");
+    template += "}\n\n";
+
+    const modelExtend = `mongoose.Model<${modelName}Document, ${modelName}Queries>`;
 
     template += `${
       isAugmented ? "" : "export "
-    }interface ${modelName}Model extends ${modelExtend} {\n`;
-    template += parseFunctions(schema.statics, modelName, "statics");
-    template += "}\n\n";
+    }interface ${modelName}Model extends ${modelExtend}, ${modelName}Statics {}\n\n`;
   }
 
   if (!isAugmented) header = "export " + header;
@@ -308,12 +320,6 @@ export const parseSchema = ({
     template += parseKey(key, val);
   });
 
-  // if (schema.methods && modelName) {
-  if (isDocument && schema.methods) {
-    if (!modelName) throw new Error("No model name found on schema " + schema);
-    template += parseFunctions(schema.methods, modelName, "methods");
-  }
-
   template += footer;
 
   return template;
@@ -452,7 +458,7 @@ export const generateFileString = ({
       modelName,
       addModel: true,
       isDocument: true,
-      header: `type ${modelName}Document = mongoose.Document & {\n`,
+      header: `type ${modelName}Document = mongoose.Document & ${modelName}Methods & {\n`,
       footer: `} & ${modelName}\n\n`,
       isAugmented
     });

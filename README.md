@@ -99,7 +99,7 @@ All CLI options can be provided using a `mtgen.config.json` file. Use the `--con
 // NOTE: you will need to import these types after your first ever run of the CLI
 // See the 'Initializing Schemas' section
 import mongoose from "mongoose";
-import { UserDocument, UserModel, UserQueries } from "../interfaces/mongoose.gen.ts";
+import { UserDocument, UserModel, UserMethods, UserStatics, UserQueries } from "../interfaces/mongoose.gen.ts";
 
 const { Schema } = mongoose;
 
@@ -135,36 +135,33 @@ const UserSchema = new Schema({
   }
 });
 
-// NOTE: `this: UserDocument` and `this: UserModel` is to tell TS the type of `this' value using the "fake this" feature
+// NOTE: `this: UserDocument` and `this: UserModel` is required for virtual properties to tell TS the type of `this' value using the "fake this" feature
 // you will need to add these in after your first ever run of the CLI
-
 UserSchema.virtual("name").get(function (this: UserDocument) {
   return `${this.firstName} ${this.lastName}`;
 });
 
-// method functions
+// method functions, cast to UserStatics
 UserSchema.methods = {
-  isMetadataString(this: UserDocument) {
+  isMetadataString() {
     return typeof this.metadata === "string";
   }
-};
+} as UserMethods;
 
-// static functions
+// static functions, cast to UserStatics
 UserSchema.statics = {
   // friendUids could also use the type `ObjectId[]` here
-  async getFriends(this: UserModel, friendUids: UserDocument["_id"][]) {
+  async getFriends(friendUids: UserDocument["_id"][]) {
     return await this.aggregate([{ $match: { _id: { $in: friendUids } } }]);
   }
-};
+} as UserStatics;
 
-// query functions - no `this: UserDocument` required here, just provide UserQueries type
-const queryFuncs: UserQueries = {
+// query functions, cast to UserQueries
+UserSchema.query = {
   populateFriends() {
     return this.populate("friends.uid", "firstName lastName");
   }
-};
-
-UserSchema.query = queryFuncs;
+} as UserQueries;
 
 export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
 export default User;
@@ -195,15 +192,18 @@ export interface UserFriend {
 }
 
 export interface UserQueries {
-  populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(
-    this: Q,
-    ...args: any[]
-  ): Q;
+  populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(this: Q): Q;
 }
 
-export interface UserModel extends mongoose.Model<UserDocument, UserQueries> {
-  getFriends: (this: any, friendUids: UserDocument["_id"][]) => Promise<any>;
+export interface UserMethods {
+  isMetadataString<D extends UserDocument>(this: D): boolean;
 }
+
+export interface UserStatics {
+  getFriends<M extends UserModel>(this: M, friendUids: UserDocument["_id"][]): Promise<any>;
+}
+
+export interface UserModel extends mongoose.Model<UserDocument, UserQueries>, UserStatics {}
 
 export interface User {
   email: string;
@@ -221,13 +221,13 @@ export type UserFriendDocument = mongoose.Types.Subdocument & {
   uid: UserDocument["_id"] | UserDocument;
 } & UserFriend;
 
-export type UserDocument = mongoose.Document & {
-  metadata?: any;
-  friends: mongoose.Types.DocumentArray<UserFriendDocument>;
-  city: {};
-  name: any;
-  isMetadataString: (this: any) => boolean;
-} & User;
+export type UserDocument = mongoose.Document &
+  UserMethods & {
+    metadata?: any;
+    friends: mongoose.Types.DocumentArray<UserFriendDocument>;
+    city: {};
+    name: any;
+  } & User;
 ```
 
 ## Initializing Schemas
@@ -278,6 +278,5 @@ async function editEmail(user: UserDocument, newEmail: string): UserDocument {
 ## Development
 
 - [ ] The generating piece of `src/helpers/parser.ts` needs to be rewritten using [ts-morph](https://github.com/dsherret/ts-morph). Currently it builds the interfaces by appending generated lines of code to a string sequentially, with no knowledge of the AST. This leads to pretty confusing logic, using the TS compiler API would simplify it a ton.
-- [ ] Query function parameters are typed using a rest parameter `(...args: any[])`, this needs to be fine tunned to use the actual parameters and types.
 - [ ] Top-level schema fields that refer to the schema itself (i.e. an array of User friend IDs at the root of the User schema) will be typed as the barebones Mongoose-less Schema interface, rather than the Document type (in example above, would refer to `User` instead of `UserDocument`). This is because the Document type is a TS type, rather than an interface, thus it cannot reference itself. This edge-case only really arises to users if they populate that specific property, otherwise this would references an ObjectId in both cases.
-- [ ] Generating types for specifically the method and static functions objects. This is how query functions are currently handled, it removes the need to fill in the "fake this" parameter for each function.
+- [ ] Cut down node_modules by using users own local installation (i.e. mongoose) and stripping oclif if possible.

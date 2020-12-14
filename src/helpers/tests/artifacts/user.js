@@ -53,6 +53,7 @@ UserSchema.statics = {
   }
 };
 
+// query functions
 UserSchema.query = {
   populateFriends() {
     return this.populate("friends.uid", "firstName lastName");

@@ -15,12 +15,18 @@ _id: mongoose.Types.ObjectId;
 }
 
 interface UserQueries {
-populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(this: Q, ...args: any[]): Q;
+populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(this: Q): Q;
 }
 
-interface UserModel extends mongoose.Model<UserDocument, UserQueries> {
-getFriends: (this: any, friendUids: UserDocument["_id"][]) => Promise<any>;
+interface UserMethods {
+isMetadataString<D extends UserDocument>(this: D): boolean;
 }
+
+interface UserStatics {
+getFriends<M extends UserModel>(this: M, friendUids: UserDocument["_id"][]): Promise<any>;
+}
+
+interface UserModel extends mongoose.Model<UserDocument, UserQueries>, UserStatics {}
 
 interface User {
 email: string;
@@ -38,13 +44,12 @@ type UserFriendDocument = mongoose.Types.Subdocument & {
 uid: UserDocument["_id"] | UserDocument;
 } & UserFriend
 
-type UserDocument = mongoose.Document & {
+type UserDocument = mongoose.Document & UserMethods & {
 metadata?: any;
 friends: mongoose.Types.DocumentArray<UserFriendDocument>;
 city: {
 };
 name: any;
-isMetadataString: (this: any) => boolean;
 } & User
 
 }
