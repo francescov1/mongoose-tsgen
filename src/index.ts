@@ -15,7 +15,7 @@ class MongooseTsgen extends Command {
     output: flags.string({
       char: "o",
       description:
-        "[default: ./src/interfaces] Path of output file containing generated interfaces. If a folder path is passed, the generator will default to creating an `mongoose.gen.ts` file in the specified folder. Defaults to ./src/interfaces."
+        "[default: ./src/interfaces] Path of output file containing generated interfaces. If a folder path is passed, the generator will default to creating an `mongoose.gen.ts` file in the specified folder."
     }),
     "dry-run": flags.boolean({
       char: "d",
@@ -34,7 +34,7 @@ class MongooseTsgen extends Command {
     }),
     project: flags.string({
       char: "p",
-      description: `[default: ./] Path of tsconfig.json or its root folder. Defaults to "./"`
+      description: `[default: ./] Path of tsconfig.json or its root folder.`
     }),
     imports: flags.string({
       char: "i",
@@ -53,12 +53,7 @@ class MongooseTsgen extends Command {
   };
 
   // path of mongoose models folder
-  static args = [
-    {
-      name: "root-path",
-      default: "."
-    }
-  ];
+  static args = [{ name: "root-path" }];
 
   private getConfig() {
     const { flags: cliFlags, args } = this.parse(MongooseTsgen);
@@ -94,7 +89,7 @@ class MongooseTsgen extends Command {
 
     try {
       const extension = flags.js ? "js" : "ts";
-      const modelsPaths = paths.getFullModelsPaths(args["root-path"], extension);
+      const modelsPaths = paths.getModelsPaths(args["root-path"], extension);
 
       let cleanupTs: any;
       if (!flags.js) {
