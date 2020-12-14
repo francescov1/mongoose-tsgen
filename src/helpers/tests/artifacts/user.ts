@@ -36,7 +36,7 @@ const UserSchema = new Schema({
   }
 });
 
-// NOTE: `this: UserDocument` and `this: UserModel` is required for virtual properties to tell TS the type of `this' value using the "fake this" feature
+// NOTE: `this: UserDocument` is required for virtual properties to tell TS the type of `this` value using the "fake this" feature
 // you will need to add these in after your first ever run of the CLI
 UserSchema.virtual("name").get(function (this: UserDocument) {
   return `${this.firstName} ${this.lastName}`;
