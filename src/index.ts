@@ -8,7 +8,7 @@ import * as formatter from "./helpers/formatter";
 
 class MongooseTsgen extends Command {
   static description =
-    'Generate a Typescript file containing Mongoose Schema interfaces. The specified root path ("." by default) will be searched recursively for a `models` folder, where your Mongoose Schemas should be exported from.';
+    "Generate a Typescript file containing Mongoose Schema typings.\nSpecify the directory of your Mongoose model definitions using `MODEL_PATH`. If left blank, all sub-directories will be searched for `models/*.ts` files (or `models/*.js`). Files in this folder (other than an index file) are expected to export a Mongoose model.";
 
   static flags = {
     help: flags.help({ char: "h" }),
@@ -53,7 +53,7 @@ class MongooseTsgen extends Command {
   };
 
   // path of mongoose models folder
-  static args = [{ name: "root-path" }];
+  static args = [{ name: "model_path" }];
 
   private getConfig() {
     const { flags: cliFlags, args } = this.parse(MongooseTsgen);
@@ -89,7 +89,7 @@ class MongooseTsgen extends Command {
 
     try {
       const extension = flags.js ? "js" : "ts";
-      const modelsPaths = paths.getModelsPaths(args["root-path"], extension);
+      const modelsPaths = paths.getModelsPaths(args.model_path, extension);
 
       let cleanupTs: any;
       if (!flags.js) {
