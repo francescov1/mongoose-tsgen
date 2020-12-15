@@ -50,29 +50,45 @@ $ npx mtgen --help # print usage
 
 <!-- commands -->
 
-## `mtgen [ROOT_PATH]`
+## `mtgen [MODEL_PATH]`
 
 Generate a Typescript file containing Mongoose Schema typings.
+
+_Note that these docs refer to Typescript files only. If you haven't yet converted Mongoose schema definition files to Typescript, you can use the `--js` flag to still generate types._
 
 ```
 USAGE
   $ mtgen [MODEL_PATH]
 
 OPTIONS
-  -c, --config=config    [default: ./] Path of mtgen.config.json or its root folder. CLI flag options will take precendence over settings in mtgen.config.json
+  -c, --config=config    [default: ./] Path of `mtgen.config.json` or its root folder. CLI flag 
+                         options will take precendence over settings in `mtgen.config.json`.
+
   -d, --dry-run          Print output rather than writing to file.
+
   -h, --help             Show CLI help
-  -i, --imports=import  Custom import statements to add to the output file. Useful if you use third-party types in your mongoose schema definitions. For multiple imports, specify this flag more than once. 
-  -j, --js               Search for Mongoose schemas in Javascript files rather than in Typescript files.
-  -o, --output=output    [default: ./src/interfaces] Path of output file containing generated typings. If a folder path is passed, the generator 
-                         will default to creating an `mongoose.gen.ts` file in the specified folder.
-  -p, --project=project  [default: ./] Path of tsconfig.json or its root folder.
-  --augment              Augment generated typings into the 'mongoose' module
+
+  -i, --imports=import   Custom import statements to add to the output file. Useful if you use 
+                         third-party types  in your mongoose schema definitions. For multiple imports, 
+                         specify this flag more than once. 
+
+  -j, --js               Search for Javascript schema files rather than Typescript files. 
+                         Passing this flag also triggers --no-func-types.
+
+  -o, --output=output    [default: ./src/interfaces] Path of output file to write generated typings. 
+                         If a folder path is passed, the generator will create a `mongoose.gen.ts` file 
+                         in the specified folder.
+
+  -p, --project=project  [default: ./] Path of `tsconfig.json` or its root folder.
+
+  --augment              Augment generated typings into the 'mongoose' module.
+
   --no-format            Disable formatting generated files with prettier and fixing with eslint.
+
   --no-func-types        Disable using TS compiler API for method, static and query typings.
 ```
 
-Specify the directory of your Mongoose model definitions using `MODEL_PATH`. If left blank, all sub-directories will be searched for `models/*.ts` files (or `models/*.js`). Files in this folder (other than an index file) are expected to export a Mongoose model. 
+Specify the directory of your Mongoose schema definitions using `MODEL_PATH`. If left blank, all sub-directories will be searched for `models/*.ts` (ignores `index.ts` files). Files found are expected to export a Mongoose model. 
 
 _See code: [src/index.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/master/src/index.ts)_
 

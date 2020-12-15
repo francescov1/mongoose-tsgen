@@ -8,47 +8,47 @@ import * as formatter from "./helpers/formatter";
 
 class MongooseTsgen extends Command {
   static description =
-    "Generate a Typescript file containing Mongoose Schema typings.\nSpecify the directory of your Mongoose model definitions using `MODEL_PATH`. If left blank, all sub-directories will be searched for `models/*.ts` files (or `models/*.js`). Files in this folder (other than an index file) are expected to export a Mongoose model.";
+    "Generate a Typescript file containing Mongoose Schema typings.\nSpecify the directory of your Mongoose model definitions using `MODEL_PATH`. If left blank, all sub-directories will be searched for `models/*.ts` (ignores `index.ts` files). Files found are expected to export a Mongoose model.";
 
   static flags = {
-    help: flags.help({ char: "h" }),
-    output: flags.string({
-      char: "o",
+    config: flags.string({
+      char: "c",
       description:
-        "[default: ./src/interfaces] Path of output file containing generated interfaces. If a folder path is passed, the generator will default to creating an `mongoose.gen.ts` file in the specified folder."
+        "[default: ./] Path of `mtgen.config.json` or its root folder. CLI flag options will take precendence over settings in `mtgen.config.json`."
     }),
     "dry-run": flags.boolean({
       char: "d",
       description: "Print output rather than writing to file."
     }),
-    "no-func-types": flags.boolean({
-      description: "Disable using TS compiler API for method, static and query typings."
-    }),
-    "no-format": flags.boolean({
-      description: "Disable formatting generated files with prettier and fixing with eslint."
+    help: flags.help({ char: "h" }),
+    imports: flags.string({
+      char: "i",
+      description:
+        "Custom import statements to add to the output file. Useful if you use third-party types in your mongoose schema definitions. For multiple imports, specify this flag more than once.",
+      multiple: true
     }),
     js: flags.boolean({
       char: "j",
       description:
-        "Search for Mongoose schemas in Javascript files rather than in Typescript files."
+        "Search for Mongoose schemas in Javascript files rather than in Typescript files. Passing this flag also triggers --no-func-types."
+    }),
+    output: flags.string({
+      char: "o",
+      description:
+        "[default: ./src/interfaces] Path of output file containing generated typings. If a folder path is passed, the generator will default to creating a `mongoose.gen.ts` file in the specified folder."
     }),
     project: flags.string({
       char: "p",
-      description: `[default: ./] Path of tsconfig.json or its root folder.`
-    }),
-    imports: flags.string({
-      char: "i",
-      description:
-        "Custom import statements to add to the output file. Useful if you use third-party types in your mongoose schema definitions",
-      multiple: true
-    }),
-    config: flags.string({
-      char: "c",
-      description:
-        "Path of mtgen.config.json or its root folder. CLI flag options will take precendence over settings in mtgen.config.json"
+      description: "[default: ./] Path of `tsconfig.json` or its root folder."
     }),
     augment: flags.boolean({
-      description: `Augment generated interfaces into the 'mongoose' module`
+      description: `Augment generated interfaces into the 'mongoose' module.`
+    }),
+    "no-format": flags.boolean({
+      description: "Disable formatting generated files with prettier and fixing with eslint."
+    }),
+    "no-func-types": flags.boolean({
+      description: "Disable using TS compiler API for method, static and query typings."
     })
   };
 
