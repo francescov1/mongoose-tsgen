@@ -21,7 +21,7 @@ An plug-n-play Typescript interface generator for Mongoose.
 
 # Features
 
-- [x] Automatically generate a Typescript file containing typings for each Mongoose document, model and subdocument
+- [x] Automatically generate Typescript typings for each Mongoose document, model and subdocument
 - [x] Works out of the box, don't need to rewrite your schemas
 - [x] Includes a "Mongoose-less" version of each schema interface (Mongoose typings removed)
 
