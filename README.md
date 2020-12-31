@@ -1,6 +1,6 @@
 # mongoose-tsgen
 
-An plug-n-play Typescript interface generator for Mongoose.
+A plug-n-play Typescript interface generator for Mongoose.
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/mongoose-tsgen.svg)](https://npmjs.org/package/mongoose-tsgen)
