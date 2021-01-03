@@ -2,7 +2,6 @@
 
 A plug-n-play Typescript interface generator for Mongoose.
 
-[![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/mongoose-tsgen.svg)](https://npmjs.org/package/mongoose-tsgen)
 [![npm](https://img.shields.io/npm/dt/mongoose-tsgen)](https://www.npmjs.com/package/mongoose-tsgen)
 [![License](https://img.shields.io/npm/l/mongoose-tsgen.svg)](https://github.com/Bounced-Inc/mongoose-tsgen/blob/master/package.json)
@@ -33,7 +32,6 @@ A plug-n-play Typescript interface generator for Mongoose.
 - [x] Typescript path aliases
 - [x] Mongoose method, static & query functions
 - [x] Typesafe document creation with `Model.Create`
-- [ ] Setting subdocument arrays without casting to `any` (currently you need to do `user.friends = [{ uid, name }] as any` or you can initialize the subdocument prior to setting it)
 
 # Installation
 
@@ -233,7 +231,7 @@ export interface User {
   _id: mongoose.Types.ObjectId;
 }
 
-export type UserFriendDocument = mongoose.Types.Subdocument & {
+export type UserFriendDocument = mongoose.Types.Embedded & {
   uid: UserDocument["_id"] | UserDocument;
 } & UserFriend;
 

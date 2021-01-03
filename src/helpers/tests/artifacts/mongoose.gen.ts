@@ -38,7 +38,7 @@ coordinates?: number[];
 _id: mongoose.Types.ObjectId;
 }
 
-export type UserFriendDocument = mongoose.Types.Subdocument & {
+export type UserFriendDocument = mongoose.Types.Embedded & {
 uid: UserDocument["_id"] | UserDocument;
 } & UserFriend
 

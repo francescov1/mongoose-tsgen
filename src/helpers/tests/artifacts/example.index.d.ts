@@ -40,7 +40,7 @@ coordinates?: number[];
 _id: mongoose.Types.ObjectId;
 }
 
-type UserFriendDocument = mongoose.Types.Subdocument & {
+type UserFriendDocument = mongoose.Types.Embedded & {
 uid: UserDocument["_id"] | UserDocument;
 } & UserFriend
 
