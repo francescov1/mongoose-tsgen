@@ -206,25 +206,30 @@ export const parseSchema = ({
       val.type = val.type[0];
       isArray = true;
 
-      // arrays can also take the following format.
-      // this is used when validation needs to be done on both the element itself and the full array
-      /*
-      friends: {
-        type: [
-          {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-            validate: [
-              function(userId: mongoose.Types.ObjectId) { return !this.friends.includes(userId); }
-            ]
-          }
-        ],
-        validate: [function(val) { return val.length <= 3; } ]
-      }
-      */
+      /**
+       * Arrays can also take the following format.
+       * This is used when validation needs to be done on both the element itself and the full array.
+       * This format implies `required: true`.
+       *
+       * ```
+       * friends: {
+       *   type: [
+       *     {
+       *       type: Schema.Types.ObjectId,
+       *       ref: "User",
+       *       validate: [
+       *         function(userId: mongoose.Types.ObjectId) { return !this.friends.includes(userId); }
+       *       ]
+       *     }
+       *   ],
+       *   validate: [function(val) { return val.length <= 3; } ]
+       * }
+       * ```
+       */
       if (val.type.type) {
         if (val.type.ref) val.ref = val.type.ref;
         val.type = val.type.type;
+        isOptional = false;
       }
     }
 
