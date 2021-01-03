@@ -263,12 +263,24 @@ export const parseSchema = ({
       }
 
       if (isDocument) {
-        // NOTE: we need to do the modelName check because typescript types dont allow self-referencing. This is a subpar workaround, it means any
-        // refs to other documents in the same model won't be typed as I{model}Document, instead the non-mongoose doc version `I{model}`
-        // For the most part, this shouldnt matter since we are referencing solely the _id, but if the ref is populated then we are missing mongoose doc types
-        valType = `${docRef}${docRef === modelName ? "" : "Document"}["_id"] | ${docRef}${
-          docRef === modelName ? "" : "Document"
-        }`;
+        /**
+         * NOTE: when referencing the _id property of a ref, we need to check if modelName === docRef because typescript types dont allow self-referencing a property (only the entire type).
+         * The ideal setup would look like this:
+         * ```typescript
+         * export type UserDocument = mongoose.Document & {
+         *   friends: mongoose.Types.Array<UserDocument["_id"] | UserDocument>;
+         * } & User
+         * ```
+         *
+         * Unfortunately the `UserDocument["_id"]` piece of the above code gives the error "'friends' is referenced directly or indirectly in its own type annotation.ts(2502)".
+         * Instead we need to use `User`, but we can still reference UserDocument for the second half of the union (representing the populated version):
+         * ```typescript
+         * export type UserDocument = mongoose.Document & {
+         *   friends: mongoose.Types.Array<User["_id"] | UserDocument>;
+         * } & User
+         * ```
+         */
+        valType = `${docRef}${docRef === modelName ? "" : "Document"}["_id"] | ${docRef}Document`;
       } else {
         valType = `${docRef}["_id"] | ${docRef}`;
       }
