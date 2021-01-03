@@ -1,5 +1,4 @@
 // NOTE: you will need to import these types after your first ever run of the CLI
-// See the 'Initializing Schemas' section
 import mongoose, { UserDocument, UserModel, UserMethods, UserStatics, UserQueries } from "mongoose";
 const { Schema, Types } = mongoose;
 

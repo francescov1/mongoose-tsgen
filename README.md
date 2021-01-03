@@ -14,6 +14,7 @@ A plug-n-play Typescript interface generator for Mongoose.
 - [Features](#features)
 - [Compatibility](#compatibility)
 - [Installation](#installation)
+- [The Gist](#the-gist)
 - [Usage](#usage)
 - [Example](#example)
 - [Development](#Development)
@@ -50,6 +51,52 @@ $ npx mtgen --help # print usage
 ```
 
 <!-- usagestop -->
+
+# The Gist
+
+Once you've generated your typings file (see [Usage](#usage)), all you need to do is use the generated types in your schema definitions and throughout your project. Note that this practice is well documented online, I've found the following two Medium articles especially useful:
+- [Complete guide for Typescript with Mongoose for Node.js](https://medium.com/@agentwhs/complete-guide-for-typescript-for-mongoose-for-node-js-8cc0a7e470c1)
+- [Strongly typed models with Mongoose and TypeScript](https://medium.com/@tomanagle/strongly-typed-models-with-mongoose-and-typescript-7bc2f7197722)
+
+### user.ts before:
+
+```typescript
+import mongoose from "mongoose";
+
+const UserSchema = new Schema(...);
+
+export const User = mongoose.model("User", UserSchema);
+export default User;
+```
+
+### user.ts after:
+
+```typescript
+import mongoose from "mongoose";
+import { UserDocument, UserModel } from "../interfaces/mongoose.gen.ts";
+
+const UserSchema = new Schema(...);
+
+export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
+export default User;
+```
+
+Then you can import the typings across your application from the Mongoose module and use them for document types:
+
+```typescript
+import { UserDocument } from "./interfaces/mongoose.gen.ts";
+
+async function getUser(uid: string): UserDocument {
+  // user will be of type User
+  const user = await User.findById(uid);
+  return user;
+}
+
+async function editEmail(user: UserDocument, newEmail: string): UserDocument {
+  user.email = newEmail;
+  return await user.save();
+}
+```
 
 # Usage
 
@@ -117,8 +164,6 @@ All CLI options can be provided using a `mtgen.config.json` file. Use the `--con
 ### ./src/models/user.ts
 
 ```typescript
-// NOTE: you will need to import these types after your first ever run of the CLI
-// See the 'Initializing Schemas' section
 import mongoose from "mongoose";
 import { UserDocument, UserModel, UserMethods, UserStatics, UserQueries } from "../interfaces/mongoose.gen.ts";
 
@@ -162,22 +207,21 @@ UserSchema.virtual("name").get(function (this: UserDocument) {
   return `${this.firstName} ${this.lastName}`;
 });
 
-// method functions, cast to UserStatics
+// method functions, use Type Assertion (cast to UserMethods) for type safety
 UserSchema.methods = {
   isMetadataString() {
     return typeof this.metadata === "string";
   }
 } as UserMethods;
 
-// static functions, cast to UserStatics
+// static functions, use Type Assertion (cast to UserStatics) for type safety
 UserSchema.statics = {
-  // friendUids could also use the type `ObjectId[]` here
   async getFriends(friendUids: UserDocument["_id"][]) {
     return await this.aggregate([{ $match: { _id: { $in: friendUids } } }]);
   }
 } as UserStatics;
 
-// query functions, cast to UserQueries
+// query functions, use Type Assertion (cast to UserQueries) for type safety
 UserSchema.query = {
   populateFriends() {
     return this.populate("friends.uid", "firstName lastName");
@@ -249,50 +293,6 @@ export type UserDocument = mongoose.Document &
     city: {};
     name: any;
   } & User;
-```
-
-## Initializing Schemas
-
-Once you've generated your typings file, all you need to do is add the following types to your schema definitions:
-
-### user.ts before:
-
-```typescript
-import mongoose from "mongoose";
-
-const UserSchema = new Schema(...);
-
-export const User = mongoose.model("User", UserSchema);
-export default User;
-```
-
-### user.ts after:
-
-```typescript
-import mongoose from "mongoose";
-import { UserDocument, UserModel } from "../interfaces/mongoose.gen.ts";
-
-const UserSchema = new Schema(...);
-
-export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
-export default User;
-```
-
-Then you can import the typings across your application from the Mongoose module and use them for document types:
-
-```typescript
-import { UserDocument } from "./interfaces/mongoose.gen.ts";
-
-async function getUser(uid: string): UserDocument {
-  // user will be of type User
-  const user = await User.findById(uid);
-  return user;
-}
-
-async function editEmail(user: UserDocument, newEmail: string): UserDocument {
-  user.email = newEmail;
-  return await user.save();
-}
 ```
 
 ## Development
