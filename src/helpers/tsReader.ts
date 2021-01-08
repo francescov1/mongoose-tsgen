@@ -101,6 +101,7 @@ function getFuncDeclarations(sourceFile: SourceFile) {
 
       /**
        * @experimental trying this out since certain virtual types are indeterminable and get set to void, which creates incorrect TS errors
+       * This should be a fine workaround because virtual properties shouldn't return solely `void`, they return real values.
        */
       if (returnType === "void") returnType = "any";
       const virtualNameSanitized = virtualName.slice(1, virtualName.length - 1);
