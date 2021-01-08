@@ -291,7 +291,7 @@ export type UserDocument = mongoose.Document &
     metadata?: any;
     friends: mongoose.Types.DocumentArray<UserFriendDocument>;
     city: {};
-    name: any;
+    name: string;
   } & User;
 ```
 
@@ -301,4 +301,3 @@ export type UserDocument = mongoose.Document &
 - [ ] Top-level schema fields that refer to the schema itself (e.g. a `bestFriend` property on a User schema refering to a User ID) should be typed as `bestFriend: UserDocument["_id"] | UserDocument`. Unfortunately Typescript does not support recursively accessing a property of a type, so this is currently typed like so: `bestFriend: User["_id"] | UserDocument`.
    - [ ] Eventually it would be nice to give the option to type `User["_id"]` as a string rather than an ObjectId (see [#7](https://github.com/Bounced-Inc/mongoose-tsgen/issues/7)), but this will not be possible until a better workaround is found for the issue above.
 - [ ] Cut down node_modules by using peer dependencies (i.e. mongoose) and stripping oclif.
-- [ ] Determine types of virtual properties using ts-morph (grab return type of virtual getters).

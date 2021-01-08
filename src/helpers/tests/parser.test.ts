@@ -37,7 +37,7 @@ describe("generateFileString", () => {
     const schemas = parser.loadSchemas(modelsPath);
     const fileString = await parser.generateFileString({ schemas, isAugmented: true });
 
-    // since we didnt load in typed functions, replace function types in expected string with the default 'Function'
+    // since we didnt load in typed functions, replace function types in expected string with the defaults.
     let expectedString = getExpectedInterfaceString(true);
     expectedString = expectedString
       .replace("(this: D): boolean", "(this: D, ...args: any[]): any")
@@ -45,7 +45,9 @@ describe("generateFileString", () => {
         `(this: M, friendUids: UserDocument["_id"][]): Promise<any>`,
         "(this: M, ...args: any[]): any"
       )
-      .replace("(this: Q): Q", "(this: Q, ...args: any[]): Q");
+      .replace("(this: Q): Q", "(this: Q, ...args: any[]): Q")
+      .replace("name: string", "name: any");
+
     expect(fileString).toBe(expectedString);
   });
 

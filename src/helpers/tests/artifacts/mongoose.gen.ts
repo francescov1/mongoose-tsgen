@@ -47,6 +47,6 @@ metadata?: any;
 friends: mongoose.Types.DocumentArray<UserFriendDocument>;
 city: {
 };
-name: any;
+name: string;
 } & User
 
