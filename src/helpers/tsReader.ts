@@ -9,52 +9,69 @@ function getFuncDeclarations(sourceFile: SourceFile) {
     if (!Node.isExpressionStatement(statement)) continue;
 
     const binaryExpr = statement.getChildAtIndexIfKind(0, SyntaxKind.BinaryExpression);
-    if (!binaryExpr) continue;
+    const callExpr = statement.getChildAtIndexIfKind(0, SyntaxKind.CallExpression);
+    if (binaryExpr) {
+      // left is a propertyaccessexpression, children are [identifier, dottoken, identifier]
+      const left = binaryExpr.getLeft();
+      const right = binaryExpr.getRight();
+      if (left.getKind() !== SyntaxKind.PropertyAccessExpression) continue;
+      if (
+        right.getKind() !== SyntaxKind.ObjectLiteralExpression &&
+        right.getKind() !== SyntaxKind.AsExpression
+      )
+        continue;
 
-    // left is a propertyaccessexpression, children are [identifier, dottoken, identifier]
-    const left = binaryExpr.getLeft();
-    const right = binaryExpr.getRight();
-    if (left.getKind() !== SyntaxKind.PropertyAccessExpression) continue;
-    if (
-      right.getKind() !== SyntaxKind.ObjectLiteralExpression &&
-      right.getKind() !== SyntaxKind.AsExpression
-    )
-      continue;
+      const leftChildren = left.getChildren();
 
-    const leftChildren = left.getChildren();
+      const hasSchemaIdentifier = leftChildren.some(
+        child =>
+          child.getKind() === SyntaxKind.Identifier && child.getText().match(/[a-zA-Z]+Schema/i)
+      );
+      const hasDotToken = leftChildren.some(child => child.getKind() === SyntaxKind.DotToken);
 
-    const hasSchemaIdentifier = leftChildren.some(
-      child =>
-        child.getKind() === SyntaxKind.Identifier && child.getText().match(/[a-zA-Z]+Schema/i)
-    );
-    const hasDotToken = leftChildren.some(child => child.getKind() === SyntaxKind.DotToken);
+      if (!hasSchemaIdentifier || !hasDotToken) continue;
 
-    if (!hasSchemaIdentifier || !hasDotToken) continue;
+      const hasMethodsIdentifier = leftChildren.some(
+        child => child.getKind() === SyntaxKind.Identifier && child.getText() === "methods"
+      );
+      const hasStaticsIdentifier = leftChildren.some(
+        child => child.getKind() === SyntaxKind.Identifier && child.getText() === "statics"
+      );
+      const hasQueryIdentifier = leftChildren.some(
+        child => child.getKind() === SyntaxKind.Identifier && child.getText() === "query"
+      );
 
-    const hasMethodsIdentifier = leftChildren.some(
-      child => child.getKind() === SyntaxKind.Identifier && child.getText() === "methods"
-    );
-    const hasStaticsIdentifier = leftChildren.some(
-      child => child.getKind() === SyntaxKind.Identifier && child.getText() === "statics"
-    );
-    const hasQueryIdentifier = leftChildren.some(
-      child => child.getKind() === SyntaxKind.Identifier && child.getText() === "query"
-    );
+      let rightFuncDeclarations: any[] = [];
+      if (right.getKind() === SyntaxKind.AsExpression) {
+        const objLiteralExp = right.getFirstChildByKind(SyntaxKind.ObjectLiteralExpression);
+        if (objLiteralExp)
+          rightFuncDeclarations = objLiteralExp.getChildrenOfKind(SyntaxKind.MethodDeclaration);
+      } else {
+        rightFuncDeclarations = right.getChildrenOfKind(SyntaxKind.MethodDeclaration);
+      }
 
-    let rightFuncDeclarations: any[] = [];
-    if (right.getKind() === SyntaxKind.AsExpression) {
-      const objLiteralExp = right.getFirstChildByKind(SyntaxKind.ObjectLiteralExpression);
-      if (objLiteralExp)
-        rightFuncDeclarations = objLiteralExp.getChildrenOfKind(SyntaxKind.MethodDeclaration);
-    } else {
-      rightFuncDeclarations = right.getChildrenOfKind(SyntaxKind.MethodDeclaration);
+      if (hasMethodsIdentifier) methodDeclarations.push(...rightFuncDeclarations);
+      else if (hasStaticsIdentifier) staticDeclarations.push(...rightFuncDeclarations);
+      else if (hasQueryIdentifier) queryDeclarations.push(...rightFuncDeclarations);
+    } else if (callExpr) {
+      const propAccessExpr = callExpr.getChildAtIndexIfKind(0, SyntaxKind.PropertyAccessExpression);
+      if (propAccessExpr?.getName() !== "get") continue;
+
+      const funcExpr = callExpr.getFirstChildByKind(SyntaxKind.FunctionExpression);
+      const type = funcExpr?.getType()?.getText(funcExpr);
+      const callExpr2 = propAccessExpr.getFirstChildByKind(SyntaxKind.CallExpression);
+
+      // const stringLiteral = callExpr2?.getFirstChildByKind(SyntaxKind.StringLiteral)
+      const stringLiteral = callExpr2?.getArguments()[0];
+      const propAccessExpr2 = callExpr2?.getFirstChildByKind(SyntaxKind.PropertyAccessExpression);
+      if (propAccessExpr2?.getName() !== "virtual") continue;
+
+      const statement = propAccessExpr2?.getText();
+      const virtualName = stringLiteral?.getText().replace(`"`, "");
+      const returnType = type?.split("=> ")?.[1];
+      console.log(`${statement} ${virtualName}: ${returnType}`);
     }
-
-    if (hasMethodsIdentifier) methodDeclarations.push(...rightFuncDeclarations);
-    else if (hasStaticsIdentifier) staticDeclarations.push(...rightFuncDeclarations);
-    else if (hasQueryIdentifier) queryDeclarations.push(...rightFuncDeclarations);
   }
-
   return { methodDeclarations, staticDeclarations, queryDeclarations };
 }
 
