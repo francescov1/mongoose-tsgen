@@ -16,6 +16,7 @@ let globalFuncTypes: {
     methods: { [funcName: string]: string };
     statics: { [funcName: string]: string };
     query: { [funcName: string]: string };
+    virtuals: { [virtualName: string]: string };
   };
 };
 
@@ -242,7 +243,7 @@ export const parseSchema = ({
         return "";
       }
 
-      valType = "any";
+      valType = modelName ? globalFuncTypes?.[modelName]?.virtuals?.[key] ?? "any" : "any";
       isOptional = false;
     } else if (
       key &&

@@ -1,10 +1,14 @@
 import { Project, Node, SyntaxKind, MethodDeclaration, SourceFile } from "ts-morph";
 
-function getFuncDeclarations(sourceFile: SourceFile) {
-  const methodDeclarations = [];
-  const staticDeclarations = [];
-  const queryDeclarations = [];
+function getNameAndType(funcDeclaration: MethodDeclaration) {
+  const name = funcDeclaration.getName();
+  const typeNode = funcDeclaration.getType();
+  const type = typeNode.getText(funcDeclaration);
+  return { name, type };
+}
 
+function getFuncDeclarations(sourceFile: SourceFile) {
+  const results: Results["modelName"] = { methods: {}, statics: {}, query: {}, virtuals: {} };
   for (const statement of sourceFile.getStatements()) {
     if (!Node.isExpressionStatement(statement)) continue;
 
@@ -50,9 +54,22 @@ function getFuncDeclarations(sourceFile: SourceFile) {
         rightFuncDeclarations = right.getChildrenOfKind(SyntaxKind.MethodDeclaration);
       }
 
-      if (hasMethodsIdentifier) methodDeclarations.push(...rightFuncDeclarations);
-      else if (hasStaticsIdentifier) staticDeclarations.push(...rightFuncDeclarations);
-      else if (hasQueryIdentifier) queryDeclarations.push(...rightFuncDeclarations);
+      if (hasMethodsIdentifier) {
+        rightFuncDeclarations.forEach((declaration: MethodDeclaration) => {
+          const { name, type } = getNameAndType(declaration);
+          results.methods[name] = type;
+        });
+      } else if (hasStaticsIdentifier) {
+        rightFuncDeclarations.forEach((declaration: MethodDeclaration) => {
+          const { name, type } = getNameAndType(declaration);
+          results.statics[name] = type;
+        });
+      } else if (hasQueryIdentifier) {
+        rightFuncDeclarations.forEach((declaration: MethodDeclaration) => {
+          const { name, type } = getNameAndType(declaration);
+          results.query[name] = type;
+        });
+      }
     } else if (callExpr) {
       const propAccessExpr = callExpr.getChildAtIndexIfKind(0, SyntaxKind.PropertyAccessExpression);
       if (propAccessExpr?.getName() !== "get") continue;
@@ -66,25 +83,27 @@ function getFuncDeclarations(sourceFile: SourceFile) {
       const propAccessExpr2 = callExpr2?.getFirstChildByKind(SyntaxKind.PropertyAccessExpression);
       if (propAccessExpr2?.getName() !== "virtual") continue;
 
-      const statement = propAccessExpr2?.getText();
-      const virtualName = stringLiteral?.getText().replace(`"`, "");
+      // const statement = propAccessExpr2?.getText();
+      const virtualName = stringLiteral?.getText();
       const returnType = type?.split("=> ")?.[1];
-      console.log(`${statement} ${virtualName}: ${returnType}`);
+      if (!returnType || !virtualName) continue;
+      const virtualNameSanitized = virtualName.slice(1, virtualName.length - 1);
+
+      results.virtuals[virtualNameSanitized] = returnType;
     }
   }
-  return { methodDeclarations, staticDeclarations, queryDeclarations };
-}
-
-function parseFuncDeclarations(declarations: MethodDeclaration[]) {
-  const results: { [key: string]: string } = {};
-  declarations.forEach(funcDeclaration => {
-    const name = funcDeclaration.getName();
-    const type = funcDeclaration.getType();
-    results[name] = type.getText(funcDeclaration);
-  });
 
   return results;
 }
+
+type Results = {
+  [modelName: string]: {
+    methods: { [funcName: string]: string };
+    statics: { [funcName: string]: string };
+    query: { [funcName: string]: string };
+    virtuals: { [virtualName: string]: string };
+  };
+};
 
 function getModelName(sourceFile: SourceFile) {
   const defaultExportAssignment = sourceFile.getExportAssignment(d => !d.isExportEquals());
@@ -104,28 +123,15 @@ export const getFunctionTypes = (modelsPaths: string[]) => {
   const project = new Project({});
   project.addSourceFilesAtPaths(modelsPaths);
 
-  const results: {
-    [modelName: string]: {
-      methods: { [funcName: string]: string };
-      statics: { [funcName: string]: string };
-      query: { [funcName: string]: string };
-    };
-  } = {};
+  const results: Results = {};
 
   // TODO: ideally we only parse the files that we know have methods or statics, would save a lot of time
   modelsPaths.forEach(modelPath => {
     const sourceFile = project.getSourceFileOrThrow(modelPath);
     const modelName = getModelName(sourceFile);
 
-    const { methodDeclarations, staticDeclarations, queryDeclarations } = getFuncDeclarations(
-      sourceFile
-    );
-
-    const methods = methodDeclarations.length > 0 ? parseFuncDeclarations(methodDeclarations) : {};
-    const statics = staticDeclarations.length > 0 ? parseFuncDeclarations(staticDeclarations) : {};
-    const query = queryDeclarations.length > 0 ? parseFuncDeclarations(queryDeclarations) : {};
-
-    results[modelName] = { methods, statics, query };
+    const { methods, statics, query, virtuals } = getFuncDeclarations(sourceFile);
+    results[modelName] = { methods, statics, query, virtuals };
   });
 
   return results;
