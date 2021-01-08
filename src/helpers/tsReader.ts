@@ -71,22 +71,38 @@ function getFuncDeclarations(sourceFile: SourceFile) {
         });
       }
     } else if (callExpr) {
-      const propAccessExpr = callExpr.getChildAtIndexIfKind(0, SyntaxKind.PropertyAccessExpression);
+      let propAccessExpr = callExpr.getFirstChildByKind(SyntaxKind.PropertyAccessExpression);
+
+      if (propAccessExpr?.getName() === "set") {
+        propAccessExpr = propAccessExpr
+          .getFirstChildByKind(SyntaxKind.CallExpression)
+          ?.getFirstChildByKind(SyntaxKind.PropertyAccessExpression);
+      }
+
       if (propAccessExpr?.getName() !== "get") continue;
 
       const funcExpr = callExpr.getFirstChildByKind(SyntaxKind.FunctionExpression);
+
+      // const typeRef = funcExpr?.getFirstChildByKind(SyntaxKind.TypeReference);
+      // console.log("return type: ", typeRef?.getFirstChildByKind(SyntaxKind.Identifier)?.getText());
+
       const type = funcExpr?.getType()?.getText(funcExpr);
+
+      // console.log(funcExpr?.getReturnType().getText(funcExpr))
       const callExpr2 = propAccessExpr.getFirstChildByKind(SyntaxKind.CallExpression);
 
-      // const stringLiteral = callExpr2?.getFirstChildByKind(SyntaxKind.StringLiteral)
       const stringLiteral = callExpr2?.getArguments()[0];
       const propAccessExpr2 = callExpr2?.getFirstChildByKind(SyntaxKind.PropertyAccessExpression);
       if (propAccessExpr2?.getName() !== "virtual") continue;
 
-      // const statement = propAccessExpr2?.getText();
       const virtualName = stringLiteral?.getText();
-      const returnType = type?.split("=> ")?.[1];
+      let returnType = type?.split("=> ")?.[1];
       if (!returnType || !virtualName) continue;
+
+      /**
+       * @experimental trying this out since certain virtual types are indeterminable and get set to void, which creates incorrect TS errors
+       */
+      if (returnType === "void") returnType = "any";
       const virtualNameSanitized = virtualName.slice(1, virtualName.length - 1);
 
       results.virtuals[virtualNameSanitized] = returnType;

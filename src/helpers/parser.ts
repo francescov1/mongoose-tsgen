@@ -23,6 +23,7 @@ let globalFuncTypes: {
 // TODO: this is kinda messy to do
 export const setFunctionTypes = (funcTypes: any) => {
   globalFuncTypes = funcTypes;
+  console.log(globalFuncTypes);
 };
 
 const getSubDocName = (path: string, modelName = "") => {
