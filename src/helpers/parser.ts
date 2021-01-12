@@ -133,10 +133,10 @@ export const parseSchema = ({
         childInterfaces += parseSchema({
           schema: child.schema,
           modelName: name,
-          // we use "mongoose.Types.Embedded" instead of "mongoose.Types.Subdocument" to give us access to additional subdoc functions such as doc.parent()
+          // we use "mongoose.Types.EmbeddedDocument" instead of "mongoose.Types.Subdocument" to give us access to additional subdoc functions such as doc.parent()
           header: isDocument ?
             `type ${name}Document = ${
-                isSubdocArray ? "mongoose.Types.Embedded" : `mongoose.Document & ${name}Methods`
+                isSubdocArray ? "mongoose.Types.EmbeddedDocument" : `mongoose.Document & ${name}Methods`
               } & {\n` :
             `interface ${name} {`,
           isDocument,
