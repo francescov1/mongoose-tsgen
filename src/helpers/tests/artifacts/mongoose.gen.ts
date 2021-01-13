@@ -30,6 +30,7 @@ export interface User {
 email: string;
 firstName: string;
 lastName: string;
+metadata?: any;
 bestFriend?: mongoose.Types.ObjectId;
 friends: UserFriend[];
 city: {

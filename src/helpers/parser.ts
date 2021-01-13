@@ -294,7 +294,6 @@ export const parseSchema = ({
     // NOTE: ideally we check actual type of value to ensure its Schema.Types.Mixed (the same way we do with Schema.Types.ObjectId),
     // but this doesnt seem to work for some reason
     else if (val.schemaName === "Mixed" || val.type?.schemaName === "Mixed") {
-      if (!isDocument) return "";
       valType = "any";
     } else {
       // if (isArray || !isDocument)
