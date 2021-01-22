@@ -15,7 +15,7 @@ _id: mongoose.Types.ObjectId;
 }
 
 interface UserQueries {
-populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(this: Q): Q;
+populateFriends<Q extends mongoose.Query<any, UserDocument>>(this: Q): Q;
 }
 
 interface UserMethods {
@@ -26,7 +26,7 @@ interface UserStatics {
 getFriends<M extends UserModel>(this: M, friendUids: UserDocument["_id"][]): Promise<any>;
 }
 
-interface UserModel extends mongoose.Model<UserDocument, UserQueries>, UserStatics {}
+interface UserModel extends mongoose.Model<UserDocument>, UserStatics {}
 
 interface User {
 email: string;
@@ -41,7 +41,7 @@ coordinates?: number[];
 _id: mongoose.Types.ObjectId;
 }
 
-type UserFriendDocument = mongoose.Types.Embedded & {
+type UserFriendDocument = mongoose.Types.EmbeddedDocument & {
 uid: UserDocument["_id"] | UserDocument;
 } & UserFriend
 

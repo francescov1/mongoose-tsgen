@@ -257,7 +257,7 @@ export interface UserFriend {
 }
 
 export interface UserQueries {
-  populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(this: Q): Q;
+  populateFriends<Q extends mongoose.Query<any, UserDocument>>(this: Q): Q;
 }
 
 export interface UserMethods {
@@ -282,7 +282,7 @@ export interface User {
   _id: mongoose.Types.ObjectId;
 }
 
-export type UserFriendDocument = mongoose.Types.Embedded & {
+export type UserFriendDocument = mongoose.Types.EmbeddedDocument & {
   uid: UserDocument["_id"] | UserDocument;
 } & UserFriend;
 

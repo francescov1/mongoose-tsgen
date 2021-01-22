@@ -13,7 +13,7 @@ _id: mongoose.Types.ObjectId;
 }
 
 export interface UserQueries {
-populateFriends<Q extends mongoose.DocumentQuery<any, UserDocument, {}>>(this: Q): Q;
+populateFriends<Q extends mongoose.Query<any, UserDocument>>(this: Q): Q;
 }
 
 export interface UserMethods {
@@ -24,7 +24,7 @@ export interface UserStatics {
 getFriends<M extends UserModel>(this: M, friendUids: UserDocument["_id"][]): Promise<any>;
 }
 
-export interface UserModel extends mongoose.Model<UserDocument, UserQueries>, UserStatics {}
+export interface UserModel extends mongoose.Model<UserDocument>, UserStatics {}
 
 export interface User {
 email: string;
@@ -39,7 +39,7 @@ coordinates?: number[];
 _id: mongoose.Types.ObjectId;
 }
 
-export type UserFriendDocument = mongoose.Types.Embedded & {
+export type UserFriendDocument = mongoose.Types.EmbeddedDocument & {
 uid: UserDocument["_id"] | UserDocument;
 } & UserFriend
 
