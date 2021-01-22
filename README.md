@@ -40,6 +40,7 @@ This library aims to remove these drawbacks by instead parsing your already-writ
 - [x] Typescript path aliases
 - [x] Mongoose method, static & query functions
 - [x] Typesafe document creation with `Model.Create`
+- [ ] Mongoose v5.11+ - Currently not supported. This update switched Mongoose from [community typings](https://www.npmjs.com/package/@types/mongoose) to [official typings](https://github.com/Automattic/mongoose/issues/8108), introducing various breaking changes in types. See [#19](https://github.com/Bounced-Inc/mongoose-tsgen/issues/19).
 
 # Installation
 
