@@ -77,17 +77,18 @@ const parseFunctions = (
       funcSignature.match(/\((?:this: \w*(?:, )?)?(.*)\) => (.*)/) ?? [];
     let type;
     if (funcType === "query") {
-      key += `<Q extends mongoose.Query<any, ${modelName}Document>>(this: Q${
-        params?.length > 0 ? ", " + params : ""
-      })`;
       // query funcs always must return a query
-      type = "Q";
+      type = `<Q extends mongoose.Query<any, ${modelName}Document>>(this: Q${
+        params?.length > 0 ? ", " + params : ""
+      }) => Q`;
     } else if (funcType === "methods") {
-      key += `<D extends ${modelName}Document>(this: D${params?.length > 0 ? ", " + params : ""})`;
-      type = returnType ?? "any";
+      type = `<D extends ${modelName}Document>(this: D${
+        params?.length > 0 ? ", " + params : ""
+      }) => ${returnType ?? "any"}`;
     } else {
-      key += `<M extends ${modelName}Model>(this: M${params?.length > 0 ? ", " + params : ""})`;
-      type = returnType ?? "any";
+      type = `<M extends ${modelName}Model>(this: M${params?.length > 0 ? ", " + params : ""}) => ${
+        returnType ?? "any"
+      }`;
     }
 
     interfaceString += makeLine({ key, val: type });
@@ -290,7 +291,9 @@ export const parseSchema = ({
          * } & User
          * ```
          */
-        valType = `${docRef}${docRef === modelName ? "" : "Document"}["_id"] | ${docRef}Document`;
+        valType = `${docRef}${docRef === modelName ? "" : "Document"}["_id"] | ${docRef}${
+          docRef === modelName ? "" : "Document"
+        }`;
       } else {
         valType = `${docRef}["_id"] | ${docRef}`;
       }
