@@ -82,11 +82,11 @@ const parseFunctions = (
         params?.length > 0 ? ", " + params : ""
       }) => Q`;
     } else if (funcType === "methods") {
-      type = `<D extends ${modelName}Document>(this: D${
-        params?.length > 0 ? ", " + params : ""
-      }) => ${returnType ?? "any"}`;
+      type = `(this: ${modelName}Document${params?.length > 0 ? ", " + params : ""}) => ${
+        returnType ?? "any"
+      }`;
     } else {
-      type = `<M extends ${modelName}Model>(this: M${params?.length > 0 ? ", " + params : ""}) => ${
+      type = `(this: ${modelName}Model${params?.length > 0 ? ", " + params : ""}) => ${
         returnType ?? "any"
       }`;
     }
