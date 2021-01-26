@@ -54,7 +54,6 @@ function getFuncDeclarations(sourceFile: SourceFile) {
       } else if (right.getKind() === SyntaxKind.TypeAssertionExpression) {
         const objLiteralExp = right.getFirstChildByKind(SyntaxKind.ObjectLiteralExpression);
         if (objLiteralExp) {
-          console.log("Worked");
           rightFuncDeclarations = objLiteralExp.getChildrenOfKind(SyntaxKind.MethodDeclaration);
         }
       } else {
