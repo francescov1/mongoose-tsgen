@@ -20,8 +20,9 @@ function getFuncDeclarations(sourceFile: SourceFile) {
       const right = binaryExpr.getRight();
       if (left.getKind() !== SyntaxKind.PropertyAccessExpression) continue;
       if (
+        right.getKind() !== SyntaxKind.AsExpression &&
         right.getKind() !== SyntaxKind.ObjectLiteralExpression &&
-        right.getKind() !== SyntaxKind.AsExpression
+        right.getKind() !== SyntaxKind.TypeAssertionExpression
       )
         continue;
 
@@ -50,6 +51,12 @@ function getFuncDeclarations(sourceFile: SourceFile) {
         const objLiteralExp = right.getFirstChildByKind(SyntaxKind.ObjectLiteralExpression);
         if (objLiteralExp)
           rightFuncDeclarations = objLiteralExp.getChildrenOfKind(SyntaxKind.MethodDeclaration);
+      } else if (right.getKind() === SyntaxKind.TypeAssertionExpression) {
+        const objLiteralExp = right.getFirstChildByKind(SyntaxKind.ObjectLiteralExpression);
+        if (objLiteralExp) {
+          console.log("Worked");
+          rightFuncDeclarations = objLiteralExp.getChildrenOfKind(SyntaxKind.MethodDeclaration);
+        }
       } else {
         rightFuncDeclarations = right.getChildrenOfKind(SyntaxKind.MethodDeclaration);
       }
