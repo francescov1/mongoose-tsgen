@@ -28,9 +28,9 @@ type UserStatics = {
 getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<any>;
 }
 
-type UserSchema = mongoose.Schema<UserDocument, UserModel>
-
 interface UserModel extends mongoose.Model<UserDocument>, UserStatics {}
+
+type UserSchema = mongoose.Schema<UserDocument, UserModel>
 
 interface User {
 email: string;

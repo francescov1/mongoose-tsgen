@@ -178,17 +178,15 @@ export const parseSchema = ({
     template += parseFunctions(schema.statics, modelName, "statics");
     template += "}\n\n";
 
-    template += `${
-      isAugmented ? "" : "export "
-    }type ${modelName}Schema = mongoose.Schema<${modelName}Document, ${modelName}Model>\n\n`;
-
-    // TODO: figure out how to pass queries to model
-    // const modelExtend = `mongoose.Model<${modelName}Document, ${modelName}Queries>`;
     const modelExtend = `mongoose.Model<${modelName}Document>`;
 
     template += `${
       isAugmented ? "" : "export "
     }interface ${modelName}Model extends ${modelExtend}, ${modelName}Statics {}\n\n`;
+
+    template += `${
+      isAugmented ? "" : "export "
+    }type ${modelName}Schema = mongoose.Schema<${modelName}Document, ${modelName}Model>\n\n`;
   }
 
   if (!isAugmented) header = "export " + header;

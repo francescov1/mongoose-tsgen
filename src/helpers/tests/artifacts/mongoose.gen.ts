@@ -26,9 +26,9 @@ export type UserStatics = {
 getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<any>;
 }
 
-export type UserSchema = mongoose.Schema<UserDocument, UserModel>
-
 export interface UserModel extends mongoose.Model<UserDocument>, UserStatics {}
+
+export type UserSchema = mongoose.Schema<UserDocument, UserModel>
 
 export interface User {
 email: string;
