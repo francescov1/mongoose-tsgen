@@ -1,8 +1,10 @@
-// NOTE: you will need to import these types after your first ever run of the CLI
-import mongoose, { UserDocument, UserModel, UserMethods, UserStatics, UserQueries } from "mongoose";
-const { Schema, Types } = mongoose;
+import mongoose from "mongoose";
+import { UserDocument, UserModel, UserSchema, UserMethods, UserStatics, UserQueries } from "mongoose";
 
-const UserSchema = new Schema({
+const { Schema } = mongoose;
+
+// UserSchema type
+const UserSchema: UserSchema = new Schema({
   email: {
     type: String,
     required: true
@@ -16,7 +18,7 @@ const UserSchema = new Schema({
     required: true
   },
   metadata: Schema.Types.Mixed,
-  bestFriend: Types.ObjectId,
+  bestFriend: mongoose.Types.ObjectId,
   friends: [
     {
       uid: {
@@ -41,27 +43,26 @@ UserSchema.virtual("name").get(function (this: UserDocument) {
   return `${this.firstName} ${this.lastName}`;
 });
 
-// method functions
-UserSchema.methods = {
+// method functions, use Type Assertion (cast to UserMethods) for type safety
+UserSchema.methods = <UserMethods>{
   isMetadataString() {
     return typeof this.metadata === "string";
   }
-} as UserMethods;
+};
 
-// static functions
-UserSchema.statics = {
-  // friendUids could also use the type `ObjectId[]` here
+// static functions, use Type Assertion (cast to UserStatics) for type safety
+UserSchema.statics = <UserStatics>{
   async getFriends(friendUids: UserDocument["_id"][]) {
     return await this.aggregate([{ $match: { _id: { $in: friendUids } } }]);
   }
-} as UserStatics
+};
 
-// query functions
-UserSchema.query = {
+// query functions, use Type Assertion (cast to UserQueries) for type safety
+UserSchema.query = <UserQueries>{
   populateFriends() {
     return this.populate("friends.uid", "firstName lastName");
   }
-} as UserQueries
+};
 
 export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
 export default User;

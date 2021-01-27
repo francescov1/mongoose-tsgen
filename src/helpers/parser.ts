@@ -77,17 +77,18 @@ const parseFunctions = (
       funcSignature.match(/\((?:this: \w*(?:, )?)?(.*)\) => (.*)/) ?? [];
     let type;
     if (funcType === "query") {
-      key += `<Q extends mongoose.DocumentQuery<any, ${modelName}Document, {}>>(this: Q${
-        params?.length > 0 ? ", " + params : ""
-      })`;
       // query funcs always must return a query
-      type = "Q";
+      type = `<Q extends mongoose.Query<any, ${modelName}Document>>(this: Q${
+        params?.length > 0 ? ", " + params : ""
+      }) => Q`;
     } else if (funcType === "methods") {
-      key += `<D extends ${modelName}Document>(this: D${params?.length > 0 ? ", " + params : ""})`;
-      type = returnType ?? "any";
+      type = `(this: ${modelName}Document${params?.length > 0 ? ", " + params : ""}) => ${
+        returnType ?? "any"
+      }`;
     } else {
-      key += `<M extends ${modelName}Model>(this: M${params?.length > 0 ? ", " + params : ""})`;
-      type = returnType ?? "any";
+      type = `(this: ${modelName}Model${params?.length > 0 ? ", " + params : ""}) => ${
+        returnType ?? "any"
+      }`;
     }
 
     interfaceString += makeLine({ key, val: type });
@@ -133,10 +134,12 @@ export const parseSchema = ({
         childInterfaces += parseSchema({
           schema: child.schema,
           modelName: name,
-          // we use "mongoose.Types.Embedded" instead of "mongoose.Types.Subdocument" to give us access to additional subdoc functions such as doc.parent()
+          // we use "mongoose.Types.EmbeddedDocument" instead of "mongoose.Types.Subdocument" to give us access to additional subdoc functions such as doc.parent()
           header: isDocument ?
             `type ${name}Document = ${
-                isSubdocArray ? "mongoose.Types.Embedded" : `mongoose.Document & ${name}Methods`
+                isSubdocArray ?
+                  "mongoose.Types.EmbeddedDocument" :
+                  `mongoose.Document<mongoose.Types.ObjectId> & ${name}Methods`
               } & {\n` :
             `interface ${name} {`,
           isDocument,
@@ -154,23 +157,36 @@ export const parseSchema = ({
   }
 
   if (!isDocument && schema.statics && modelName && addModel) {
-    template += `${isAugmented ? "" : "export "}interface ${modelName}Queries {\n`;
-    template += parseFunctions(schema.query ?? {}, modelName, "query");
-    template += "}\n\n";
+    if (Object.keys(schema.query)?.length > 0) {
+      template += `${isAugmented ? "" : "export "}type ${modelName}Queries = {\n`;
+      template += parseFunctions(schema.query ?? {}, modelName, "query");
+      template += "}\n\n";
 
-    template += `${isAugmented ? "" : "export "}interface ${modelName}Methods {\n`;
+      // TODO: this should just be one declare module statement with a single interface that extends every {modelName}Queries
+      template += `${
+        isAugmented ? "" : `declare module "mongoose" {`
+      }interface Query<ResultType, DocType extends Document> extends ${modelName}Queries {}${
+        isAugmented ? "" : "}"
+      }\n\n`;
+    }
+
+    template += `${isAugmented ? "" : "export "}type ${modelName}Methods = {\n`;
     template += parseFunctions(schema.methods, modelName, "methods");
     template += "}\n\n";
 
-    template += `${isAugmented ? "" : "export "}interface ${modelName}Statics {\n`;
+    template += `${isAugmented ? "" : "export "}type ${modelName}Statics = {\n`;
     template += parseFunctions(schema.statics, modelName, "statics");
     template += "}\n\n";
 
-    const modelExtend = `mongoose.Model<${modelName}Document, ${modelName}Queries>`;
+    const modelExtend = `mongoose.Model<${modelName}Document>`;
 
     template += `${
       isAugmented ? "" : "export "
     }interface ${modelName}Model extends ${modelExtend}, ${modelName}Statics {}\n\n`;
+
+    template += `${
+      isAugmented ? "" : "export "
+    }type ${modelName}Schema = mongoose.Schema<${modelName}Document, ${modelName}Model>\n\n`;
   }
 
   if (!isAugmented) header = "export " + header;
@@ -273,7 +289,7 @@ export const parseSchema = ({
          * NOTE: when referencing the _id property of a ref, we need to check if modelName === docRef because typescript types dont allow self-referencing a property (only the entire type).
          * The ideal setup would look like this:
          * ```typescript
-         * export type UserDocument = mongoose.Document & {
+         * export type UserDocument = mongoose.Document<mongoose.Types.ObjectId> & {
          *   friends: mongoose.Types.Array<UserDocument["_id"] | UserDocument>;
          * } & User
          * ```
@@ -281,12 +297,14 @@ export const parseSchema = ({
          * Unfortunately the `UserDocument["_id"]` piece of the above code gives the error "'friends' is referenced directly or indirectly in its own type annotation.ts(2502)".
          * Instead we need to use `User`, but we can still reference UserDocument for the second half of the union (representing the populated version):
          * ```typescript
-         * export type UserDocument = mongoose.Document & {
+         * export type UserDocument = mongoose.Document<mongoose.Types.ObjectId> & {
          *   friends: mongoose.Types.Array<User["_id"] | UserDocument>;
          * } & User
          * ```
          */
-        valType = `${docRef}${docRef === modelName ? "" : "Document"}["_id"] | ${docRef}Document`;
+        valType = `${docRef}${docRef === modelName ? "" : "Document"}["_id"] | ${docRef}${
+          docRef === modelName ? "" : "Document"
+        }`;
       } else {
         valType = `${docRef}["_id"] | ${docRef}`;
       }
@@ -502,7 +520,7 @@ export const generateFileString = ({
       modelName,
       addModel: true,
       isDocument: true,
-      header: `type ${modelName}Document = mongoose.Document & ${modelName}Methods & {\n`,
+      header: `type ${modelName}Document = mongoose.Document<mongoose.Types.ObjectId> & ${modelName}Methods & {\n`,
       footer: `} & ${modelName}\n\n`,
       isAugmented
     });

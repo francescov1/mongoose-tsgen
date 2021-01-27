@@ -20,6 +20,7 @@
     "unicorn/no-abusive-eslint-disable": 0,
     "@typescript-eslint/interface-name-prefix": 0,
     "@typescript-eslint/member-delimiter-style": 0,
-    "@typescript-eslint/no-empty-interface": 0
+    "@typescript-eslint/no-empty-interface": 0,
+    "typescript-eslint/consistent-type-assertions": 0
   }
 }
