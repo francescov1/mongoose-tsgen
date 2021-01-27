@@ -34,12 +34,15 @@ This library aims to remove these drawbacks by instead parsing your already-writ
 
 # Compatibility
 
+Mongoose: v5.11+
+
+> For previous Mongoose versions, install mongoose-tsgen v6.0.10 with `npm install mongoose-tsgen@6.0.10` and see [its README](https://github.com/Bounced-Inc/mongoose-tsgen/blob/12d2f693957f61776d5b6addf23a8b051c99294c/README.md) for instructions.
+
 - [x] All Mongoose types and arrays
 - [x] Virtual properties
 - [x] Both Typescript and Javascript schema files
 - [x] Typescript path aliases
 - [x] Mongoose method, static & query functions
-- [x] Typesafe document creation with `Model.Create`
 
 # Installation
 
