@@ -61,6 +61,7 @@ Once you've generated your typings file (see [Usage](#usage)), all you need to d
 - [Complete guide for Typescript with Mongoose for Node.js](https://medium.com/@agentwhs/complete-guide-for-typescript-for-mongoose-for-node-js-8cc0a7e470c1)
 - [Strongly typed models with Mongoose and TypeScript](https://medium.com/@tomanagle/strongly-typed-models-with-mongoose-and-typescript-7bc2f7197722)
 
+> If you run into unknown type issues, ensure you've updated Mongoose to v5.11+ and have removed the deprecated community typings `@types/mongoose`.
 ### user.ts before:
 
 ```typescript
