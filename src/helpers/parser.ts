@@ -161,6 +161,15 @@ export const parseSchema = ({
     template += parseFunctions(schema.query ?? {}, modelName, "query");
     template += "}\n\n";
 
+    if (Object.keys(schema.query)?.length > 0) {
+      // TODO: this should just be one declare module statement with a single interface that extends every {modelName}Queries
+      template += `${
+        isAugmented ? "" : `declare module "mongoose" { `
+      }interface Query<ResultType, DocType extends Document> extends ${modelName}Queries {}${
+        isAugmented ? "" : "}"
+      }\n\n`;
+    }
+
     template += `${isAugmented ? "" : "export "}type ${modelName}Methods = {\n`;
     template += parseFunctions(schema.methods, modelName, "methods");
     template += "}\n\n";
