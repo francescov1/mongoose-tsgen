@@ -14,17 +14,21 @@ nickname?: string;
 _id: mongoose.Types.ObjectId;
 }
 
-interface UserQueries {
-populateFriends<Q extends mongoose.Query<any, UserDocument>>(this: Q): Q;
+type UserQueries = {
+populateFriends: <Q extends mongoose.Query<any, UserDocument>>(this: Q) => Q;
 }
 
-interface UserMethods {
-isMetadataString<D extends UserDocument>(this: D): boolean;
+interface Query<ResultType, DocType extends Document> extends UserQueries {}
+
+type UserMethods = {
+isMetadataString: (this: UserDocument) => boolean;
 }
 
-interface UserStatics {
-getFriends<M extends UserModel>(this: M, friendUids: UserDocument["_id"][]): Promise<any>;
+type UserStatics = {
+getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<any>;
 }
+
+type UserSchema = mongoose.Schema<UserDocument, UserModel>
 
 interface UserModel extends mongoose.Model<UserDocument>, UserStatics {}
 
@@ -45,7 +49,7 @@ type UserFriendDocument = mongoose.Types.EmbeddedDocument & {
 uid: UserDocument["_id"] | UserDocument;
 } & UserFriend
 
-type UserDocument = mongoose.Document & UserMethods & {
+type UserDocument = mongoose.Document<mongoose.Types.ObjectId> & UserMethods & {
 metadata?: any;
 friends: mongoose.Types.DocumentArray<UserFriendDocument>;
 city: {

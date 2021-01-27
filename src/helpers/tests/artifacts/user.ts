@@ -1,8 +1,8 @@
 // NOTE: you will need to import these types after your first ever run of the CLI
-import mongoose, { UserDocument, UserModel, UserMethods, UserStatics, UserQueries } from "mongoose";
+import mongoose, { UserDocument, UserModel, UserMethods, UserStatics, UserQueries, UserSchema } from "mongoose";
 const { Schema, Types } = mongoose;
 
-const UserSchema = new Schema({
+const UserSchema: UserSchema = new Schema({
   email: {
     type: String,
     required: true
@@ -42,26 +42,26 @@ UserSchema.virtual("name").get(function (this: UserDocument) {
 });
 
 // method functions
-UserSchema.methods = {
+UserSchema.methods = <UserMethods>{
   isMetadataString() {
     return typeof this.metadata === "string";
   }
-} as UserMethods;
+};
 
 // static functions
-UserSchema.statics = {
+UserSchema.statics = <UserStatics>{
   // friendUids could also use the type `ObjectId[]` here
   async getFriends(friendUids: UserDocument["_id"][]) {
     return await this.aggregate([{ $match: { _id: { $in: friendUids } } }]);
   }
-} as UserStatics
+}
 
 // query functions
-UserSchema.query = {
+UserSchema.query = <UserQueries>{
   populateFriends() {
     return this.populate("friends.uid", "firstName lastName");
   }
-} as UserQueries
+}
 
 export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
 export default User;
