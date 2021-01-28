@@ -175,8 +175,8 @@ const user = await User.findById(uid).populate("bestFriend").exec()
 console.log(user.bestFriend._id)
 
 // instead use type assertion
-const user = user.bestFriend as UserDocument;
-console.log(user._id);
+const bestFriend = user.bestFriend as UserDocument;
+console.log(bestFriend._id);
 
 // or use typeguards
 
