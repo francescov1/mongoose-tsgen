@@ -165,7 +165,7 @@ All CLI options can be provided using a `mtgen.config.json` file. Use the `--con
 
 ## Query Population
 
-Any field with a `ref` property will be typed as `RefModel["_id"] | RefModel`. This allows you to use the same type whether you populate a field or not. When populating a field, you will need to use [Typeguards](https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types) or [Type Assertion](https://www.typescriptlang.org/docs/handbook/basic-types.html#type-assertions) to tell Typescript that the field is populated:
+Any field with a `ref` property will be typed as `RefDocument["_id"] | RefDocument`. This allows you to use the same type whether you populate a field or not. When populating a field, you will need to use [Typeguards](https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types) or [Type Assertion](https://www.typescriptlang.org/docs/handbook/basic-types.html#type-assertions) to tell Typescript that the field is populated:
 
 ```typescript
 // fetch user with bestFriend populated
