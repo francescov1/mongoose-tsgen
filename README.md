@@ -163,6 +163,34 @@ All CLI options can be provided using a `mtgen.config.json` file. Use the `--con
 }
 ```
 
+## Query Population
+
+Any field with a `ref` property will be typed as `RefModel["_id"] | RefModel`. This allows you to use the same type whether you populate a field or not. When populating a field, you will need to use [Typeguards](https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types) or [Type Assertion](https://www.typescriptlang.org/docs/handbook/basic-types.html#type-assertions) to tell Typescript that the field is populated:
+
+```typescript
+// fetch user with bestFriend populated
+const user = await User.findById(uid).populate("bestFriend").exec()
+
+// typescript won't allow this, since `bestFriend` is typed as `UserDocument["_id"] | UserDocument`  
+console.log(user.bestFriend._id)
+
+// instead use type assertion
+const user = user.bestFriend as UserDocument;
+console.log(user._id);
+
+// or use typeguards
+
+function isPopulated<T>(doc: T | mongoose.Types.ObjectId): doc is T {
+  return doc instanceof mongoose.Document;
+}
+
+if (isPopulated<UserDocument>(user.bestFriend)) {
+  // user.bestFriend is a UserDocument
+  console.log(user.bestFriend._id)
+}
+
+```
+
 # Example
 
 ### ./src/models/user.ts
