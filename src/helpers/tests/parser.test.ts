@@ -42,7 +42,7 @@ describe("generateFileString", () => {
     expectedString = expectedString
       .replace("(this: UserDocument) => boolean", "(this: UserDocument, ...args: any[]) => any")
       .replace(
-        `(this: UserModel, friendUids: UserDocument["_id"][]) => Promise<any>`,
+        `(this: UserModel, friendUids: UserDocument["_id"][]) => Promise<UserObject[]>`,
         "(this: UserModel, ...args: any[]) => any"
       )
       .replace("(this: Q) => Q", "(this: Q, ...args: any[]) => Q")
