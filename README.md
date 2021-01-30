@@ -197,7 +197,7 @@ if (isPopulated<UserDocument>(user.bestFriend)) {
 
 ```typescript
 import mongoose from "mongoose";
-import { UserDocument, UserModel, UserSchema, UserMethods, UserStatics, UserQueries } from "../interfaces/mongoose.gen.ts";
+import { UserDocument, UserModel, UserSchema, UserMethods, UserStatics, UserQueries, UserObject } from "../interfaces/mongoose.gen.ts";
 
 const { Schema } = mongoose;
 
@@ -243,6 +243,7 @@ UserSchema.virtual("name").get(function (this: UserDocument) {
 
 // method functions, use Type Assertion (cast to UserMethods) for type safety
 UserSchema.methods = <UserMethods>{
+  // the return type (boolean) will be inferred from the TS compiler here 
   isMetadataString() {
     return typeof this.metadata === "string";
   }
@@ -250,7 +251,7 @@ UserSchema.methods = <UserMethods>{
 
 // static functions, use Type Assertion (cast to UserStatics) for type safety
 UserSchema.statics = <UserStatics>{
-  async getFriends(friendUids: UserDocument["_id"][]) {
+  async getFriends(friendUids: UserDocument["_id"][]): Promise<UserObject[]> {
     return await this.aggregate([{ $match: { _id: { $in: friendUids } } }]);
   }
 };
@@ -290,6 +291,8 @@ export interface UserFriend {
   _id: mongoose.Types.ObjectId;
 }
 
+export type UserObject = User;
+
 export type UserQueries = {
   populateFriends: <Q extends mongoose.Query<any, UserDocument>>(this: Q) => Q;
 }
@@ -303,7 +306,7 @@ export type UserMethods = {
 }
 
 export type UserStatics = {
-  getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<any>;
+  getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<UserObject[]>;
 }
 
 export interface UserModel extends mongoose.Model<UserDocument>, UserStatics {}

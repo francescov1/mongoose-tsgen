@@ -12,6 +12,8 @@ nickname?: string;
 _id: mongoose.Types.ObjectId;
 }
 
+export type UserObject = User
+
 export type UserQueries = {
 populateFriends: <Q extends mongoose.Query<any, UserDocument>>(this: Q) => Q;
 }
@@ -23,7 +25,7 @@ isMetadataString: (this: UserDocument) => boolean;
 }
 
 export type UserStatics = {
-getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<any>;
+getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<UserObject[]>;
 }
 
 export interface UserModel extends mongoose.Model<UserDocument>, UserStatics {}

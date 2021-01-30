@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { UserDocument, UserModel, UserSchema, UserMethods, UserStatics, UserQueries } from "mongoose";
+import { UserDocument, UserModel, UserSchema, UserMethods, UserStatics, UserQueries, UserObject } from "mongoose";
 
 const { Schema } = mongoose;
 
@@ -52,7 +52,7 @@ UserSchema.methods = <UserMethods>{
 
 // static functions, use Type Assertion (cast to UserStatics) for type safety
 UserSchema.statics = <UserStatics>{
-  async getFriends(friendUids: UserDocument["_id"][]) {
+  async getFriends(friendUids: UserDocument["_id"][]): Promise<UserObject[]> {
     return await this.aggregate([{ $match: { _id: { $in: friendUids } } }]);
   }
 };

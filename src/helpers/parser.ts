@@ -157,6 +157,9 @@ export const parseSchema = ({
   }
 
   if (!isDocument && schema.statics && modelName && addModel) {
+    // add type alias to modelName so that it can be imported without clashing with the mongoose model
+    template += `${isAugmented ? "" : "export "}type ${modelName}Object = ${modelName}\n\n`;
+
     if (Object.keys(schema.query)?.length > 0) {
       template += `${isAugmented ? "" : "export "}type ${modelName}Queries = {\n`;
       template += parseFunctions(schema.query ?? {}, modelName, "query");
