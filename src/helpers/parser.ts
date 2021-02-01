@@ -318,7 +318,7 @@ export const parseSchema = ({
     } else {
       // if (isArray || !isDocument)
       let typeFound = true;
-      const mongooseType = (val.type === Map && val.of) || val.type;
+      const mongooseType = val.type === Map ? val.of : val.type;
       switch (mongooseType) {
         case String:
           if (val.enum?.length > 0) {
