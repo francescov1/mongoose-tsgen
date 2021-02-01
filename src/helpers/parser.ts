@@ -253,15 +253,14 @@ export const parseSchema = ({
       }
     }
 
+    const isMap = val.type === Map;
+
     if (val._inferredInterfaceName) {
       valType = val._inferredInterfaceName + (isDocument ? "Document" : "");
     }
     // check for virtual properties
     else if (val.path && val.path && val.setters && val.getters) {
-      if (key === "id" || !isDocument) {
-        return "";
-      }
-
+      if (key === "id" || !isDocument) return "";
       valType = modelName ? globalFuncTypes?.[modelName]?.virtuals?.[key] ?? "any" : "any";
       isOptional = false;
     } else if (
@@ -319,7 +318,8 @@ export const parseSchema = ({
     } else {
       // if (isArray || !isDocument)
       let typeFound = true;
-      switch (val.type) {
+      const mongooseType = val.type === Map ? val.of : val.type;
+      switch (mongooseType) {
         case String:
           if (val.enum?.length > 0) {
             valType = `"` + val.enum.join(`" | "`) + `"`;
@@ -361,10 +361,12 @@ export const parseSchema = ({
         isOptional = false;
       }
       // skip base types for documents
-      else if (isDocument) valType = undefined;
+      else if (isDocument && !isMap) valType = undefined;
     }
 
     if (!valType) return "";
+
+    if (isMap) valType = isDocument ? `mongoose.Types.Map<${valType}>` : `Map<string, ${valType}>`;
 
     if (isArray) {
       if (isDocument)
