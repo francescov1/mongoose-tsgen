@@ -44,6 +44,8 @@ friends: UserFriend[];
 city: {
 coordinates?: number[];
 };
+socialMediaHandles?: Map<string, string>;
+arrayOfMaps: (Map<string, number>)[];
 _id: mongoose.Types.ObjectId;
 }
 
@@ -56,6 +58,8 @@ metadata?: any;
 friends: mongoose.Types.DocumentArray<UserFriendDocument>;
 city: {
 };
+socialMediaHandles?: mongoose.Types.Map<string>;
+arrayOfMaps: mongoose.Types.Array<mongoose.Types.Map<number>>;
 name: string;
 } & User
 

@@ -34,7 +34,17 @@ const UserSchema: UserSchema = new Schema({
       type: [Number],
       index: "2dsphere"
     }
-  }
+  },
+  socialMediaHandles: {
+    type: Map,
+    of: String
+  },
+  arrayOfMaps: [
+    {
+      type: Map,
+      of: Number
+    }
+  ]
 });
 
 // NOTE: `this: UserDocument` is required for virtual properties to tell TS the type of `this` value using the "fake this" feature

@@ -32,7 +32,17 @@ const UserSchema = new Schema({
       type: [Number],
       index: "2dsphere"
     }
-  }
+  },
+  socialMediaHandles: {
+    type: Map,
+    of: String
+  },
+  arrayOfMaps: [
+    {
+      type: Map,
+      of: Number
+    }
+  ]
 });
 
 UserSchema.virtual("name").get(function () {
