@@ -143,7 +143,7 @@ export const parseSchema = ({
               } & {\n` :
             `interface ${name} {`,
           isDocument,
-          footer: `}${isDocument ? ` & ${name}` : ""}\n\n`,
+          footer: `}\n\n`,
           isAugmented
         });
       };
@@ -260,7 +260,21 @@ export const parseSchema = ({
     }
     // check for virtual properties
     else if (val.path && val.path && val.setters && val.getters) {
-      if (key === "id" || !isDocument) return "";
+      // skip id property
+      if (key === "id") return "";
+
+      // if we are typing the non-mongoose version of the document (ie isDocument = false)
+      // then check the toObject options to determine if virtual property should be included.
+      // See https://mongoosejs.com/docs/api.html#document_Document-toObject for toObject option documentation
+      if (!isDocument) {
+        const toObjectOptions = schema.options?.toObject ?? {};
+        if (
+          (!toObjectOptions.virtuals && !toObjectOptions.getters) ||
+          (toObjectOptions.virtuals === false && toObjectOptions.getters === true)
+        )
+          return "";
+      }
+
       valType = modelName ? globalFuncTypes?.[modelName]?.virtuals?.[key] ?? "any" : "any";
       isOptional = false;
     } else if (
@@ -316,7 +330,6 @@ export const parseSchema = ({
     else if (val.schemaName === "Mixed" || val.type?.schemaName === "Mixed") {
       valType = "any";
     } else {
-      // if (isArray || !isDocument)
       let typeFound = true;
       const mongooseType = val.type === Map ? val.of : val.type;
       switch (mongooseType) {
@@ -360,8 +373,6 @@ export const parseSchema = ({
 
         isOptional = false;
       }
-      // skip base types for documents
-      else if (isDocument && !isMap) valType = undefined;
     }
 
     if (!valType) return "";
@@ -526,7 +537,7 @@ export const generateFileString = ({
       addModel: true,
       isDocument: true,
       header: `type ${modelName}Document = mongoose.Document<mongoose.Types.ObjectId> & ${modelName}Methods & {\n`,
-      footer: `} & ${modelName}\n\n`,
+      footer: `}\n\n`,
       isAugmented
     });
 
