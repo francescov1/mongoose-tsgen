@@ -7,62 +7,144 @@
 
 import mongoose from "mongoose";
 
+/**
+ * Lean version of UserFriendDocument
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from `UserDocument.toObject()`.
+ * ```
+ * const userObject = user.toObject();
+ * ```
+ */
 export interface UserFriend {uid: User["_id"] | User;
 nickname?: string;
 _id: mongoose.Types.ObjectId;
 }
 
+/**
+ * Lean version of UserDocument (type alias of `User`)
+ * 
+ * Use this type alias to avoid conflicts with model names:
+ * ```
+ * import { User } from "../models"
+ * import { UserObject } from "../interfaces/mongoose.gen.ts"
+ * 
+ * const userObject: UserObject = user.toObject();
+ * ```
+ */
 export type UserObject = User
 
+/**
+ * Mongoose Query types
+ * 
+ * Use type assertion to ensure User query type safety:
+ * ```
+ * UserSchema.query = <UserQueries>{ ... };
+ * ```
+ */
 export type UserQueries = {
 populateFriends: <Q extends mongoose.Query<any, UserDocument>>(this: Q) => Q;
 }
 
 declare module "mongoose" {interface Query<ResultType, DocType extends Document> extends UserQueries {}}
 
+/**
+ * Mongoose Method types
+ * 
+ * Use type assertion to ensure User methods type safety:
+ * ```
+ * UserSchema.methods = <UserMethods>{ ... };
+ * ```
+ */
 export type UserMethods = {
 isMetadataString: (this: UserDocument) => boolean;
 }
 
+/**
+ * Mongoose Static types
+ * 
+ * Use type assertion to ensure User statics type safety:
+ * ```
+ * UserSchema.statics = <UserStatics>{ ... };
+ * ```
+ */
 export type UserStatics = {
 getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<UserObject[]>;
 }
 
+/**
+ * Mongoose Model type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
+ * ```
+ */
 export interface UserModel extends mongoose.Model<UserDocument>, UserStatics {}
 
+/**
+ * Mongoose Schema type
+ * 
+ * Assign this type to new User schema instances:
+ * ```
+ * const UserSchema: UserSchema = new mongoose.Schema({ ... })
+ * ```
+ */
 export type UserSchema = mongoose.Schema<UserDocument, UserModel>
 
+/**
+ * Lean version of UserDocument
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from `UserDocument.toObject()`. To avoid conflicts with model names, use the type alias `UserObject`.
+ * ```
+ * const userObject = user.toObject();
+ * ```
+ */
 export interface User {
 email: string;
 firstName: string;
 lastName: string;
 metadata?: any;
-bestFriend?: mongoose.Types.ObjectId;
+bestFriend?: User["_id"] | User;
 friends: UserFriend[];
 city: {
 coordinates?: number[];
 };
+alternateObjectId?: mongoose.Types.ObjectId;
 socialMediaHandles?: Map<string, string>;
 arrayOfMaps: (Map<string, number>)[];
 _id: mongoose.Types.ObjectId;
 }
 
-export type UserFriendDocument = mongoose.Types.EmbeddedDocument & {
+/**
+ * Mongoose Embedded Document type
+ * 
+ * Type of `UserDocument["friends"]` element.
+ */
+export interface UserFriendDocument extends mongoose.Types.EmbeddedDocument {
 uid: UserDocument["_id"] | UserDocument;
 nickname?: string;
 _id: mongoose.Types.ObjectId;
 }
 
-export type UserDocument = mongoose.Document<mongoose.Types.ObjectId> & UserMethods & {
+/**
+ * Mongoose Document type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
+ * ```
+ */
+export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId>, UserMethods {
 email: string;
 firstName: string;
 lastName: string;
 metadata?: any;
-bestFriend?: mongoose.Types.ObjectId;
+bestFriend?: UserDocument["_id"] | UserDocument;
 friends: mongoose.Types.DocumentArray<UserFriendDocument>;
 city: {
 coordinates?: mongoose.Types.Array<number>;
 };
+alternateObjectId?: mongoose.Types.ObjectId;
 socialMediaHandles?: mongoose.Types.Map<string>;
 arrayOfMaps: mongoose.Types.Array<mongoose.Types.Map<number>>;
 _id: mongoose.Types.ObjectId;

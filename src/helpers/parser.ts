@@ -12,6 +12,92 @@ const IMPORTS = `import mongoose from "mongoose";\n`;
 const MODULE_DECLARATION_HEADER = `declare module "mongoose" {\n\n`;
 const MODULE_DECLARATION_FOOTER = "}\n";
 
+const getObjectDocs = (modelName: string) => `/**
+ * Lean version of ${modelName}Document (type alias of \`${modelName}\`)
+ * 
+ * Use this type alias to avoid conflicts with model names:
+ * \`\`\`
+ * import { ${modelName} } from "../models"
+ * import { ${modelName}Object } from "../interfaces/mongoose.gen.ts"
+ * 
+ * const ${modelName.toLowerCase()}Object: ${modelName}Object = ${modelName.toLowerCase()}.toObject();
+ * \`\`\`
+ */`;
+
+const getQueryDocs = (modelName: string) => `/**
+ * Mongoose Query types
+ * 
+ * Use type assertion to ensure ${modelName} query type safety:
+ * \`\`\`
+ * ${modelName}Schema.query = <${modelName}Queries>{ ... };
+ * \`\`\`
+ */`;
+
+const getMethodDocs = (modelName: string) => `/**
+ * Mongoose Method types
+ * 
+ * Use type assertion to ensure ${modelName} methods type safety:
+ * \`\`\`
+ * ${modelName}Schema.methods = <${modelName}Methods>{ ... };
+ * \`\`\`
+ */`;
+
+const getStaticDocs = (modelName: string) => `/**
+ * Mongoose Static types
+ * 
+ * Use type assertion to ensure ${modelName} statics type safety:
+ * \`\`\`
+ * ${modelName}Schema.statics = <${modelName}Statics>{ ... };
+ * \`\`\`
+ */`;
+
+const getModelDocs = (modelName: string) => `/**
+ * Mongoose Model type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * \`\`\`
+ * const ${modelName} = mongoose.model<${modelName}Document, ${modelName}Model>("${modelName}", ${modelName}Schema);
+ * \`\`\`
+ */`;
+
+const getSchemaDocs = (modelName: string) => `/**
+ * Mongoose Schema type
+ * 
+ * Assign this type to new ${modelName} schema instances:
+ * \`\`\`
+ * const ${modelName}Schema: ${modelName}Schema = new mongoose.Schema({ ... })
+ * \`\`\`
+ */`;
+
+// If model is a subdoc, pass `fullName`
+const getLeanDocs = (modelName: string, fullName?: string) => `/**
+ * Lean version of ${fullName ?? modelName}Document
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from \`${modelName}Document.toObject()\`.${
+  !fullName || modelName === fullName ?
+    ` To avoid conflicts with model names, use the type alias \`${modelName}Object\`.` :
+    ""
+}
+ * \`\`\`
+ * const ${modelName.toLowerCase()}Object = ${modelName.toLowerCase()}.toObject();
+ * \`\`\`
+ */`;
+
+const getSubdocumentDocs = (modelName: string, path: string) => `/**
+ * Mongoose Embedded Document type
+ * 
+ * Type of \`${modelName}Document["${path}"]\` element.
+ */`;
+
+const getDocumentDocs = (modelName: string) => `/**
+ * Mongoose Document type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * \`\`\`
+ * const ${modelName} = mongoose.model<${modelName}Document, ${modelName}Model>("${modelName}", ${modelName}Schema);
+ * \`\`\`
+ */`;
+
 let globalFuncTypes: {
   [modelName: string]: {
     methods: { [funcName: string]: string };
@@ -97,6 +183,44 @@ const parseFunctions = (
   return interfaceString;
 };
 
+const convertBaseTypeToTs = (key: string, val: any) => {
+  let valType: string | undefined;
+  // NOTE: ideally we check actual type of value to ensure its Schema.Types.Mixed (the same way we do with Schema.Types.ObjectId),
+  // but this doesnt seem to work for some reason
+  if (val.schemaName === "Mixed" || val.type?.schemaName === "Mixed") {
+    valType = "any";
+  } else {
+    const mongooseType = val.type === Map ? val.of : val.type;
+    switch (mongooseType) {
+      case String:
+        if (val.enum?.length > 0) {
+          valType = `"` + val.enum.join(`" | "`) + `"`;
+        } else valType = "string";
+        break;
+      case Number:
+        if (key !== "__v") valType = "number";
+        break;
+      case Boolean:
+        valType = "boolean";
+        break;
+      case Date:
+        valType = "Date";
+        break;
+      case mongoose.Schema.Types.ObjectId:
+      case mongoose.Types.ObjectId:
+      case "ObjectId": // _id fields have type set to the string "ObjectId"
+        valType = "mongoose.Types.ObjectId";
+        break;
+      default:
+        // this indicates to the parent func that this type is nested and we need to traverse one level deeper
+        valType = "{}";
+        break;
+    }
+  }
+
+  return valType;
+};
+
 export const parseSchema = ({
   schema,
   modelName,
@@ -131,17 +255,24 @@ export const parseSchema = ({
         child.schema._isSubdocArray = isSubdocArray;
         flatSchemaTree[path] = isSubdocArray ? [child.schema] : child.schema;
 
+        let header = "";
+        if (isDocument)
+          header += isSubdocArray ? getSubdocumentDocs(rootPath, path) : getDocumentDocs(rootPath);
+        else header += getLeanDocs(rootPath, name);
+
+        header += isAugmented ? "\n" : "\nexport ";
+        if (isDocument)
+          header += `interface ${name}Document extends ${
+            isSubdocArray ?
+              "mongoose.Types.EmbeddedDocument" :
+              `mongoose.Document<mongoose.Types.ObjectId>, ${name}Methods`
+          } {\n`;
+        else header += `interface ${name} {`;
+
         childInterfaces += parseSchema({
           schema: child.schema,
           modelName: name,
-          // we use "mongoose.Types.EmbeddedDocument" instead of "mongoose.Types.Subdocument" to give us access to additional subdoc functions such as doc.parent()
-          header: isDocument ?
-            `type ${name}Document = ${
-                isSubdocArray ?
-                  "mongoose.Types.EmbeddedDocument" :
-                  `mongoose.Document<mongoose.Types.ObjectId> & ${name}Methods`
-              } & {\n` :
-            `interface ${name} {`,
+          header,
           isDocument,
           footer: `}\n\n`,
           isAugmented
@@ -158,10 +289,12 @@ export const parseSchema = ({
 
   if (!isDocument && schema.statics && modelName && addModel) {
     // add type alias to modelName so that it can be imported without clashing with the mongoose model
-    template += `${isAugmented ? "" : "export "}type ${modelName}Object = ${modelName}\n\n`;
+    template += getObjectDocs(modelName);
+    template += `\n${isAugmented ? "" : "export "}type ${modelName}Object = ${modelName}\n\n`;
 
     if (Object.keys(schema.query)?.length > 0) {
-      template += `${isAugmented ? "" : "export "}type ${modelName}Queries = {\n`;
+      template += getQueryDocs(modelName);
+      template += `\n${isAugmented ? "" : "export "}type ${modelName}Queries = {\n`;
       template += parseFunctions(schema.query ?? {}, modelName, "query");
       template += "}\n\n";
 
@@ -173,26 +306,29 @@ export const parseSchema = ({
       }\n\n`;
     }
 
-    template += `${isAugmented ? "" : "export "}type ${modelName}Methods = {\n`;
+    template += getMethodDocs(modelName);
+    template += `\n${isAugmented ? "" : "export "}type ${modelName}Methods = {\n`;
     template += parseFunctions(schema.methods, modelName, "methods");
     template += "}\n\n";
 
-    template += `${isAugmented ? "" : "export "}type ${modelName}Statics = {\n`;
+    template += getStaticDocs(modelName);
+    template += `\n${isAugmented ? "" : "export "}type ${modelName}Statics = {\n`;
     template += parseFunctions(schema.statics, modelName, "statics");
     template += "}\n\n";
 
     const modelExtend = `mongoose.Model<${modelName}Document>`;
 
-    template += `${
+    template += getModelDocs(modelName);
+    template += `\n${
       isAugmented ? "" : "export "
     }interface ${modelName}Model extends ${modelExtend}, ${modelName}Statics {}\n\n`;
 
-    template += `${
+    template += getSchemaDocs(modelName);
+    template += `\n${
       isAugmented ? "" : "export "
     }type ${modelName}Schema = mongoose.Schema<${modelName}Document, ${modelName}Model>\n\n`;
   }
 
-  if (!isAugmented) header = "export " + header;
   template += header;
 
   const schemaTree = schema.tree;
@@ -300,67 +436,15 @@ export const parseSchema = ({
         docRef = getSubDocName(docRef);
       }
 
-      if (isDocument) {
-        /**
-         * NOTE: when referencing the _id property of a ref, we need to check if modelName === docRef because typescript types dont allow self-referencing a property (only the entire type).
-         * The ideal setup would look like this:
-         * ```typescript
-         * export type UserDocument = mongoose.Document<mongoose.Types.ObjectId> & {
-         *   friends: mongoose.Types.Array<UserDocument["_id"] | UserDocument>;
-         * } & User
-         * ```
-         *
-         * Unfortunately the `UserDocument["_id"]` piece of the above code gives the error "'friends' is referenced directly or indirectly in its own type annotation.ts(2502)".
-         * Instead we need to use `User`, but we can still reference UserDocument for the second half of the union (representing the populated version):
-         * ```typescript
-         * export type UserDocument = mongoose.Document<mongoose.Types.ObjectId> & {
-         *   friends: mongoose.Types.Array<User["_id"] | UserDocument>;
-         * } & User
-         * ```
-         */
-        valType = `${docRef}${docRef === modelName ? "" : "Document"}["_id"] | ${docRef}${
-          docRef === modelName ? "" : "Document"
-        }`;
-      } else {
-        valType = `${docRef}["_id"] | ${docRef}`;
-      }
-    }
-    // NOTE: ideally we check actual type of value to ensure its Schema.Types.Mixed (the same way we do with Schema.Types.ObjectId),
-    // but this doesnt seem to work for some reason
-    else if (val.schemaName === "Mixed" || val.type?.schemaName === "Mixed") {
-      valType = "any";
+      valType = isDocument ?
+        `${docRef}Document["_id"] | ${docRef}Document` :
+        `${docRef}["_id"] | ${docRef}`;
     } else {
-      let typeFound = true;
-      const mongooseType = val.type === Map ? val.of : val.type;
-      switch (mongooseType) {
-        case String:
-          if (val.enum?.length > 0) {
-            valType = `"` + val.enum.join(`" | "`) + `"`;
-          } else valType = "string";
-          break;
-        case Number:
-          if (key !== "__v") valType = "number";
-          break;
-        case Boolean:
-          valType = "boolean";
-          break;
-        case Date:
-          valType = "Date";
-          break;
-        case mongoose.Schema.Types.ObjectId:
-        case mongoose.Types.ObjectId:
-          valType = "mongoose.Types.ObjectId";
-          break;
-        // _id fields have type as a string
-        case "ObjectId":
-          isOptional = false;
-          valType = "mongoose.Types.ObjectId";
-          break;
-        default:
-          typeFound = false;
-      }
+      // _ids are always required
+      if (key === "_id") isOptional = false;
+      const convertedType = convertBaseTypeToTs(key, val);
 
-      if (!typeFound) {
+      if (convertedType === "{}") {
         // if we dont find it, go one level deeper
         // here we pass isAugmented: true to prevent `export ` from being prepended to the header
         valType = parseSchema({
@@ -372,6 +456,8 @@ export const parseSchema = ({
         });
 
         isOptional = false;
+      } else {
+        valType = convertedType;
       }
     }
 
@@ -526,17 +612,26 @@ export const generateFileString = ({
       modelName,
       addModel: true,
       isDocument: false,
-      header: `interface ${modelName} {\n`,
+      header:
+        getLeanDocs(modelName) + `\n${isAugmented ? "" : "export "}interface ${modelName} {\n`,
       footer: "}\n\n",
       isAugmented
     });
+
+    // get type of _id to pass to mongoose.Document
+    // not sure why schema doesnt have `tree` property
+    const _idType = convertBaseTypeToTs("_id", (schema as any).tree._id);
 
     interfaceStr += parseSchema({
       schema,
       modelName,
       addModel: true,
       isDocument: true,
-      header: `type ${modelName}Document = mongoose.Document<mongoose.Types.ObjectId> & ${modelName}Methods & {\n`,
+      header:
+        getDocumentDocs(modelName) +
+        `\n${
+          isAugmented ? "" : "export "
+        }interface ${modelName}Document extends mongoose.Document<${_idType}>, ${modelName}Methods {\n`,
       footer: `}\n\n`,
       isAugmented
     });

@@ -1,6 +1,6 @@
 "use strict";
 const mongoose = require("mongoose");
-const { Schema, Types } = mongoose;
+const { Schema } = mongoose;
 
 const UserSchema = new Schema({
   email: {
@@ -16,7 +16,10 @@ const UserSchema = new Schema({
     required: true
   },
   metadata: Schema.Types.Mixed,
-  bestFriend: Types.ObjectId,
+  bestFriend: {
+    type: Schema.Types.ObjectId,
+    ref: "User"
+  },
   friends: [
     {
       uid: {
@@ -33,6 +36,7 @@ const UserSchema = new Schema({
       index: "2dsphere"
     }
   },
+  alternateObjectId: mongoose.Types.ObjectId,
   socialMediaHandles: {
     type: Map,
     of: String
