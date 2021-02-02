@@ -51,16 +51,24 @@ _id: mongoose.Types.ObjectId;
 
 type UserFriendDocument = mongoose.Types.EmbeddedDocument & {
 uid: UserDocument["_id"] | UserDocument;
-} & UserFriend
+nickname?: string;
+_id: mongoose.Types.ObjectId;
+}
 
 type UserDocument = mongoose.Document<mongoose.Types.ObjectId> & UserMethods & {
+email: string;
+firstName: string;
+lastName: string;
 metadata?: any;
+bestFriend?: mongoose.Types.ObjectId;
 friends: mongoose.Types.DocumentArray<UserFriendDocument>;
 city: {
+coordinates?: mongoose.Types.Array<number>;
 };
 socialMediaHandles?: mongoose.Types.Map<string>;
 arrayOfMaps: mongoose.Types.Array<mongoose.Types.Map<number>>;
+_id: mongoose.Types.ObjectId;
 name: string;
-} & User
+}
 
 }
