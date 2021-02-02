@@ -12,6 +12,92 @@ const IMPORTS = `import mongoose from "mongoose";\n`;
 const MODULE_DECLARATION_HEADER = `declare module "mongoose" {\n\n`;
 const MODULE_DECLARATION_FOOTER = "}\n";
 
+const getObjectDocs = (modelName: string) => `/**
+ * Lean version of ${modelName}Document (type alias of \`${modelName}\`)
+ * 
+ * Use this type alias to avoid conflicts with model names:
+ * \`\`\`
+ * import { ${modelName} } from "../models"
+ * import { ${modelName}Object } from "../interfaces/mongoose.gen.ts"
+ * 
+ * const ${modelName.toLowerCase()}Object: ${modelName}Object = ${modelName.toLowerCase()}.toObject();
+ * \`\`\`
+ */`;
+
+const getQueryDocs = (modelName: string) => `/**
+ * Mongoose Query types
+ * 
+ * Use type assertion to ensure ${modelName} query type safety:
+ * \`\`\`
+ * ${modelName}Schema.query = <${modelName}Queries>{ ... };
+ * \`\`\`
+ */`;
+
+const getMethodDocs = (modelName: string) => `/**
+ * Mongoose Method types
+ * 
+ * Use type assertion to ensure ${modelName} methods type safety:
+ * \`\`\`
+ * ${modelName}Schema.methods = <${modelName}Methods>{ ... };
+ * \`\`\`
+ */`;
+
+const getStaticDocs = (modelName: string) => `/**
+ * Mongoose Static types
+ * 
+ * Use type assertion to ensure ${modelName} statics type safety:
+ * \`\`\`
+ * ${modelName}Schema.statics = <${modelName}Statics>{ ... };
+ * \`\`\`
+ */`;
+
+const getModelDocs = (modelName: string) => `/**
+ * Mongoose Model type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * \`\`\`
+ * const ${modelName} = mongoose.model<${modelName}Document, ${modelName}Model>("${modelName}", ${modelName}Schema);
+ * \`\`\`
+ */`;
+
+const getSchemaDocs = (modelName: string) => `/**
+ * Mongoose Schema type
+ * 
+ * Assign this type to new ${modelName} schema instances:
+ * \`\`\`
+ * const ${modelName}Schema: ${modelName}Schema = new mongoose.Schema({ ... })
+ * \`\`\`
+ */`;
+
+// If model is a subdoc, pass `fullName`
+const getLeanDocs = (modelName: string, fullName?: string) => `/**
+ * Lean version of ${fullName ?? modelName}Document
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from \`${modelName}Document.toObject()\`.${
+  !fullName || modelName === fullName ?
+    ` To avoid conflicts with model names, use the type alias \`${modelName}Object\`.` :
+    ""
+}
+ * \`\`\`
+ * const ${modelName.toLowerCase()}Object = ${modelName.toLowerCase()}.toObject();
+ * \`\`\`
+ */`;
+
+const getSubdocumentDocs = (modelName: string, path: string) => `/**
+ * Mongoose Embedded Document type
+ * 
+ * Type of \`${modelName}Document["${path}"]\` element.
+ */`;
+
+const getDocumentDocs = (modelName: string) => `/**
+ * Mongoose Document type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * \`\`\`
+ * const ${modelName} = mongoose.model<${modelName}Document, ${modelName}Model>("${modelName}", ${modelName}Schema);
+ * \`\`\`
+ */`;
+
 let globalFuncTypes: {
   [modelName: string]: {
     methods: { [funcName: string]: string };
@@ -131,17 +217,26 @@ export const parseSchema = ({
         child.schema._isSubdocArray = isSubdocArray;
         flatSchemaTree[path] = isSubdocArray ? [child.schema] : child.schema;
 
+        let header = "";
+        if (isDocument)
+          header += isSubdocArray ? getSubdocumentDocs(rootPath, path) : getDocumentDocs(rootPath);
+        else header += getLeanDocs(rootPath, name);
+
+        // let header = docs
+        header += isAugmented ? "\n" : "\nexport ";
+        header += isDocument ?
+          `type ${name}Document = ${
+              isSubdocArray ?
+                "mongoose.Types.EmbeddedDocument" :
+                `mongoose.Document<mongoose.Types.ObjectId> & ${name}Methods`
+            } & {\n` :
+          `interface ${name} {`;
+
         childInterfaces += parseSchema({
           schema: child.schema,
           modelName: name,
           // we use "mongoose.Types.EmbeddedDocument" instead of "mongoose.Types.Subdocument" to give us access to additional subdoc functions such as doc.parent()
-          header: isDocument ?
-            `type ${name}Document = ${
-                isSubdocArray ?
-                  "mongoose.Types.EmbeddedDocument" :
-                  `mongoose.Document<mongoose.Types.ObjectId> & ${name}Methods`
-              } & {\n` :
-            `interface ${name} {`,
+          header,
           isDocument,
           footer: `}\n\n`,
           isAugmented
@@ -158,10 +253,12 @@ export const parseSchema = ({
 
   if (!isDocument && schema.statics && modelName && addModel) {
     // add type alias to modelName so that it can be imported without clashing with the mongoose model
-    template += `${isAugmented ? "" : "export "}type ${modelName}Object = ${modelName}\n\n`;
+    template += getObjectDocs(modelName);
+    template += `\n${isAugmented ? "" : "export "}type ${modelName}Object = ${modelName}\n\n`;
 
     if (Object.keys(schema.query)?.length > 0) {
-      template += `${isAugmented ? "" : "export "}type ${modelName}Queries = {\n`;
+      template += getQueryDocs(modelName);
+      template += `\n${isAugmented ? "" : "export "}type ${modelName}Queries = {\n`;
       template += parseFunctions(schema.query ?? {}, modelName, "query");
       template += "}\n\n";
 
@@ -173,26 +270,29 @@ export const parseSchema = ({
       }\n\n`;
     }
 
-    template += `${isAugmented ? "" : "export "}type ${modelName}Methods = {\n`;
+    template += getMethodDocs(modelName);
+    template += `\n${isAugmented ? "" : "export "}type ${modelName}Methods = {\n`;
     template += parseFunctions(schema.methods, modelName, "methods");
     template += "}\n\n";
 
-    template += `${isAugmented ? "" : "export "}type ${modelName}Statics = {\n`;
+    template += getStaticDocs(modelName);
+    template += `\n${isAugmented ? "" : "export "}type ${modelName}Statics = {\n`;
     template += parseFunctions(schema.statics, modelName, "statics");
     template += "}\n\n";
 
     const modelExtend = `mongoose.Model<${modelName}Document>`;
 
-    template += `${
+    template += getModelDocs(modelName);
+    template += `\n${
       isAugmented ? "" : "export "
     }interface ${modelName}Model extends ${modelExtend}, ${modelName}Statics {}\n\n`;
 
-    template += `${
+    template += getSchemaDocs(modelName);
+    template += `\n${
       isAugmented ? "" : "export "
     }type ${modelName}Schema = mongoose.Schema<${modelName}Document, ${modelName}Model>\n\n`;
   }
 
-  if (!isAugmented) header = "export " + header;
   template += header;
 
   const schemaTree = schema.tree;
@@ -526,7 +626,8 @@ export const generateFileString = ({
       modelName,
       addModel: true,
       isDocument: false,
-      header: `interface ${modelName} {\n`,
+      header:
+        getLeanDocs(modelName) + `\n${isAugmented ? "" : "export "}interface ${modelName} {\n`,
       footer: "}\n\n",
       isAugmented
     });
@@ -536,7 +637,11 @@ export const generateFileString = ({
       modelName,
       addModel: true,
       isDocument: true,
-      header: `type ${modelName}Document = mongoose.Document<mongoose.Types.ObjectId> & ${modelName}Methods & {\n`,
+      header:
+        getDocumentDocs(modelName) +
+        `\n${
+          isAugmented ? "" : "export "
+        }type ${modelName}Document = mongoose.Document<mongoose.Types.ObjectId> & ${modelName}Methods & {\n`,
       footer: `}\n\n`,
       isAugmented
     });
