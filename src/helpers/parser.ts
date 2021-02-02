@@ -183,6 +183,44 @@ const parseFunctions = (
   return interfaceString;
 };
 
+const convertBaseTypeToTs = (key: string, val: any) => {
+  let valType: string | undefined;
+  // NOTE: ideally we check actual type of value to ensure its Schema.Types.Mixed (the same way we do with Schema.Types.ObjectId),
+  // but this doesnt seem to work for some reason
+  if (val.schemaName === "Mixed" || val.type?.schemaName === "Mixed") {
+    valType = "any";
+  } else {
+    const mongooseType = val.type === Map ? val.of : val.type;
+    switch (mongooseType) {
+      case String:
+        if (val.enum?.length > 0) {
+          valType = `"` + val.enum.join(`" | "`) + `"`;
+        } else valType = "string";
+        break;
+      case Number:
+        if (key !== "__v") valType = "number";
+        break;
+      case Boolean:
+        valType = "boolean";
+        break;
+      case Date:
+        valType = "Date";
+        break;
+      case mongoose.Schema.Types.ObjectId:
+      case mongoose.Types.ObjectId:
+      case "ObjectId": // _id fields have type set to the string "ObjectId"
+        valType = "mongoose.Types.ObjectId";
+        break;
+      default:
+        // this indicates to the parent func that this type is nested and we need to traverse one level deeper
+        valType = "{}";
+        break;
+    }
+  }
+
+  return valType;
+};
+
 export const parseSchema = ({
   schema,
   modelName,
@@ -222,20 +260,18 @@ export const parseSchema = ({
           header += isSubdocArray ? getSubdocumentDocs(rootPath, path) : getDocumentDocs(rootPath);
         else header += getLeanDocs(rootPath, name);
 
-        // let header = docs
         header += isAugmented ? "\n" : "\nexport ";
-        header += isDocument ?
-          `type ${name}Document = ${
-              isSubdocArray ?
-                "mongoose.Types.EmbeddedDocument" :
-                `mongoose.Document<mongoose.Types.ObjectId> & ${name}Methods`
-            } & {\n` :
-          `interface ${name} {`;
+        if (isDocument)
+          header += `interface ${name}Document extends ${
+            isSubdocArray ?
+              "mongoose.Types.EmbeddedDocument" :
+              `mongoose.Document<mongoose.Types.ObjectId>, ${name}Methods`
+          } {\n`;
+        else header += `interface ${name} {`;
 
         childInterfaces += parseSchema({
           schema: child.schema,
           modelName: name,
-          // we use "mongoose.Types.EmbeddedDocument" instead of "mongoose.Types.Subdocument" to give us access to additional subdoc functions such as doc.parent()
           header,
           isDocument,
           footer: `}\n\n`,
@@ -400,67 +436,15 @@ export const parseSchema = ({
         docRef = getSubDocName(docRef);
       }
 
-      if (isDocument) {
-        /**
-         * NOTE: when referencing the _id property of a ref, we need to check if modelName === docRef because typescript types dont allow self-referencing a property (only the entire type).
-         * The ideal setup would look like this:
-         * ```typescript
-         * export type UserDocument = mongoose.Document<mongoose.Types.ObjectId> & {
-         *   friends: mongoose.Types.Array<UserDocument["_id"] | UserDocument>;
-         * } & User
-         * ```
-         *
-         * Unfortunately the `UserDocument["_id"]` piece of the above code gives the error "'friends' is referenced directly or indirectly in its own type annotation.ts(2502)".
-         * Instead we need to use `User`, but we can still reference UserDocument for the second half of the union (representing the populated version):
-         * ```typescript
-         * export type UserDocument = mongoose.Document<mongoose.Types.ObjectId> & {
-         *   friends: mongoose.Types.Array<User["_id"] | UserDocument>;
-         * } & User
-         * ```
-         */
-        valType = `${docRef}${docRef === modelName ? "" : "Document"}["_id"] | ${docRef}${
-          docRef === modelName ? "" : "Document"
-        }`;
-      } else {
-        valType = `${docRef}["_id"] | ${docRef}`;
-      }
-    }
-    // NOTE: ideally we check actual type of value to ensure its Schema.Types.Mixed (the same way we do with Schema.Types.ObjectId),
-    // but this doesnt seem to work for some reason
-    else if (val.schemaName === "Mixed" || val.type?.schemaName === "Mixed") {
-      valType = "any";
+      valType = isDocument ?
+        `${docRef}Document["_id"] | ${docRef}Document` :
+        `${docRef}["_id"] | ${docRef}`;
     } else {
-      let typeFound = true;
-      const mongooseType = val.type === Map ? val.of : val.type;
-      switch (mongooseType) {
-        case String:
-          if (val.enum?.length > 0) {
-            valType = `"` + val.enum.join(`" | "`) + `"`;
-          } else valType = "string";
-          break;
-        case Number:
-          if (key !== "__v") valType = "number";
-          break;
-        case Boolean:
-          valType = "boolean";
-          break;
-        case Date:
-          valType = "Date";
-          break;
-        case mongoose.Schema.Types.ObjectId:
-        case mongoose.Types.ObjectId:
-          valType = "mongoose.Types.ObjectId";
-          break;
-        // _id fields have type as a string
-        case "ObjectId":
-          isOptional = false;
-          valType = "mongoose.Types.ObjectId";
-          break;
-        default:
-          typeFound = false;
-      }
+      // _ids are always required
+      if (key === "_id") isOptional = false;
+      const convertedType = convertBaseTypeToTs(key, val);
 
-      if (!typeFound) {
+      if (convertedType === "{}") {
         // if we dont find it, go one level deeper
         // here we pass isAugmented: true to prevent `export ` from being prepended to the header
         valType = parseSchema({
@@ -472,6 +456,8 @@ export const parseSchema = ({
         });
 
         isOptional = false;
+      } else {
+        valType = convertedType;
       }
     }
 
@@ -632,6 +618,10 @@ export const generateFileString = ({
       isAugmented
     });
 
+    // get type of _id to pass to mongoose.Document
+    // not sure why schema doesnt have `tree` property
+    const _idType = convertBaseTypeToTs("_id", (schema as any).tree._id);
+
     interfaceStr += parseSchema({
       schema,
       modelName,
@@ -641,7 +631,7 @@ export const generateFileString = ({
         getDocumentDocs(modelName) +
         `\n${
           isAugmented ? "" : "export "
-        }type ${modelName}Document = mongoose.Document<mongoose.Types.ObjectId> & ${modelName}Methods & {\n`,
+        }interface ${modelName}Document extends mongoose.Document<${_idType}>, ${modelName}Methods {\n`,
       footer: `}\n\n`,
       isAugmented
     });

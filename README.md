@@ -216,7 +216,10 @@ const UserSchema: UserSchema = new Schema({
     required: true
   },
   metadata: Schema.Types.Mixed,
-  bestFriend: mongoose.Types.ObjectId,
+  bestFriend: {
+    type: Schema.Types.ObjectId,
+    ref: "User"
+  },
   friends: [
     {
       uid: {
@@ -263,7 +266,7 @@ UserSchema.query = <UserQueries>{
   }
 };
 
-export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
+export const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
 export default User;
 ```
 
@@ -317,7 +320,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  bestFriend?: mongoose.Types.ObjectId;
+  bestFriend?: User["_id"] | User;
   friends: UserFriend[];
   city: {
     coordinates?: number[];
@@ -325,22 +328,30 @@ export interface User {
   _id: mongoose.Types.ObjectId;
 }
 
-export type UserFriendDocument = mongoose.Types.EmbeddedDocument & {
+export interface UserFriendDocument extends mongoose.Types.EmbeddedDocument {
   uid: UserDocument["_id"] | UserDocument;
-} & UserFriend;
+  nickname?: string;
+  _id: mongoose.Types.ObjectId;
+};
 
-export type UserDocument = mongoose.Document<mongoose.Types.ObjectId> &
-  UserMethods & {
+export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId>,
+  UserMethods {
+    email: string;
+    firstName: string;
+    lastName: string;
     metadata?: any;
+    bestFriend?: UserDocument["_id"] | UserDocument;
     friends: mongoose.Types.DocumentArray<UserFriendDocument>;
-    city: {};
+    city: {
+      coordinates?: mongoose.Types.Array<number>;
+    };
     name: string;
-  } & User;
+    _id: mongoose.Types.ObjectId;
+  };
 ```
 
 ## Development
 
 - [ ] The generating piece of `src/helpers/parser.ts` needs to be rewritten using [ts-morph](https://github.com/dsherret/ts-morph). Currently it builds the interfaces by appending generated lines of code to a string sequentially, with no knowledge of the AST. This leads to pretty confusing logic, using the TS compiler API would simplify it a ton.
-- [ ] Top-level schema fields that refer to the schema itself (e.g. a `bestFriend` property on a User schema refering to a User ID) should be typed as `bestFriend: UserDocument["_id"] | UserDocument`. Unfortunately Typescript does not support recursively accessing a property of a type, so this is currently typed like so: `bestFriend: User["_id"] | User`.
-   - [ ] Eventually it would be nice to give the option to type `User["_id"]` as a string rather than an ObjectId (see [#7](https://github.com/Bounced-Inc/mongoose-tsgen/issues/7)), but this will not be possible until a better workaround is found for the issue above.
+- [ ] Add CLI option to type `_id` fields as a string rather than an ObjectId on lean version of documents (see [#7](https://github.com/Bounced-Inc/mongoose-tsgen/issues/7)).
 - [ ] Cut down node_modules by using peer dependencies (i.e. mongoose) and stripping oclif.

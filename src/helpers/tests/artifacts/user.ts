@@ -18,7 +18,10 @@ const UserSchema: UserSchema = new Schema({
     required: true
   },
   metadata: Schema.Types.Mixed,
-  bestFriend: mongoose.Types.ObjectId,
+  bestFriend: {
+    type: Schema.Types.ObjectId,
+    ref: "User"
+  },
   friends: [
     {
       uid: {
@@ -35,6 +38,7 @@ const UserSchema: UserSchema = new Schema({
       index: "2dsphere"
     }
   },
+  alternateObjectId: mongoose.Types.ObjectId,
   socialMediaHandles: {
     type: Map,
     of: String

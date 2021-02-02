@@ -104,11 +104,12 @@ email: string;
 firstName: string;
 lastName: string;
 metadata?: any;
-bestFriend?: mongoose.Types.ObjectId;
+bestFriend?: User["_id"] | User;
 friends: UserFriend[];
 city: {
 coordinates?: number[];
 };
+alternateObjectId?: mongoose.Types.ObjectId;
 socialMediaHandles?: Map<string, string>;
 arrayOfMaps: (Map<string, number>)[];
 _id: mongoose.Types.ObjectId;
@@ -119,7 +120,7 @@ _id: mongoose.Types.ObjectId;
  * 
  * Type of `UserDocument["friends"]` element.
  */
-export type UserFriendDocument = mongoose.Types.EmbeddedDocument & {
+export interface UserFriendDocument extends mongoose.Types.EmbeddedDocument {
 uid: UserDocument["_id"] | UserDocument;
 nickname?: string;
 _id: mongoose.Types.ObjectId;
@@ -133,16 +134,17 @@ _id: mongoose.Types.ObjectId;
  * const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
  * ```
  */
-export type UserDocument = mongoose.Document<mongoose.Types.ObjectId> & UserMethods & {
+export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId>, UserMethods {
 email: string;
 firstName: string;
 lastName: string;
 metadata?: any;
-bestFriend?: mongoose.Types.ObjectId;
+bestFriend?: UserDocument["_id"] | UserDocument;
 friends: mongoose.Types.DocumentArray<UserFriendDocument>;
 city: {
 coordinates?: mongoose.Types.Array<number>;
 };
+alternateObjectId?: mongoose.Types.ObjectId;
 socialMediaHandles?: mongoose.Types.Map<string>;
 arrayOfMaps: mongoose.Types.Array<mongoose.Types.Map<number>>;
 _id: mongoose.Types.ObjectId;
