@@ -45,7 +45,7 @@ class MongooseTsgen extends Command {
       description: `Augment generated interfaces into the 'mongoose' module.`
     }),
     "no-format": flags.boolean({
-      description: "Disable formatting generated files with prettier and fixing with eslint."
+      description: "Disable formatting generated files with prettier."
     }),
     "no-func-types": flags.boolean({
       description: "Disable using TS compiler API for method, static and query typings."

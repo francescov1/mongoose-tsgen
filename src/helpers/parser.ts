@@ -598,7 +598,9 @@ export const generateFileString = ({
   fullTemplate += IMPORTS;
 
   // custom, user-defined imports
-  fullTemplate += imports.join("\n") + "\n\n";
+  if (imports.length > 0) fullTemplate += imports.join("\n") + "\n";
+
+  fullTemplate += "\n";
 
   if (isAugmented) fullTemplate += MODULE_DECLARATION_HEADER;
 

@@ -139,7 +139,7 @@ OPTIONS
 
   --augment              Augment generated typings into the 'mongoose' module.
 
-  --no-format            Disable formatting generated files with prettier and fixing with eslint.
+  --no-format            Disable formatting generated files with prettier.
 
   --no-func-types        Disable using TS compiler API for method, static and query typings.
 ```
@@ -277,7 +277,7 @@ $ mtgen
 ```
 
 ### generated typings file ./src/interfaces/mongoose.gen.ts
-<!-- TODO: generate test file and replace with this -->
+
 ```typescript
 /* tslint:disable */
 /* eslint-disable */
