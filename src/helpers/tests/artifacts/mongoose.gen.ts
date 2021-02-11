@@ -109,6 +109,7 @@ friends: UserFriend[];
 city: {
 coordinates?: number[];
 };
+tags: string[];
 alternateObjectId?: mongoose.Types.ObjectId;
 socialMediaHandles?: Map<string, string>;
 arrayOfMaps: (Map<string, number>)[];
@@ -144,6 +145,7 @@ friends: mongoose.Types.DocumentArray<UserFriendDocument>;
 city: {
 coordinates?: mongoose.Types.Array<number>;
 };
+tags: mongoose.Types.Array<string>;
 alternateObjectId?: mongoose.Types.ObjectId;
 socialMediaHandles?: mongoose.Types.Map<string>;
 arrayOfMaps: mongoose.Types.Array<mongoose.Types.Map<number>>;

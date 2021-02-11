@@ -337,19 +337,6 @@ export const parseSchema = ({
     // if the value is an object, we need to deepClone it to ensure changes to `val` aren't persisted in parent function
     let val = _.isPlainObject(valOriginal) ? _.cloneDeep(valOriginal) : valOriginal;
 
-    // if type is provided directly on property, expand it
-    if (
-      [
-        String,
-        Number,
-        Boolean,
-        Date,
-        mongoose.Schema.Types.ObjectId,
-        mongoose.Types.ObjectId
-      ].includes(val)
-    )
-      val = { type: val, required: false };
-
     let valType;
     let isOptional = !val.required;
 
@@ -388,6 +375,19 @@ export const parseSchema = ({
         isOptional = false;
       }
     }
+
+    // if type is provided directly on property, expand it
+    if (
+      [
+        String,
+        Number,
+        Boolean,
+        Date,
+        mongoose.Schema.Types.ObjectId,
+        mongoose.Types.ObjectId
+      ].includes(val)
+    )
+      val = { type: val };
 
     const isMap = val.type === Map;
 
