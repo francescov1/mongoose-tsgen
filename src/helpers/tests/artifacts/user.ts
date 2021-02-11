@@ -38,6 +38,7 @@ const UserSchema: UserSchema = new Schema({
       index: "2dsphere"
     }
   },
+  tags: [String],
   alternateObjectId: mongoose.Types.ObjectId,
   socialMediaHandles: {
     type: Map,
