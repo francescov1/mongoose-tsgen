@@ -36,6 +36,12 @@ const UserSchema: UserSchema = new Schema({
     coordinates: {
       type: [Number],
       index: "2dsphere"
+    },
+    subdocWithoutDefault: {
+      type: [{
+        a: String
+      }],
+      default: undefined
     }
   },
   tags: [String],

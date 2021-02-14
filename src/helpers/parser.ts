@@ -222,7 +222,7 @@ const convertBaseTypeToTs = (key: string, val: any) => {
 };
 
 export const parseSchema = ({
-  schema,
+  schema: schemaOriginal,
   modelName,
   addModel = false,
   isDocument,
@@ -239,6 +239,7 @@ export const parseSchema = ({
   isAugmented?: boolean;
 }) => {
   let template = "";
+  const schema = _.cloneDeep(schemaOriginal);
 
   if (schema.childSchemas?.length > 0 && modelName) {
     const flatSchemaTree: any = flatten(schema.tree, { safe: true });
@@ -253,7 +254,28 @@ export const parseSchema = ({
         child.schema._isReplacedWithSchema = true;
         child.schema._inferredInterfaceName = name;
         child.schema._isSubdocArray = isSubdocArray;
+
+        /**
+         * for subdocument arrays, mongoose supports passing `default: undefined` to disable the default empty array created.
+         * here we indicate this on the child schema using _isDefaultSetToUndefined so that the parser properly sets the `isOptional` flag
+         */
+        if (isSubdocArray) {
+          const defaultValuePath = `${path}.default`;
+          if (
+            defaultValuePath in flatSchemaTree &&
+            flatSchemaTree[defaultValuePath] === undefined
+          ) {
+            child.schema._isDefaultSetToUndefined = true;
+          }
+        }
         flatSchemaTree[path] = isSubdocArray ? [child.schema] : child.schema;
+
+        // since we now will process this child by using the schema, we can remove any further nested properties in flatSchemaTree
+        for (const key in flatSchemaTree) {
+          if (key.startsWith(path) && key.length > path.length) {
+            delete flatSchemaTree[key];
+          }
+        }
 
         let header = "";
         if (isDocument)
@@ -341,10 +363,14 @@ export const parseSchema = ({
     let isOptional = !val.required;
 
     let isArray = Array.isArray(val);
+
     // this means its a subdoc
     if (isArray) {
-      isOptional = false;
       val = val[0];
+      // if _isDefaultSetToUndefined is set, it means this is a subdoc array with `default: undefined`, indicating that mongoose will not automatically
+      // assign an empty array to the value. Therefore, isOptional = true. In other cases, isOptional is false since the field will be automatically initialized
+      // with an empty array
+      isOptional = val._isDefaultSetToUndefined ?? false;
     } else if (Array.isArray(val.type)) {
       val.type = val.type[0];
       isArray = true;
