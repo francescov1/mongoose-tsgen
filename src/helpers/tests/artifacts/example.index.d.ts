@@ -23,6 +23,18 @@ _id: mongoose.Types.ObjectId;
 }
 
 /**
+ * Lean version of UserCitySubdocWithoutDefaultDocument
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from `UserDocument.toObject()`.
+ * ```
+ * const userObject = user.toObject();
+ * ```
+ */
+interface UserCitySubdocWithoutDefault {a?: string;
+_id: mongoose.Types.ObjectId;
+}
+
+/**
  * Lean version of UserDocument (type alias of `User`)
  * 
  * Use this type alias to avoid conflicts with model names:
@@ -110,6 +122,7 @@ bestFriend?: User["_id"] | User;
 friends: UserFriend[];
 city: {
 coordinates?: number[];
+subdocWithoutDefault?: UserCitySubdocWithoutDefault[];
 };
 tags: string[];
 alternateObjectId?: mongoose.Types.ObjectId;
@@ -130,6 +143,16 @@ _id: mongoose.Types.ObjectId;
 }
 
 /**
+ * Mongoose Embedded Document type
+ * 
+ * Type of `UserDocument["city.subdocWithoutDefault"]` element.
+ */
+interface UserCitySubdocWithoutDefaultDocument extends mongoose.Types.EmbeddedDocument {
+a?: string;
+_id: mongoose.Types.ObjectId;
+}
+
+/**
  * Mongoose Document type
  * 
  * Pass this type to the Mongoose Model constructor:
@@ -146,6 +169,7 @@ bestFriend?: UserDocument["_id"] | UserDocument;
 friends: mongoose.Types.DocumentArray<UserFriendDocument>;
 city: {
 coordinates?: mongoose.Types.Array<number>;
+subdocWithoutDefault?: mongoose.Types.DocumentArray<UserCitySubdocWithoutDefaultDocument>;
 };
 tags: mongoose.Types.Array<string>;
 alternateObjectId?: mongoose.Types.ObjectId;
