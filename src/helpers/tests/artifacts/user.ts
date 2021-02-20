@@ -55,7 +55,12 @@ const UserSchema: UserSchema = new Schema({
       type: Map,
       of: Number
     }
-  ]
+  ],
+  buffer: {
+    type: Buffer,
+    required: true
+  },
+  bufferString: 'Buffer'
 });
 
 // NOTE: `this: UserDocument` is required for virtual properties to tell TS the type of `this` value using the "fake this" feature

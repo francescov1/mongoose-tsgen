@@ -53,7 +53,12 @@ const UserSchema = new Schema({
       type: Map,
       of: Number
     }
-  ]
+  ],
+  buffer: {
+    type: Buffer,
+    required: true
+  },
+  bufferString: 'Buffer'
 });
 
 UserSchema.virtual("name").get(function () {
