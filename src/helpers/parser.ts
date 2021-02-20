@@ -206,6 +206,10 @@ const convertBaseTypeToTs = (key: string, val: any) => {
       case Date:
         valType = "Date";
         break;
+      case Buffer:
+      case "Buffer":
+        valType = "Buffer";
+        break;
       case mongoose.Schema.Types.ObjectId:
       case mongoose.Types.ObjectId:
       case "ObjectId": // _id fields have type set to the string "ObjectId"
@@ -409,6 +413,8 @@ export const parseSchema = ({
         Number,
         Boolean,
         Date,
+        Buffer,
+        "Buffer",
         mongoose.Schema.Types.ObjectId,
         mongoose.Types.ObjectId
       ].includes(val)
@@ -490,6 +496,8 @@ export const parseSchema = ({
     if (!valType) return "";
 
     if (isMap) valType = isDocument ? `mongoose.Types.Map<${valType}>` : `Map<string, ${valType}>`;
+
+    if (valType === "Buffer" && isDocument) valType = "mongoose.Types.Buffer";
 
     if (isArray) {
       if (isDocument)

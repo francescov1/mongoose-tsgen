@@ -126,6 +126,8 @@ tags: string[];
 alternateObjectId?: mongoose.Types.ObjectId;
 socialMediaHandles?: Map<string, string>;
 arrayOfMaps: (Map<string, number>)[];
+buffer: Buffer;
+bufferString?: Buffer;
 _id: mongoose.Types.ObjectId;
 }
 
@@ -173,6 +175,8 @@ tags: mongoose.Types.Array<string>;
 alternateObjectId?: mongoose.Types.ObjectId;
 socialMediaHandles?: mongoose.Types.Map<string>;
 arrayOfMaps: mongoose.Types.Array<mongoose.Types.Map<number>>;
+buffer: mongoose.Types.Buffer;
+bufferString?: mongoose.Types.Buffer;
 _id: mongoose.Types.ObjectId;
 name: string;
 }
