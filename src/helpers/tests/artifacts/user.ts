@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 import { UserDocument, UserModel, UserSchema, UserMethods, UserStatics, UserQueries, UserObject } from "mongoose";
 
 const { Schema } = mongoose;
@@ -60,7 +60,9 @@ const UserSchema: UserSchema = new Schema({
     type: Buffer,
     required: true
   },
-  bufferString: 'Buffer'
+  bufferString: 'Buffer',
+  decimal128: Schema.Types.Decimal128,
+  otherDecimal128: mongoose.Types.Decimal128
 });
 
 // NOTE: `this: UserDocument` is required for virtual properties to tell TS the type of `this` value using the "fake this" feature

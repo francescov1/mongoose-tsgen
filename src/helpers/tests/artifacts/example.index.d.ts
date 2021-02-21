@@ -130,6 +130,8 @@ socialMediaHandles?: Map<string, string>;
 arrayOfMaps: (Map<string, number>)[];
 buffer: Buffer;
 bufferString?: Buffer;
+decimal128?: number;
+otherDecimal128?: number;
 _id: mongoose.Types.ObjectId;
 }
 
@@ -179,6 +181,8 @@ socialMediaHandles?: mongoose.Types.Map<string>;
 arrayOfMaps: mongoose.Types.Array<mongoose.Types.Map<number>>;
 buffer: mongoose.Types.Buffer;
 bufferString?: mongoose.Types.Buffer;
+decimal128?: mongoose.Types.Decimal128;
+otherDecimal128?: mongoose.Types.Decimal128;
 _id: mongoose.Types.ObjectId;
 name: string;
 }
