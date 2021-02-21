@@ -183,7 +183,7 @@ const parseFunctions = (
   return interfaceString;
 };
 
-const convertBaseTypeToTs = (key: string, val: any) => {
+const convertBaseTypeToTs = (key: string, val: any, isDocument: boolean) => {
   let valType: string | undefined;
   // NOTE: ideally we check actual type of value to ensure its Schema.Types.Mixed (the same way we do with Schema.Types.ObjectId),
   // but this doesnt seem to work for some reason
@@ -199,6 +199,10 @@ const convertBaseTypeToTs = (key: string, val: any) => {
         break;
       case Number:
         if (key !== "__v") valType = "number";
+        break;
+      case mongoose.Schema.Types.Decimal128:
+      case mongoose.Types.Decimal128:
+        valType = isDocument ? "mongoose.Types.Decimal128" : "number";
         break;
       case Boolean:
         valType = "boolean";
@@ -416,7 +420,9 @@ export const parseSchema = ({
         Buffer,
         "Buffer",
         mongoose.Schema.Types.ObjectId,
-        mongoose.Types.ObjectId
+        mongoose.Types.ObjectId,
+        mongoose.Types.Decimal128,
+        mongoose.Schema.Types.Decimal128
       ].includes(val)
     )
       val = { type: val };
@@ -474,7 +480,7 @@ export const parseSchema = ({
     } else {
       // _ids are always required
       if (key === "_id") isOptional = false;
-      const convertedType = convertBaseTypeToTs(key, val);
+      const convertedType = convertBaseTypeToTs(key, val, isDocument);
 
       if (convertedType === "{}") {
         // if we dont find it, go one level deeper
@@ -656,7 +662,7 @@ export const generateFileString = ({
 
     // get type of _id to pass to mongoose.Document
     // not sure why schema doesnt have `tree` property
-    const _idType = convertBaseTypeToTs("_id", (schema as any).tree._id);
+    const _idType = convertBaseTypeToTs("_id", (schema as any).tree._id, true);
 
     interfaceStr += parseSchema({
       schema,

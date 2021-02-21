@@ -58,7 +58,9 @@ const UserSchema = new Schema({
     type: Buffer,
     required: true
   },
-  bufferString: 'Buffer'
+  bufferString: 'Buffer',
+  decimal128: Schema.Types.Decimal128,
+  otherDecimal128: mongoose.Types.Decimal128
 });
 
 UserSchema.virtual("name").get(function () {
