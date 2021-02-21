@@ -104,21 +104,26 @@ class MongooseTsgen extends Command {
       const schemas = parser.loadSchemas(modelsPaths);
 
       const genFilePath = paths.cleanOutputPath(flags.output);
-      const interfaceString = parser.generateFileString({
+      let sourceFile = parser.createSourceFile(genFilePath);
+
+      sourceFile = parser.generateTypes({
         schemas,
+        sourceFile,
         isAugmented: flags.augment,
         imports: flags.imports
       });
+
       cleanupTs?.();
 
       cli.action.stop();
       if (flags["dry-run"]) {
         this.log("Dry run detected, generated interfaces will be printed to console:\n");
-        this.log(interfaceString);
+        this.log(sourceFile.getFullText());
       } else {
         this.log(`Writing interfaces to ${genFilePath}`);
 
-        parser.writeOrCreateInterfaceFiles({ genFilePath, interfaceString });
+        // TODO: save project / file here
+        parser.saveFile({ genFilePath, sourceFile });
         if (!flags["no-format"]) await formatter.format([genFilePath]);
         this.log("Writing complete 🐒");
         process.exit();
