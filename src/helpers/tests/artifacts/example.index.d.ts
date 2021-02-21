@@ -132,6 +132,10 @@ buffer: Buffer;
 bufferString?: Buffer;
 decimal128?: number;
 otherDecimal128?: number;
+numberString?: number;
+stringString?: string;
+otherNumberString: number;
+otherStringString: string;
 _id: mongoose.Types.ObjectId;
 }
 
@@ -183,6 +187,10 @@ buffer: mongoose.Types.Buffer;
 bufferString?: mongoose.Types.Buffer;
 decimal128?: mongoose.Types.Decimal128;
 otherDecimal128?: mongoose.Types.Decimal128;
+numberString?: number;
+stringString?: string;
+otherNumberString: number;
+otherStringString: string;
 _id: mongoose.Types.ObjectId;
 name: string;
 }

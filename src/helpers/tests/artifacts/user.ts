@@ -62,7 +62,17 @@ const UserSchema: UserSchema = new Schema({
   },
   bufferString: 'Buffer',
   decimal128: Schema.Types.Decimal128,
-  otherDecimal128: mongoose.Types.Decimal128
+  otherDecimal128: mongoose.Types.Decimal128,
+  numberString: "Number",
+  stringString: "String",
+  otherNumberString: {
+    type: "Number",
+    required: true
+  },
+  otherStringString: {
+    type: "String",
+    required: true
+  }
 });
 
 // NOTE: `this: UserDocument` is required for virtual properties to tell TS the type of `this` value using the "fake this" feature
