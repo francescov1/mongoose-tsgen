@@ -193,11 +193,13 @@ const convertBaseTypeToTs = (key: string, val: any, isDocument: boolean) => {
     const mongooseType = val.type === Map ? val.of : val.type;
     switch (mongooseType) {
       case String:
+      case "String":
         if (val.enum?.length > 0) {
           valType = `"` + val.enum.join(`" | "`) + `"`;
         } else valType = "string";
         break;
       case Number:
+      case "Number":
         if (key !== "__v") valType = "number";
         break;
       case mongoose.Schema.Types.Decimal128:
@@ -414,7 +416,9 @@ export const parseSchema = ({
     if (
       [
         String,
+        "String",
         Number,
+        "Number",
         Boolean,
         Date,
         Buffer,
