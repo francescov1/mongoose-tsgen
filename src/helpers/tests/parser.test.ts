@@ -31,12 +31,14 @@ afterAll(cleanup);
 describe("generateTypes", () => {
   afterEach(cleanupModelsInMemory);
 
+  const genFilePath = "mtgen-test.ts";
+
   test("generate augmented file string success (js)", async () => {
     setupFolderStructure("./src/models", { js: true, augment: true });
     const modelsPath = await paths.getModelsPaths("", "js");
     const schemas = parser.loadSchemas(modelsPath);
 
-    let sourceFile = parser.createSourceFile("tmp");
+    let sourceFile = parser.createSourceFile(genFilePath);
     sourceFile = await parser.generateTypes({ schemas, isAugmented: true, sourceFile });
 
     // since we didnt load in typed functions, replace function types in expected string with the defaults.
@@ -61,7 +63,8 @@ describe("generateTypes", () => {
     parser.setFunctionTypes(functionTypes);
 
     const schemas = parser.loadSchemas(modelsPaths);
-    let sourceFile = parser.createSourceFile("tmp");
+
+    let sourceFile = parser.createSourceFile(genFilePath);
     sourceFile = await parser.generateTypes({ schemas, isAugmented: true, sourceFile });
 
     cleanupTs?.();
@@ -76,7 +79,7 @@ describe("generateTypes", () => {
     parser.setFunctionTypes(functionTypes);
 
     const schemas = parser.loadSchemas(modelsPaths);
-    let sourceFile = parser.createSourceFile("tmp");
+    let sourceFile = parser.createSourceFile(genFilePath);
     sourceFile = await parser.generateTypes({ schemas, isAugmented: false, sourceFile });
 
     cleanupTs?.();
