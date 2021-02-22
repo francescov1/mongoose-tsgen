@@ -100,6 +100,8 @@ const getDocumentDocs = (modelName: string) => `/**
 
 // TODO: simplify this conditional
 const shouldLeanIncludeVirtuals = (schema: any) => {
+  // Check the toObject options to determine if virtual property should be included.
+  // See https://mongoosejs.com/docs/api.html#document_Document-toObject for toObject option documentation.
   const toObjectOptions = schema.options?.toObject ?? {};
   if (
     (!toObjectOptions.virtuals && !toObjectOptions.getters) ||
@@ -542,9 +544,7 @@ export const parseSchema = ({
       // skip id property
       if (key === "id") return "";
 
-      // if we are typing the non-mongoose version of the document (ie isDocument = false)
-      // then check the toObject options to determine if virtual property should be included.
-      // See https://mongoosejs.com/docs/api.html#document_Document-toObject for toObject option documentation
+      // if not lean doc and lean docs shouldnt include virtuals, ignore entry
       if (!isDocument && !shouldLeanIncludeVirtuals(schema)) return "";
 
       valType = "any";
