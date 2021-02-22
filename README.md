@@ -141,7 +141,7 @@ OPTIONS
 
   --no-format            Disable formatting generated files with prettier.
 
-  --no-func-types        Disable using TS compiler API for method, static and query typings.
+  --no-func-types        Disable using TS compiler API for method, static, query & virtual typings.
 ```
 
 Specify the directory of your Mongoose schema definitions using `MODEL_PATH`. If left blank, all sub-directories will be searched for `models/*.ts` (ignores `index.ts` files). Files found are expected to export a Mongoose model. 

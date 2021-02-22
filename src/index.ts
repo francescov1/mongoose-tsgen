@@ -48,7 +48,7 @@ class MongooseTsgen extends Command {
       description: "Disable formatting generated files with prettier."
     }),
     "no-func-types": flags.boolean({
-      description: "Disable using TS compiler API for method, static and query typings."
+      description: "Disable using TS compiler API for method, static, query & virtual typings."
     })
   };
 
@@ -122,7 +122,6 @@ class MongooseTsgen extends Command {
       } else {
         this.log(`Writing interfaces to ${genFilePath}`);
 
-        // TODO: save project / file here
         parser.saveFile({ genFilePath, sourceFile });
         if (!flags["no-format"]) await formatter.format([genFilePath]);
         this.log("Writing complete 🐒");
