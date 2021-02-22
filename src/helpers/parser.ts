@@ -724,19 +724,6 @@ export const loadSchemas = (modelsPaths: string[]) => {
 export const createSourceFile = (genPath: string) => {
   const project = new Project();
   const sourceFile = project.createSourceFile(genPath, "", { overwrite: true });
-  // project.getSourceFileOrThrow("someFile.ts").delete();
-  // project.getSourceFileOrThrow("someOtherFile.ts").delete();
-
-  // ...lots of code here that manipulates, copies, moves, and deletes files...
-  // add statements
-  // const statements = sourceFile.addStatements("console.log(5);\nconsole.log(6);");
-  // insert statements (index is the child index to insert at)
-  // const statements = sourceFile.insertStatements(3, "console.log(5);\nconsole.log(6);");
-  // remove statements
-  // sourceFile.removeStatements([1, 3]); // removes statements from index 1 to 3
-  // sourceFile.removeStatement(1); // removes statement at index 1
-
-  // const statements = sourceFile.addStatements("console.log(5);\nconsole.log(6);");
   return sourceFile;
 };
 
