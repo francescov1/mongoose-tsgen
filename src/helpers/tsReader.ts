@@ -7,8 +7,8 @@ function getNameAndType(funcDeclaration: MethodDeclaration) {
   return { name, type };
 }
 
-function getFuncDeclarations(sourceFile: SourceFile) {
-  const results: Results["modelName"] = { methods: {}, statics: {}, query: {}, virtuals: {} };
+function getModelDeclarations(sourceFile: SourceFile) {
+  const results: ModelTypes["modelName"] = { methods: {}, statics: {}, query: {}, virtuals: {} };
   for (const statement of sourceFile.getStatements()) {
     if (!Node.isExpressionStatement(statement)) continue;
 
@@ -124,7 +124,7 @@ function getFuncDeclarations(sourceFile: SourceFile) {
   return results;
 }
 
-type Results = {
+type ModelTypes = {
   [modelName: string]: {
     methods: { [funcName: string]: string };
     statics: { [funcName: string]: string };
@@ -147,18 +147,18 @@ function getModelName(sourceFile: SourceFile) {
   return defaultExportAssignment.getExpression().getText();
 }
 
-export const getFunctionTypes = (modelsPaths: string[]) => {
+export const getModelTypes = (modelsPaths: string[]): ModelTypes => {
   const project = new Project({});
   project.addSourceFilesAtPaths(modelsPaths);
 
-  const results: Results = {};
+  const results: ModelTypes = {};
 
   // TODO: ideally we only parse the files that we know have methods or statics, would save a lot of time
   modelsPaths.forEach(modelPath => {
     const sourceFile = project.getSourceFileOrThrow(modelPath);
     const modelName = getModelName(sourceFile);
 
-    const { methods, statics, query, virtuals } = getFuncDeclarations(sourceFile);
+    const { methods, statics, query, virtuals } = getModelDeclarations(sourceFile);
     results[modelName] = { methods, statics, query, virtuals };
   });
 

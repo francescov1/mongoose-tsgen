@@ -352,6 +352,6 @@ export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId>
 
 ## Development
 
-- [ ] The generating piece of `src/helpers/parser.ts` needs to be rewritten using [ts-morph](https://github.com/dsherret/ts-morph). Currently it builds the interfaces by appending generated lines of code to a string sequentially, with no knowledge of the AST. This leads to pretty confusing logic, using the TS compiler API would simplify it a ton.
+- [ ] <b>In progress:</b> The generating piece of `src/helpers/parser.ts` needs to be rewritten using [ts-morph](https://github.com/dsherret/ts-morph). Currently it builds the interfaces by appending generated lines of code to a string sequentially, with no knowledge of the AST. This leads to pretty confusing logic, using the TS compiler API would simplify it a ton.
 - [ ] Add CLI option to type `_id` fields as a string rather than an ObjectId on lean version of documents (see [#7](https://github.com/Bounced-Inc/mongoose-tsgen/issues/7)).
 - [ ] Cut down node_modules by using peer dependencies (i.e. mongoose) and stripping oclif.

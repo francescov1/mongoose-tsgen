@@ -94,11 +94,6 @@ class MongooseTsgen extends Command {
       let cleanupTs: any;
       if (!flags.js) {
         cleanupTs = parser.registerUserTs(flags.project);
-
-        if (!flags["no-func-types"]) {
-          const functionTypes = tsReader.getFunctionTypes(modelsPaths);
-          parser.setFunctionTypes(functionTypes);
-        }
       }
 
       const schemas = parser.loadSchemas(modelsPaths);
@@ -112,6 +107,11 @@ class MongooseTsgen extends Command {
         isAugmented: flags.augment,
         imports: flags.imports
       });
+
+      if (!flags.js && !flags["no-func-types"]) {
+        const modelTypes = tsReader.getModelTypes(modelsPaths);
+        parser.replaceModelTypes(sourceFile, modelTypes, schemas, flags.augment);
+      }
 
       cleanupTs?.();
 

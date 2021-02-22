@@ -59,13 +59,14 @@ describe("generateTypes", () => {
     setupFolderStructure("./dist/models", { augment: true });
     const modelsPaths = await paths.getModelsPaths("");
     const cleanupTs = parser.registerUserTs("tsconfig.test.json");
-    const functionTypes = tsReader.getFunctionTypes(modelsPaths);
-    parser.setFunctionTypes(functionTypes);
 
     const schemas = parser.loadSchemas(modelsPaths);
 
     let sourceFile = parser.createSourceFile(genFilePath);
     sourceFile = await parser.generateTypes({ schemas, isAugmented: true, sourceFile });
+
+    const modelTypes = tsReader.getModelTypes(modelsPaths);
+    parser.replaceModelTypes(sourceFile, modelTypes, schemas, true);
 
     cleanupTs?.();
     expect(sourceFile.getFullText()).toBe(getExpectedInterfaceString(true));
@@ -75,12 +76,13 @@ describe("generateTypes", () => {
     setupFolderStructure("./models");
     const modelsPaths = await paths.getModelsPaths("");
     const cleanupTs = parser.registerUserTs("tsconfig.test.json");
-    const functionTypes = tsReader.getFunctionTypes(modelsPaths);
-    parser.setFunctionTypes(functionTypes);
 
     const schemas = parser.loadSchemas(modelsPaths);
     let sourceFile = parser.createSourceFile(genFilePath);
     sourceFile = await parser.generateTypes({ schemas, isAugmented: false, sourceFile });
+
+    const modelTypes = tsReader.getModelTypes(modelsPaths);
+    parser.replaceModelTypes(sourceFile, modelTypes, schemas, false);
 
     cleanupTs?.();
     expect(sourceFile.getFullText()).toBe(getExpectedInterfaceString(false));
