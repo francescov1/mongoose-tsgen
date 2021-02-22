@@ -173,9 +173,12 @@ export const replaceModelTypes = (
 ) => {
   const getRoot = () => {
     if (isAugmented)
-      return sourceFile
-        .getFirstChildByKind(SyntaxKind.ModuleDeclaration)
-        ?.getFirstChildByKind(SyntaxKind.ModuleBlock);
+      return (
+        sourceFile
+          .getFirstChildByKind(SyntaxKind.ModuleDeclaration)
+          ?.getFirstChildByKind(SyntaxKind.ModuleBlock) ?? sourceFile
+      );
+
     return sourceFile;
   };
 
