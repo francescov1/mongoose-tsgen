@@ -17,7 +17,8 @@ declare module "mongoose" {
  * const userObject = user.toObject();
  * ```
  */
-interface UserFriend {uid: User["_id"] | User;
+interface UserFriend {
+uid: User["_id"] | User;
 nickname?: string;
 _id: mongoose.Types.ObjectId;
 }
@@ -30,7 +31,8 @@ _id: mongoose.Types.ObjectId;
  * const userObject = user.toObject();
  * ```
  */
-interface UserCitySubdocWithoutDefault {a?: string;
+interface UserCitySubdocWithoutDefault {
+a?: string;
 _id: mongoose.Types.ObjectId;
 }
 

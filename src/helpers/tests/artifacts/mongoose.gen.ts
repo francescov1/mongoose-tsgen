@@ -15,7 +15,8 @@ import mongoose from "mongoose";
  * const userObject = user.toObject();
  * ```
  */
-export interface UserFriend {uid: User["_id"] | User;
+export interface UserFriend {
+uid: User["_id"] | User;
 nickname?: string;
 _id: mongoose.Types.ObjectId;
 }
@@ -28,7 +29,8 @@ _id: mongoose.Types.ObjectId;
  * const userObject = user.toObject();
  * ```
  */
-export interface UserCitySubdocWithoutDefault {a?: string;
+export interface UserCitySubdocWithoutDefault {
+a?: string;
 _id: mongoose.Types.ObjectId;
 }
 

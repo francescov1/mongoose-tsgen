@@ -28,14 +28,18 @@ function cleanupModelsInMemory() {
 beforeEach(cleanup);
 afterAll(cleanup);
 
-describe("generateFileString", () => {
+describe("generateTypes", () => {
   afterEach(cleanupModelsInMemory);
+
+  const genFilePath = "mtgen-test.ts";
 
   test("generate augmented file string success (js)", async () => {
     setupFolderStructure("./src/models", { js: true, augment: true });
     const modelsPath = await paths.getModelsPaths("", "js");
     const schemas = parser.loadSchemas(modelsPath);
-    const fileString = await parser.generateFileString({ schemas, isAugmented: true });
+
+    let sourceFile = parser.createSourceFile(genFilePath);
+    sourceFile = await parser.generateTypes({ schemas, isAugmented: true, sourceFile });
 
     // since we didnt load in typed functions, replace function types in expected string with the defaults.
     let expectedString = getExpectedInterfaceString(true);
@@ -48,32 +52,39 @@ describe("generateFileString", () => {
       .replace("(this: Q) => Q", "(this: Q, ...args: any[]) => Q")
       .replace("name: string", "name: any");
 
-    expect(fileString).toBe(expectedString);
+    expect(sourceFile.getFullText()).toBe(expectedString);
   });
 
   test("generate augmented file string success (ts)", async () => {
     setupFolderStructure("./dist/models", { augment: true });
     const modelsPaths = await paths.getModelsPaths("");
     const cleanupTs = parser.registerUserTs("tsconfig.test.json");
-    const functionTypes = tsReader.getFunctionTypes(modelsPaths);
-    parser.setFunctionTypes(functionTypes);
 
     const schemas = parser.loadSchemas(modelsPaths);
-    const fileString = await parser.generateFileString({ schemas, isAugmented: true });
+
+    let sourceFile = parser.createSourceFile(genFilePath);
+    sourceFile = await parser.generateTypes({ schemas, isAugmented: true, sourceFile });
+
+    const modelTypes = tsReader.getModelTypes(modelsPaths);
+    parser.replaceModelTypes(sourceFile, modelTypes, schemas, true);
+
     cleanupTs?.();
-    expect(fileString).toBe(getExpectedInterfaceString(true));
+    expect(sourceFile.getFullText()).toBe(getExpectedInterfaceString(true));
   });
 
   test("generate unaugmented file string success (ts)", async () => {
     setupFolderStructure("./models");
     const modelsPaths = await paths.getModelsPaths("");
     const cleanupTs = parser.registerUserTs("tsconfig.test.json");
-    const functionTypes = tsReader.getFunctionTypes(modelsPaths);
-    parser.setFunctionTypes(functionTypes);
 
     const schemas = parser.loadSchemas(modelsPaths);
-    const fileString = await parser.generateFileString({ schemas, isAugmented: false });
+    let sourceFile = parser.createSourceFile(genFilePath);
+    sourceFile = await parser.generateTypes({ schemas, isAugmented: false, sourceFile });
+
+    const modelTypes = tsReader.getModelTypes(modelsPaths);
+    parser.replaceModelTypes(sourceFile, modelTypes, schemas, false);
+
     cleanupTs?.();
-    expect(fileString).toBe(getExpectedInterfaceString(false));
+    expect(sourceFile.getFullText()).toBe(getExpectedInterfaceString(false));
   });
 });

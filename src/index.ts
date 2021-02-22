@@ -48,7 +48,7 @@ class MongooseTsgen extends Command {
       description: "Disable formatting generated files with prettier."
     }),
     "no-func-types": flags.boolean({
-      description: "Disable using TS compiler API for method, static and query typings."
+      description: "Disable using TS compiler API for method, static, query & virtual typings."
     })
   };
 
@@ -94,31 +94,35 @@ class MongooseTsgen extends Command {
       let cleanupTs: any;
       if (!flags.js) {
         cleanupTs = parser.registerUserTs(flags.project);
-
-        if (!flags["no-func-types"]) {
-          const functionTypes = tsReader.getFunctionTypes(modelsPaths);
-          parser.setFunctionTypes(functionTypes);
-        }
       }
 
       const schemas = parser.loadSchemas(modelsPaths);
 
       const genFilePath = paths.cleanOutputPath(flags.output);
-      const interfaceString = parser.generateFileString({
+      let sourceFile = parser.createSourceFile(genFilePath);
+
+      sourceFile = parser.generateTypes({
         schemas,
+        sourceFile,
         isAugmented: flags.augment,
         imports: flags.imports
       });
+
+      if (!flags.js && !flags["no-func-types"]) {
+        const modelTypes = tsReader.getModelTypes(modelsPaths);
+        parser.replaceModelTypes(sourceFile, modelTypes, schemas, flags.augment);
+      }
+
       cleanupTs?.();
 
       cli.action.stop();
       if (flags["dry-run"]) {
         this.log("Dry run detected, generated interfaces will be printed to console:\n");
-        this.log(interfaceString);
+        this.log(sourceFile.getFullText());
       } else {
         this.log(`Writing interfaces to ${genFilePath}`);
 
-        parser.writeOrCreateInterfaceFiles({ genFilePath, interfaceString });
+        parser.saveFile({ genFilePath, sourceFile });
         if (!flags["no-format"]) await formatter.format([genFilePath]);
         this.log("Writing complete 🐒");
         process.exit();
