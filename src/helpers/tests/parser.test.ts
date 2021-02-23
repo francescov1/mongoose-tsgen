@@ -90,58 +90,45 @@ describe("generateTypes", () => {
 });
 
 describe("getParseKeyFn", () => {
-  test("handles untyped Array equivalents as `any[]`", () => {
+  test.only("handles untyped Array equivalents as `any[]`", () => {
     // see https://mongoosejs.com/docs/schematypes.html#arrays
-    const parseKey = parser.getParseKeyFn(false, {}, "foo");
+    const parseKey = parser.getParseKeyFn(false, {
+      test1a: { type: [mongoose.Schema.Types.Mixed], default: undefined }
+    });
 
-    {
-      const arrayResult = parseKey("test", { type: [mongoose.Schema.Types.Mixed] });
-      expect(arrayResult).toBe("test?: any[];\n");
-    }
+    expect(parseKey("test1a", { type: [mongoose.Schema.Types.Mixed] })).toBe("test1a: any[];\n");
+    expect(parseKey("test1b", [mongoose.Schema.Types.Mixed])).toBe("test1b: any[];\n");
 
-    {
-      const arrayResult = parseKey("test", []);
-      expect(arrayResult).toBe("test?: any[];\n");
-    }
+    expect(parseKey("test2a", { type: [] })).toBe("test2a: any[];\n");
+    expect(parseKey("test2b", [])).toBe("test2b: any[];\n");
 
-    {
-      const arrayResult = parseKey("test", { type: [] });
-      expect(arrayResult).toBe("test?: any[];\n");
-    }
+    expect(parseKey("test3a", { type: Array })).toBe("test3a: any[];\n");
+    expect(parseKey("test3b", Array)).toBe("test3b: any[];\n");
 
-    {
-      const arrayResult = parseKey("test", { type: Array });
-      expect(arrayResult).toBe("test?: any[];\n");
-    }
-
-    {
-      const arrayResult = parseKey("test", { type: [{}] });
-      expect(arrayResult).toBe("test?: any[];\n");
-    }
+    expect(parseKey("test4a", { type: [{}] })).toBe("test4a: any[];\n");
+    expect(parseKey("test4b", [{}])).toBe("test4b: any[];\n");
   });
 
   test("handles Object equivalents as `any`", () => {
     // see https://mongoosejs.com/docs/schematypes.html#mixed
-    const parseKey = parser.getParseKeyFn(false, {}, "foo");
+    const parseKey = parser.getParseKeyFn(false, {});
 
-    {
-      const objectResult = parseKey("test", { type: mongoose.Schema.Types.Mixed });
-      expect(objectResult).toBe("test?: any;\n");
-    }
+    expect(parseKey("test1a", { type: mongoose.Schema.Types.Mixed })).toBe("test1a?: any;\n");
+    expect(parseKey("test1b", mongoose.Schema.Types.Mixed)).toBe("test1b?: any;\n");
+    expect(parseKey("test1c", { type: mongoose.Schema.Types.Mixed, required: true })).toBe(
+      "test1c: any;\n"
+    );
 
-    {
-      const objectResult = parseKey("test", { type: mongoose.Mixed });
-      expect(objectResult).toBe("test?: any;\n");
-    }
+    expect(parseKey("test2a", { type: mongoose.Mixed })).toBe("test2a?: any;\n");
+    expect(parseKey("test2b", mongoose.Mixed)).toBe("test2b?: any;\n");
+    expect(parseKey("test2c", { type: mongoose.Mixed, required: true })).toBe("test2c: any;\n");
 
-    {
-      const objectResult = parseKey("test", { type: {} });
-      expect(objectResult).toBe("test?: any;\n");
-    }
+    expect(parseKey("test3a", { type: {} })).toBe("test3a?: any;\n");
+    expect(parseKey("test3b", {})).toBe("test3b?: any;\n");
+    expect(parseKey("test3c", { type: {}, required: true })).toBe("test3c: any;\n");
 
-    {
-      const objectResult = parseKey("test", { type: Object });
-      expect(objectResult).toBe("test?: any;\n");
-    }
+    expect(parseKey("test4a", { type: Object })).toBe("test4a?: any;\n");
+    expect(parseKey("test4b", Object)).toBe("test4b?: any;\n");
+    expect(parseKey("test4c", { type: Object, required: true })).toBe("test4c: any;\n");
   });
 });

@@ -501,17 +501,20 @@ export const getParseKeyFn = (isDocument: boolean, schema: any) => {
 
     let isArray = Array.isArray(val);
     let isUntypedArray = false;
+    /**
+     * If _isDefaultSetToUndefined is set, it means this is a subdoc array with `default: undefined`, indicating that mongoose will not automatically
+     * assign an empty array to the value. Therefore, isOptional = true. In other cases, isOptional is false since the field will be automatically initialized
+     * with an empty array
+     */
+    const isArrayOuterDefaultSetToUndefined = Boolean(val._isDefaultSetToUndefined);
 
     // this means its a subdoc
     if (isArray) {
       val = val[0];
       if (val === undefined && val?.type === undefined) {
         isUntypedArray = true;
-        isOptional = true;
+        isOptional = isArrayOuterDefaultSetToUndefined ?? false;
       } else {
-        // if _isDefaultSetToUndefined is set, it means this is a subdoc array with `default: undefined`, indicating that mongoose will not automatically
-        // assign an empty array to the value. Therefore, isOptional = true. In other cases, isOptional is false since the field will be automatically initialized
-        // with an empty array
         isOptional = val._isDefaultSetToUndefined ?? false;
       }
     } else if (Array.isArray(val.type)) {
@@ -520,7 +523,7 @@ export const getParseKeyFn = (isDocument: boolean, schema: any) => {
 
       if (val.type === undefined) {
         isUntypedArray = true;
-        isOptional = true;
+        isOptional = isArrayOuterDefaultSetToUndefined ?? false;
       } else if (val.type.type) {
         /**
          * Arrays can also take the following format.
@@ -545,12 +548,15 @@ export const getParseKeyFn = (isDocument: boolean, schema: any) => {
         if (val.type.ref) val.ref = val.type.ref;
         val.type = val.type.type;
         isOptional = false;
+      } else {
+        isOptional = isArrayOuterDefaultSetToUndefined ?? false;
       }
     }
 
     // if type is provided directly on property, expand it
     if (
       [
+        Object,
         String,
         "String",
         Number,
@@ -573,6 +579,7 @@ export const getParseKeyFn = (isDocument: boolean, schema: any) => {
       // treat Array constructor and [] as an Array<Mixed>
       isArray = true;
       valType = "any";
+      isOptional = isArrayOuterDefaultSetToUndefined ?? false;
     } else if (val._inferredInterfaceName) {
       valType = val._inferredInterfaceName + (isDocument ? "Document" : "");
     } else if (val.path && val.path && val.setters && val.getters) {
