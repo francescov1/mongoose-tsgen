@@ -88,3 +88,60 @@ describe("generateTypes", () => {
     expect(sourceFile.getFullText()).toBe(getExpectedInterfaceString(false));
   });
 });
+
+describe("getParseKeyFn", () => {
+  test("handles untyped Array equivalents as `any[]`", () => {
+    // see https://mongoosejs.com/docs/schematypes.html#arrays
+    const parseKey = parser.getParseKeyFn(false, {}, "foo");
+
+    {
+      const arrayResult = parseKey("test", { type: [mongoose.Schema.Types.Mixed] });
+      expect(arrayResult).toBe("test?: any[];\n");
+    }
+
+    {
+      const arrayResult = parseKey("test", []);
+      expect(arrayResult).toBe("test?: any[];\n");
+    }
+
+    {
+      const arrayResult = parseKey("test", { type: [] });
+      expect(arrayResult).toBe("test?: any[];\n");
+    }
+
+    {
+      const arrayResult = parseKey("test", { type: Array });
+      expect(arrayResult).toBe("test?: any[];\n");
+    }
+
+    {
+      const arrayResult = parseKey("test", { type: [{}] });
+      expect(arrayResult).toBe("test?: any[];\n");
+    }
+  });
+
+  test("handles Object equivalents as `any`", () => {
+    // see https://mongoosejs.com/docs/schematypes.html#mixed
+    const parseKey = parser.getParseKeyFn(false, {}, "foo");
+
+    {
+      const objectResult = parseKey("test", { type: mongoose.Schema.Types.Mixed });
+      expect(objectResult).toBe("test?: any;\n");
+    }
+
+    {
+      const objectResult = parseKey("test", { type: mongoose.Mixed });
+      expect(objectResult).toBe("test?: any;\n");
+    }
+
+    {
+      const objectResult = parseKey("test", { type: {} });
+      expect(objectResult).toBe("test?: any;\n");
+    }
+
+    {
+      const objectResult = parseKey("test", { type: Object });
+      expect(objectResult).toBe("test?: any;\n");
+    }
+  });
+});
