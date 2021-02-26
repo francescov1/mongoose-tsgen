@@ -90,7 +90,7 @@ describe("generateTypes", () => {
 });
 
 describe("getParseKeyFn", () => {
-  test.only("handles untyped Array equivalents as `any[]`", () => {
+  test("handles untyped Array equivalents as `any[]`", () => {
     // see https://mongoosejs.com/docs/schematypes.html#arrays
     const parseKey = parser.getParseKeyFn(false, {
       test1a: { type: [mongoose.Schema.Types.Mixed], default: undefined }

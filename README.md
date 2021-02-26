@@ -232,8 +232,7 @@ const UserSchema: UserSchema = new Schema({
   ],
   city: {
     coordinates: {
-      type: [Number],
-      index: "2dsphere"
+      type: [Number]
     }
   }
 });
@@ -323,7 +322,7 @@ export interface User {
   bestFriend?: User["_id"] | User;
   friends: UserFriend[];
   city: {
-    coordinates?: number[];
+    coordinates: number[];
   };
   _id: mongoose.Types.ObjectId;
 }
@@ -343,7 +342,7 @@ export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId>
     bestFriend?: UserDocument["_id"] | UserDocument;
     friends: mongoose.Types.DocumentArray<UserFriendDocument>;
     city: {
-      coordinates?: mongoose.Types.Array<number>;
+      coordinates: mongoose.Types.Array<number>;
     };
     name: string;
     _id: mongoose.Types.ObjectId;

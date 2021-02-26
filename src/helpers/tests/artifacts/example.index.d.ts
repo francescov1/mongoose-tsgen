@@ -123,7 +123,7 @@ metadata?: any;
 bestFriend?: User["_id"] | User;
 friends: UserFriend[];
 city: {
-coordinates?: number[];
+coordinates: number[];
 subdocWithoutDefault?: UserCitySubdocWithoutDefault[];
 };
 tags: string[];
@@ -178,7 +178,7 @@ metadata?: any;
 bestFriend?: UserDocument["_id"] | UserDocument;
 friends: mongoose.Types.DocumentArray<UserFriendDocument>;
 city: {
-coordinates?: mongoose.Types.Array<number>;
+coordinates: mongoose.Types.Array<number>;
 subdocWithoutDefault?: mongoose.Types.DocumentArray<UserCitySubdocWithoutDefaultDocument>;
 };
 tags: mongoose.Types.Array<string>;
