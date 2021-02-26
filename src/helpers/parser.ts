@@ -290,7 +290,13 @@ const convertBaseTypeToTs = (key: string, val: any, isDocument: boolean) => {
   let valType: string | undefined;
   // NOTE: ideally we check actual type of value to ensure its Schema.Types.Mixed (the same way we do with Schema.Types.ObjectId),
   // but this doesnt seem to work for some reason
-  if (val.schemaName === "Mixed" || val.type?.schemaName === "Mixed") {
+  // {} is treated as Mixed
+  if (
+    val.schemaName === "Mixed" ||
+    val.type?.schemaName === "Mixed" ||
+    (val.constructor === Object && _.isEmpty(val)) ||
+    (val.type?.constructor === Object && _.isEmpty(val.type))
+  ) {
     valType = "any";
   } else {
     const mongooseType = val.type === Map ? val.of : val.type;
@@ -323,6 +329,9 @@ const convertBaseTypeToTs = (key: string, val: any, isDocument: boolean) => {
       case mongoose.Types.ObjectId:
       case "ObjectId": // _id fields have type set to the string "ObjectId"
         valType = "mongoose.Types.ObjectId";
+        break;
+      case Object:
+        valType = "any";
         break;
       default:
         // this indicates to the parent func that this type is nested and we need to traverse one level deeper
@@ -468,7 +477,22 @@ export const parseSchema = ({
 
   const schemaTree = schema.tree;
 
-  const parseKey = (key: string, valOriginal: any): string => {
+  // parseSchema and getParseKeyFn call each other - both are exported consts
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  const parseKey = getParseKeyFn(isDocument, schema);
+
+  Object.keys(schemaTree).forEach((key: string) => {
+    const val = schemaTree[key];
+    template += parseKey(key, val);
+  });
+
+  template += footer;
+
+  return template;
+};
+
+export const getParseKeyFn = (isDocument: boolean, schema: any) => {
+  return (key: string, valOriginal: any): string => {
     // if the value is an object, we need to deepClone it to ensure changes to `val` aren't persisted in parent function
     let val = _.isPlainObject(valOriginal) ? _.cloneDeep(valOriginal) : valOriginal;
 
@@ -476,48 +500,63 @@ export const parseSchema = ({
     let isOptional = !val.required;
 
     let isArray = Array.isArray(val);
+    let isUntypedArray = false;
+    /**
+     * If _isDefaultSetToUndefined is set, it means this is a subdoc array with `default: undefined`, indicating that mongoose will not automatically
+     * assign an empty array to the value. Therefore, isOptional = true. In other cases, isOptional is false since the field will be automatically initialized
+     * with an empty array
+     */
+    const isArrayOuterDefaultSetToUndefined = Boolean(val._isDefaultSetToUndefined);
 
     // this means its a subdoc
     if (isArray) {
       val = val[0];
-      // if _isDefaultSetToUndefined is set, it means this is a subdoc array with `default: undefined`, indicating that mongoose will not automatically
-      // assign an empty array to the value. Therefore, isOptional = true. In other cases, isOptional is false since the field will be automatically initialized
-      // with an empty array
-      isOptional = val._isDefaultSetToUndefined ?? false;
+      if (val === undefined && val?.type === undefined) {
+        isUntypedArray = true;
+        isOptional = isArrayOuterDefaultSetToUndefined ?? false;
+      } else {
+        isOptional = val._isDefaultSetToUndefined ?? false;
+      }
     } else if (Array.isArray(val.type)) {
       val.type = val.type[0];
       isArray = true;
 
-      /**
-       * Arrays can also take the following format.
-       * This is used when validation needs to be done on both the element itself and the full array.
-       * This format implies `required: true`.
-       *
-       * ```
-       * friends: {
-       *   type: [
-       *     {
-       *       type: Schema.Types.ObjectId,
-       *       ref: "User",
-       *       validate: [
-       *         function(userId: mongoose.Types.ObjectId) { return !this.friends.includes(userId); }
-       *       ]
-       *     }
-       *   ],
-       *   validate: [function(val) { return val.length <= 3; } ]
-       * }
-       * ```
-       */
-      if (val.type.type) {
+      if (val.type === undefined) {
+        isUntypedArray = true;
+        isOptional = isArrayOuterDefaultSetToUndefined ?? false;
+      } else if (val.type.type) {
+        /**
+         * Arrays can also take the following format.
+         * This is used when validation needs to be done on both the element itself and the full array.
+         * This format implies `required: true`.
+         *
+         * ```
+         * friends: {
+         *   type: [
+         *     {
+         *       type: Schema.Types.ObjectId,
+         *       ref: "User",
+         *       validate: [
+         *         function(userId: mongoose.Types.ObjectId) { return !this.friends.includes(userId); }
+         *       ]
+         *     }
+         *   ],
+         *   validate: [function(val) { return val.length <= 3; } ]
+         * }
+         * ```
+         */
         if (val.type.ref) val.ref = val.type.ref;
         val.type = val.type.type;
         isOptional = false;
+      } else {
+        isOptional = isArrayOuterDefaultSetToUndefined ?? false;
       }
     }
 
     // if type is provided directly on property, expand it
     if (
       [
+        Object,
         String,
         "String",
         Number,
@@ -534,13 +573,17 @@ export const parseSchema = ({
     )
       val = { type: val };
 
-    const isMap = val.type === Map;
+    const isMap = val?.type === Map;
 
-    if (val._inferredInterfaceName) {
+    if (val === Array || val?.type === Array || isUntypedArray) {
+      // treat Array constructor and [] as an Array<Mixed>
+      isArray = true;
+      valType = "any";
+      isOptional = isArrayOuterDefaultSetToUndefined ?? false;
+    } else if (val._inferredInterfaceName) {
       valType = val._inferredInterfaceName + (isDocument ? "Document" : "");
-    }
-    // check for virtual properties
-    else if (val.path && val.path && val.setters && val.getters) {
+    } else if (val.path && val.path && val.setters && val.getters) {
+      // check for virtual properties
       // skip id property
       if (key === "id") return "";
 
@@ -615,15 +658,6 @@ export const parseSchema = ({
 
     return makeLine({ key, val: valType, isOptional });
   };
-
-  Object.keys(schemaTree).forEach((key: string) => {
-    const val = schemaTree[key];
-    template += parseKey(key, val);
-  });
-
-  template += footer;
-
-  return template;
 };
 
 export const registerUserTs = (basePath: string): (() => void) | null => {
