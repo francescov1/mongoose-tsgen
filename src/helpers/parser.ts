@@ -549,7 +549,8 @@ export const getParseKeyFn = (isDocument: boolean, schema: any) => {
         val.type = val.type.type;
         isOptional = false;
       } else {
-        isOptional = isArrayOuterDefaultSetToUndefined ?? false;
+        // 2dsphere index is a special edge case which does not have an inherent default value of []
+        isOptional = val.index === "2dsphere" ? true : isArrayOuterDefaultSetToUndefined;
       }
     }
 

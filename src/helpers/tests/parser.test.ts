@@ -131,4 +131,13 @@ describe("getParseKeyFn", () => {
     expect(parseKey("test4b", Object)).toBe("test4b?: any;\n");
     expect(parseKey("test4c", { type: Object, required: true })).toBe("test4c: any;\n");
   });
+
+  test("handles 2dsphere index edge case", () => {
+    const parseKey = parser.getParseKeyFn(false, {});
+
+    // should be optional; not required like normal arrays
+    expect(parseKey("test1a", { type: [Number], index: "2dsphere" })).toBe("test1a?: number[];\n");
+    // should be required, as usual
+    expect(parseKey("test2a", { type: [Number] })).toBe("test2a: number[];\n");
+  });
 });
