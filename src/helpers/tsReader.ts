@@ -134,9 +134,17 @@ type ModelTypes = {
 };
 
 function getModelName(sourceFile: SourceFile) {
+  // get variable declarations (for when we want to support more than 1 model per file)
+  // const variableDecls = sourceFile.getVariableDeclarations().filter(d => {
+  //   console.log("Name: " + d.getName())
+  //   return d.hasExportKeyword();
+  // })
+
+  // TODO: first find model initialization using the model name from parser. Then, use that to find schema name, and eventually use that to
+  // segment methods & statics
+
   const defaultExportAssignment = sourceFile.getExportAssignment(d => !d.isExportEquals());
   if (!defaultExportAssignment) {
-    // TODO: if no default, check all exports and compare to filename until a match is found
     throw new Error(
       "No default export found in file: " +
         sourceFile.getFilePath() +
