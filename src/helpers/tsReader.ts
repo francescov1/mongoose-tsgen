@@ -49,10 +49,7 @@ function findTypesInFile(sourceFile: SourceFile, modelTypes: ModelTypes) {
         if (child.getKind() !== SyntaxKind.Identifier) return false;
 
         modelName = schemaModelMapping[child.getText()];
-        if (!modelName) {
-          console.warn("schema name not found: " + child.getText());
-          return false;
-        }
+        if (!modelName) return false;
 
         return true;
       });
@@ -110,26 +107,17 @@ function findTypesInFile(sourceFile: SourceFile, modelTypes: ModelTypes) {
           ?.getFirstChildByKind(SyntaxKind.PropertyAccessExpression);
       }
 
-      if (propAccessExpr?.getName() !== "get") {
-        console.warn("property access expr not get: " + propAccessExpr?.getName());
-        continue;
-      }
+      if (propAccessExpr?.getName() !== "get") continue;
 
       const schemaVariableName = propAccessExpr
         .getFirstChildByKind(SyntaxKind.CallExpression)
         ?.getFirstChildByKind(SyntaxKind.PropertyAccessExpression)
         ?.getFirstChildByKind(SyntaxKind.Identifier)
         ?.getText();
-      if (!schemaVariableName) {
-        console.warn("Could not find schema name for virtual: " + callExpr?.getText());
-        continue;
-      }
+      if (!schemaVariableName) continue;
 
       const modelName = schemaModelMapping[schemaVariableName];
-      if (!modelName) {
-        console.warn("No model name found for schemaVariableName: " + schemaVariableName);
-        continue;
-      }
+      if (!modelName) continue;
 
       const funcExpr = callExpr.getFirstChildByKind(SyntaxKind.FunctionExpression);
 
@@ -185,17 +173,16 @@ const parseModelInitializer = (
   isModelNamedImport: boolean
 ) => {
   const callExpr = d.getFirstChildByKind(SyntaxKind.CallExpression);
-  const callExprStr = callExpr?.getText().replace(/[\r\n\t ]/g, "");
+  if (!callExpr) return undefined;
+
+  const callExprStr = callExpr.getText().replace(/[\r\n\t ]/g, "");
 
   // if model is a named import, we can match this without `mongoose.` prefix
   const pattern = isModelNamedImport ?
     /model(?:<\w+,\w+>)?\(["'`](\w+)["'`],(\w+)\)/ :
     /mongoose\.model(?:<\w+,\w+>)?\(["'`](\w+)["'`],(\w+)\)/;
-  const modelInitMatch = callExprStr?.match(pattern);
-  if (!modelInitMatch) {
-    console.warn("Failed regex match on: " + callExprStr);
-    return undefined;
-  }
+  const modelInitMatch = callExprStr.match(pattern);
+  if (!modelInitMatch) return undefined;
 
   const [, modelName, schemaVariableName] = modelInitMatch;
   return { modelName, schemaVariableName };

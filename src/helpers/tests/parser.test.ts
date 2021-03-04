@@ -6,7 +6,6 @@ import * as tsReader from "../tsReader";
 const fs = require("fs");
 const path = require("path");
 const mongoose = require("mongoose");
-// isAugmented ? "" : ""
 function getExpectedString(filename: string) {
   return fs.readFileSync(path.join(__dirname, `artifacts/${filename}`), "utf8");
 }
@@ -16,8 +15,6 @@ function cleanupModelsInMemory() {
   delete mongoose.connection.collections.users;
   delete mongoose.modelSchemas.User;
 }
-
-// TODO: test writeOrCreateInterfaceFiles
 
 // these tests are more integration tests than unit - should split them out
 
