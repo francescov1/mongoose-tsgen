@@ -422,7 +422,10 @@ export const parseSchema = ({
             if ((schema as any).tree._id)
               _idType = convertBaseTypeToTs("_id", (schema as any).tree._id, true);
 
-            header += `mongoose.Document<${_idType ?? "never"}>`; // NOTE: ideally this extends `${name}Methods` like normal docs, but generator will only have methods, statics, etc. under the model name, not the subdoc model name
+            // TODO: this should extend `${name}Methods` like normal docs, but generator will only have methods, statics, etc. under the model name, not the subdoc model name
+            // so after this is generated, we should do a pass and see if there are any child schemas that have non-subdoc definitions.
+            // or could just wait until we dont need duplicate subdoc versions of docs (use the same one for both embedded doc and non-subdoc)
+            header += `mongoose.Document<${_idType ?? "never"}>`;
           }
 
           header += " {\n";
