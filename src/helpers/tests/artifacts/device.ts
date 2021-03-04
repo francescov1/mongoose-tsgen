@@ -5,9 +5,11 @@ const homeSchema = new Schema(
   {
     homeId: String,
     homeName: String,
+  },
+  {
+      _id: false
   }
 );
-
 
 const DeviceSchema = new Schema({
   name: String,

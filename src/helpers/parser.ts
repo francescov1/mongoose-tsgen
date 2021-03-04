@@ -408,13 +408,25 @@ export const parseSchema = ({
         else header += getLeanDocs(rootPath, name);
 
         header += isAugmented ? "\n" : "\nexport ";
-        if (isDocument)
-          header += `interface ${name}Document extends ${
-            isSubdocArray ?
-              "mongoose.Types.EmbeddedDocument" :
-              `mongoose.Document<mongoose.Types.ObjectId>, ${name}Methods`
-          } {\n`;
-        else header += `interface ${name} {\n`;
+
+        if (isDocument) {
+          header += `interface ${name}Document extends `;
+          if (isSubdocArray) {
+            header += "mongoose.Types.EmbeddedDocument";
+          }
+          // not sure why schema doesnt have `tree` property for typings
+          else {
+            let _idType;
+            // get type of _id to pass to mongoose.Document
+            // this is likely unecessary, since non-subdocs are not allowed to have option _id: false (https://mongoosejs.com/docs/guide.html#_id)
+            if ((schema as any).tree._id)
+              _idType = convertBaseTypeToTs("_id", (schema as any).tree._id, true);
+
+            header += `mongoose.Document<${_idType ?? "never"}>`; // NOTE: ideally this extends `${name}Methods` like normal docs, but generator will only have methods, statics, etc. under the model name, not the subdoc model name
+          }
+
+          header += " {\n";
+        } else header += `interface ${name} {\n`;
 
         childInterfaces += parseSchema({
           schema: child.schema,
@@ -820,8 +832,13 @@ export const generateTypes = ({
       writer.write(leanInterfaceStr).blankLine();
 
       // get type of _id to pass to mongoose.Document
-      // not sure why schema doesnt have `tree` property
-      const _idType = convertBaseTypeToTs("_id", (schema as any).tree._id, true);
+      // not sure why schema doesnt have `tree` property for typings
+      let _idType;
+      if ((schema as any).tree._id) {
+        _idType = convertBaseTypeToTs("_id", (schema as any).tree._id, true);
+      }
+
+      const mongooseDocExtend = `mongoose.Document<${_idType ?? "never"}>`;
 
       const documentInterfaceStr = parseSchema({
         schema,
@@ -832,7 +849,7 @@ export const generateTypes = ({
           getDocumentDocs(modelName) +
           `\n${
             isAugmented ? "" : "export "
-          }interface ${modelName}Document extends mongoose.Document<${_idType}>, ${modelName}Methods {\n`,
+          }interface ${modelName}Document extends ${mongooseDocExtend}, ${modelName}Methods {\n`,
         footer: "}",
         isAugmented
       });
