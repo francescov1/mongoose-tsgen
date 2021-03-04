@@ -6,22 +6,16 @@ const path = require("path");
 export const setupFolderStructure = (
   relPath: string,
   {
-    index = true,
     model = true,
     typeFile = false,
     js = false,
     augment = false
-  }: { index?: boolean; model?: boolean; typeFile?: boolean; js?: boolean; augment?: boolean } = {}
+  }: { model?: boolean; typeFile?: boolean; js?: boolean; augment?: boolean } = {}
 ) => {
   const absPath = path.join(__dirname, relPath);
   mkdirp.sync(absPath);
 
   const extension = js ? "js" : "ts";
-  if (index)
-    fs.copyFileSync(
-      path.join(__dirname, `artifacts/index.${extension}`),
-      path.join(absPath, `index.${extension}`)
-    );
   if (model)
     fs.copyFileSync(
       path.join(__dirname, `artifacts/user.${extension}`),
@@ -29,8 +23,6 @@ export const setupFolderStructure = (
     );
   if (typeFile) {
     const filename = augment ? "augmentedUser.gen.ts" : "user.gen.ts";
-    console.log("augment: ", augment);
-    console.log("filename: ", filename);
     fs.copyFileSync(path.join(__dirname, `artifacts/${filename}`), path.join(absPath, filename));
   }
 };

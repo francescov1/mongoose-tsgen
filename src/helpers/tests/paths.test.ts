@@ -10,7 +10,7 @@ afterAll(cleanup);
 
 describe("getModelsPaths", () => {
   test("./dist/models (js)", async () => {
-    setupFolderStructure("./dist/models", { index: false, js: true });
+    setupFolderStructure("./dist/models", { js: true });
     // here the returned value should be an array containing paths of each individual schema
     const expected = [path.join(__dirname, "dist/models/user.js")];
 
@@ -28,7 +28,7 @@ describe("getModelsPaths", () => {
   });
 
   test("./dist/models (ts)", async () => {
-    setupFolderStructure("./dist/models", { index: false });
+    setupFolderStructure("./dist/models");
     // here the returned value should be an array containing paths of each individual schema
     const expected = [path.join(__dirname, "dist/models/user.ts")];
 
@@ -44,7 +44,7 @@ describe("getModelsPaths", () => {
   });
 
   test("./models (js)", async () => {
-    setupFolderStructure("./models", { index: false, js: true });
+    setupFolderStructure("./models", { js: true });
     // here the returned value should be an array containing paths of each individual schema
     const expected = [path.join(__dirname, "models/user.js")];
 
@@ -59,7 +59,7 @@ describe("getModelsPaths", () => {
   });
 
   test("./models (ts)", async () => {
-    setupFolderStructure("./models", { index: false });
+    setupFolderStructure("./models");
     // here the returned value should be an array containing paths of each individual schema
     const expected = [path.join(__dirname, "models/user.ts")];
 
