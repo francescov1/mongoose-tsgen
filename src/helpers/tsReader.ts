@@ -266,7 +266,5 @@ export const getModelTypes = (modelsPaths: string[]): ModelTypes => {
     };
   });
 
-  console.log(allModelTypes);
-
   return allModelTypes;
 };

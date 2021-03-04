@@ -28,7 +28,7 @@ export const setupFolderStructure = (
       path.join(absPath, `user.${extension}`)
     );
   if (typeFile) {
-    const filename = augment ? "example.index.d.ts" : "mongoose.gen.ts";
+    const filename = augment ? "augmentedUser.gen.ts" : "user.gen.ts";
     console.log("augment: ", augment);
     console.log("filename: ", filename);
     fs.copyFileSync(path.join(__dirname, `artifacts/${filename}`), path.join(absPath, filename));
