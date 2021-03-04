@@ -6,31 +6,23 @@ const path = require("path");
 export const setupFolderStructure = (
   relPath: string,
   {
-    index = true,
     model = true,
     typeFile = false,
     js = false,
     augment = false
-  }: { index?: boolean; model?: boolean; typeFile?: boolean; js?: boolean; augment?: boolean } = {}
+  }: { model?: boolean; typeFile?: boolean; js?: boolean; augment?: boolean } = {}
 ) => {
   const absPath = path.join(__dirname, relPath);
   mkdirp.sync(absPath);
 
   const extension = js ? "js" : "ts";
-  if (index)
-    fs.copyFileSync(
-      path.join(__dirname, `artifacts/index.${extension}`),
-      path.join(absPath, `index.${extension}`)
-    );
   if (model)
     fs.copyFileSync(
       path.join(__dirname, `artifacts/user.${extension}`),
       path.join(absPath, `user.${extension}`)
     );
   if (typeFile) {
-    const filename = augment ? "example.index.d.ts" : "mongoose.gen.ts";
-    console.log("augment: ", augment);
-    console.log("filename: ", filename);
+    const filename = augment ? "augmentedUser.gen.ts" : "user.gen.ts";
     fs.copyFileSync(path.join(__dirname, `artifacts/${filename}`), path.join(absPath, filename));
   }
 };

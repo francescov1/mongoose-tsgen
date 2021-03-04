@@ -1,4 +1,12 @@
-import { Project, Node, SyntaxKind, MethodDeclaration, SourceFile } from "ts-morph";
+import {
+  Project,
+  Node,
+  SyntaxKind,
+  MethodDeclaration,
+  SourceFile,
+  VariableDeclaration,
+  ExportAssignment
+} from "ts-morph";
 
 function getNameAndType(funcDeclaration: MethodDeclaration) {
   const name = funcDeclaration.getName();
@@ -7,8 +15,16 @@ function getNameAndType(funcDeclaration: MethodDeclaration) {
   return { name, type };
 }
 
-function getModelDeclarations(sourceFile: SourceFile) {
-  const results: ModelTypes["modelName"] = { methods: {}, statics: {}, query: {}, virtuals: {} };
+function findTypesInFile(sourceFile: SourceFile, modelTypes: ModelTypes) {
+  const schemaModelMapping: {
+    [schemaVariableName: string]: string;
+  } = {};
+
+  Object.keys(modelTypes).forEach((modelName: string) => {
+    const { schemaVariableName } = modelTypes[modelName];
+    if (schemaVariableName) schemaModelMapping[schemaVariableName] = modelName;
+  });
+
   for (const statement of sourceFile.getStatements()) {
     if (!Node.isExpressionStatement(statement)) continue;
 
@@ -28,10 +44,16 @@ function getModelDeclarations(sourceFile: SourceFile) {
 
       const leftChildren = left.getChildren();
 
-      const hasSchemaIdentifier = leftChildren.some(
-        child =>
-          child.getKind() === SyntaxKind.Identifier && child.getText().match(/[a-zA-Z]+Schema/i)
-      );
+      let modelName: string;
+      const hasSchemaIdentifier = leftChildren.some(child => {
+        if (child.getKind() !== SyntaxKind.Identifier) return false;
+
+        modelName = schemaModelMapping[child.getText()];
+        if (!modelName) return false;
+
+        return true;
+      });
+
       const hasDotToken = leftChildren.some(child => child.getKind() === SyntaxKind.DotToken);
 
       if (!hasSchemaIdentifier || !hasDotToken) continue;
@@ -63,17 +85,17 @@ function getModelDeclarations(sourceFile: SourceFile) {
       if (hasMethodsIdentifier) {
         rightFuncDeclarations.forEach((declaration: MethodDeclaration) => {
           const { name, type } = getNameAndType(declaration);
-          results.methods[name] = type;
+          modelTypes[modelName].methods[name] = type;
         });
       } else if (hasStaticsIdentifier) {
         rightFuncDeclarations.forEach((declaration: MethodDeclaration) => {
           const { name, type } = getNameAndType(declaration);
-          results.statics[name] = type;
+          modelTypes[modelName].statics[name] = type;
         });
       } else if (hasQueryIdentifier) {
         rightFuncDeclarations.forEach((declaration: MethodDeclaration) => {
           const { name, type } = getNameAndType(declaration);
-          results.query[name] = type;
+          modelTypes[modelName].query[name] = type;
         });
       }
     } else if (callExpr) {
@@ -86,6 +108,16 @@ function getModelDeclarations(sourceFile: SourceFile) {
       }
 
       if (propAccessExpr?.getName() !== "get") continue;
+
+      const schemaVariableName = propAccessExpr
+        .getFirstChildByKind(SyntaxKind.CallExpression)
+        ?.getFirstChildByKind(SyntaxKind.PropertyAccessExpression)
+        ?.getFirstChildByKind(SyntaxKind.Identifier)
+        ?.getText();
+      if (!schemaVariableName) continue;
+
+      const modelName = schemaModelMapping[schemaVariableName];
+      if (!modelName) continue;
 
       const funcExpr = callExpr.getFirstChildByKind(SyntaxKind.FunctionExpression);
 
@@ -117,11 +149,11 @@ function getModelDeclarations(sourceFile: SourceFile) {
       if (returnType === "void") returnType = "any";
       const virtualNameSanitized = virtualName.slice(1, virtualName.length - 1);
 
-      results.virtuals[virtualNameSanitized] = returnType;
+      modelTypes[modelName].virtuals[virtualNameSanitized] = returnType;
     }
   }
 
-  return results;
+  return modelTypes;
 }
 
 type ModelTypes = {
@@ -130,37 +162,96 @@ type ModelTypes = {
     statics: { [funcName: string]: string };
     query: { [funcName: string]: string };
     virtuals: { [virtualName: string]: string };
+    schemaVariableName?: string;
+    modelVariableName?: string;
+    filePath: string;
   };
 };
 
-function getModelName(sourceFile: SourceFile) {
+const parseModelInitializer = (
+  d: VariableDeclaration | ExportAssignment,
+  isModelNamedImport: boolean
+) => {
+  const callExpr = d.getFirstChildByKind(SyntaxKind.CallExpression);
+  if (!callExpr) return undefined;
+
+  const callExprStr = callExpr.getText().replace(/[\r\n\t ]/g, "");
+
+  // if model is a named import, we can match this without `mongoose.` prefix
+  const pattern = isModelNamedImport ?
+    /model(?:<\w+,\w+>)?\(["'`](\w+)["'`],(\w+)\)/ :
+    /mongoose\.model(?:<\w+,\w+>)?\(["'`](\w+)["'`],(\w+)\)/;
+  const modelInitMatch = callExprStr.match(pattern);
+  if (!modelInitMatch) return undefined;
+
+  const [, modelName, schemaVariableName] = modelInitMatch;
+  return { modelName, schemaVariableName };
+};
+
+function initModelTypes(sourceFile: SourceFile, filePath: string) {
+  const modelTypes: ModelTypes = {};
+  const mongooseImport = sourceFile.getImportDeclaration("mongoose");
+
+  let isModelNamedImport = false;
+  mongooseImport?.getNamedImports().forEach(importSpecifier => {
+    if (importSpecifier.getText() === "model") isModelNamedImport = true;
+  });
+
+  sourceFile.getVariableDeclarations().forEach(d => {
+    if (!d.hasExportKeyword()) return;
+
+    const { modelName, schemaVariableName } = parseModelInitializer(d, isModelNamedImport) ?? {};
+    if (!modelName || !schemaVariableName) return;
+
+    const modelVariableName = d.getName();
+
+    modelTypes[modelName] = {
+      schemaVariableName,
+      modelVariableName,
+      filePath,
+      methods: {},
+      statics: {},
+      query: {},
+      virtuals: {}
+    };
+  });
+
   const defaultExportAssignment = sourceFile.getExportAssignment(d => !d.isExportEquals());
-  if (!defaultExportAssignment) {
-    // TODO: if no default, check all exports and compare to filename until a match is found
-    throw new Error(
-      "No default export found in file: " +
-        sourceFile.getFilePath() +
-        ". Ensure to default export a Mongoose model from this file or disable method/static/query typings (--no-func-types)."
-    );
+  if (defaultExportAssignment) {
+    const defaultModelInit = parseModelInitializer(defaultExportAssignment, isModelNamedImport);
+    if (defaultModelInit) {
+      modelTypes[defaultModelInit.modelName] = {
+        schemaVariableName: defaultModelInit.schemaVariableName,
+        filePath,
+        methods: {},
+        statics: {},
+        query: {},
+        virtuals: {}
+      };
+    }
   }
 
-  return defaultExportAssignment.getExpression().getText();
+  return modelTypes;
 }
 
 export const getModelTypes = (modelsPaths: string[]): ModelTypes => {
   const project = new Project({});
   project.addSourceFilesAtPaths(modelsPaths);
 
-  const results: ModelTypes = {};
+  let allModelTypes: ModelTypes = {};
 
-  // TODO: ideally we only parse the files that we know have methods or statics, would save a lot of time
+  // TODO: ideally we only parse the files that we know have methods, statics, or virtuals.
+  // Would save a lot of time
   modelsPaths.forEach(modelPath => {
     const sourceFile = project.getSourceFileOrThrow(modelPath);
-    const modelName = getModelName(sourceFile);
+    let modelTypes = initModelTypes(sourceFile, modelPath);
 
-    const { methods, statics, query, virtuals } = getModelDeclarations(sourceFile);
-    results[modelName] = { methods, statics, query, virtuals };
+    modelTypes = findTypesInFile(sourceFile, modelTypes);
+    allModelTypes = {
+      ...allModelTypes,
+      ...modelTypes
+    };
   });
 
-  return results;
+  return allModelTypes;
 };

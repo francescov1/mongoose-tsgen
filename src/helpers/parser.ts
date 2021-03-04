@@ -164,6 +164,9 @@ type ModelTypes = {
     statics: { [funcName: string]: string };
     query: { [funcName: string]: string };
     virtuals: { [virtualName: string]: string };
+    schemaVariableName?: string;
+    modelVariableName?: string;
+    filePath: string;
   };
 };
 
@@ -405,13 +408,28 @@ export const parseSchema = ({
         else header += getLeanDocs(rootPath, name);
 
         header += isAugmented ? "\n" : "\nexport ";
-        if (isDocument)
-          header += `interface ${name}Document extends ${
-            isSubdocArray ?
-              "mongoose.Types.EmbeddedDocument" :
-              `mongoose.Document<mongoose.Types.ObjectId>, ${name}Methods`
-          } {\n`;
-        else header += `interface ${name} {\n`;
+
+        if (isDocument) {
+          header += `interface ${name}Document extends `;
+          if (isSubdocArray) {
+            header += "mongoose.Types.EmbeddedDocument";
+          }
+          // not sure why schema doesnt have `tree` property for typings
+          else {
+            let _idType;
+            // get type of _id to pass to mongoose.Document
+            // this is likely unecessary, since non-subdocs are not allowed to have option _id: false (https://mongoosejs.com/docs/guide.html#_id)
+            if ((schema as any).tree._id)
+              _idType = convertBaseTypeToTs("_id", (schema as any).tree._id, true);
+
+            // TODO: this should extend `${name}Methods` like normal docs, but generator will only have methods, statics, etc. under the model name, not the subdoc model name
+            // so after this is generated, we should do a pass and see if there are any child schemas that have non-subdoc definitions.
+            // or could just wait until we dont need duplicate subdoc versions of docs (use the same one for both embedded doc and non-subdoc)
+            header += `mongoose.Document<${_idType ?? "never"}>`;
+          }
+
+          header += " {\n";
+        } else header += `interface ${name} {\n`;
 
         childInterfaces += parseSchema({
           schema: child.schema,
@@ -705,10 +723,6 @@ export const loadSchemas = (modelsPaths: string[]) => {
     return true;
   };
 
-  // we check each file's export object for property names that would commonly export the schema.
-  // Here is the priority (using the filename as a starting point to determine model name):
-  // default export, model name (ie `User`), model name lowercase (ie `user`), collection name (ie `users`), collection name uppercased (ie `Users`).
-  // If none of those exist, we assume the export object is set to the schema directly
   modelsPaths.forEach((singleModelPath: string) => {
     let exportedData;
     try {
@@ -719,6 +733,15 @@ export const loadSchemas = (modelsPaths: string[]) => {
       else throw err;
     }
 
+    const prevSchemaCount = Object.keys(schemas).length;
+
+    // NOTE: This was used to find the most likely names of the model based on the filename, and only check those properties for mongoose models. Now, we check all properties, but this could be used as a "strict" option down the road.
+
+    // we check each file's export object for property names that would commonly export the schema.
+    // Here is the priority (using the filename as a starting point to determine model name):
+    // default export, model name (ie `User`), model name lowercase (ie `user`), collection name (ie `users`), collection name uppercased (ie `Users`).
+    // If none of those exist, we assume the export object is set to the schema directly
+    /*
     // if exported data has a default export, use that
     if (checkAndRegisterModel(exportedData.default) || checkAndRegisterModel(exportedData)) return;
 
@@ -742,15 +765,22 @@ export const loadSchemas = (modelsPaths: string[]) => {
       checkAndRegisterModel(exportedData[collectionNameUppercased])
     )
       return;
+    */
 
-    // if none of those have it, check all properties
+    // check if exported object is a model
+    checkAndRegisterModel(exportedData);
+
+    // iterate through each exported property, check if val is a schema and add to schemas if so
     for (const obj of Object.values(exportedData)) {
-      if (checkAndRegisterModel(obj)) return;
+      checkAndRegisterModel(obj);
     }
 
-    throw new Error(
-      `A module was found at ${singleModelPath}, but no exported models were found. Please ensure this file exports a Mongoose Model (preferably default export).`
-    );
+    const schemaCount = Object.keys(schemas).length - prevSchemaCount;
+    if (schemaCount === 0) {
+      console.warn(
+        `A module was found at ${singleModelPath}, but no exported models were found. Please ensure this file exports a Mongoose Model (preferably default export).`
+      );
+    }
   });
 
   return schemas;
@@ -805,8 +835,13 @@ export const generateTypes = ({
       writer.write(leanInterfaceStr).blankLine();
 
       // get type of _id to pass to mongoose.Document
-      // not sure why schema doesnt have `tree` property
-      const _idType = convertBaseTypeToTs("_id", (schema as any).tree._id, true);
+      // not sure why schema doesnt have `tree` property for typings
+      let _idType;
+      if ((schema as any).tree._id) {
+        _idType = convertBaseTypeToTs("_id", (schema as any).tree._id, true);
+      }
+
+      const mongooseDocExtend = `mongoose.Document<${_idType ?? "never"}>`;
 
       const documentInterfaceStr = parseSchema({
         schema,
@@ -817,7 +852,7 @@ export const generateTypes = ({
           getDocumentDocs(modelName) +
           `\n${
             isAugmented ? "" : "export "
-          }interface ${modelName}Document extends mongoose.Document<${_idType}>, ${modelName}Methods {\n`,
+          }interface ${modelName}Document extends ${mongooseDocExtend}, ${modelName}Methods {\n`,
         footer: "}",
         isAugmented
       });

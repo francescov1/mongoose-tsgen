@@ -6,12 +6,8 @@ import * as tsReader from "../tsReader";
 const fs = require("fs");
 const path = require("path");
 const mongoose = require("mongoose");
-
-function getExpectedInterfaceString(isAugmented: boolean) {
-  return fs.readFileSync(
-    path.join(__dirname, `artifacts/${isAugmented ? "example.index.d.ts" : "mongoose.gen.ts"}`),
-    "utf8"
-  );
+function getExpectedString(filename: string) {
+  return fs.readFileSync(path.join(__dirname, `artifacts/${filename}`), "utf8");
 }
 
 function cleanupModelsInMemory() {
@@ -19,8 +15,6 @@ function cleanupModelsInMemory() {
   delete mongoose.connection.collections.users;
   delete mongoose.modelSchemas.User;
 }
-
-// TODO: test writeOrCreateInterfaceFiles
 
 // these tests are more integration tests than unit - should split them out
 
@@ -42,7 +36,7 @@ describe("generateTypes", () => {
     sourceFile = await parser.generateTypes({ schemas, isAugmented: true, sourceFile });
 
     // since we didnt load in typed functions, replace function types in expected string with the defaults.
-    let expectedString = getExpectedInterfaceString(true);
+    let expectedString = getExpectedString("augmentedUser.gen.ts");
     expectedString = expectedString
       .replace("(this: UserDocument) => boolean", "(this: UserDocument, ...args: any[]) => any")
       .replace(
@@ -69,7 +63,7 @@ describe("generateTypes", () => {
     parser.replaceModelTypes(sourceFile, modelTypes, schemas, true);
 
     cleanupTs?.();
-    expect(sourceFile.getFullText()).toBe(getExpectedInterfaceString(true));
+    expect(sourceFile.getFullText()).toBe(getExpectedString("augmentedUser.gen.ts"));
   });
 
   test("generate unaugmented file string success (ts)", async () => {
@@ -85,7 +79,26 @@ describe("generateTypes", () => {
     parser.replaceModelTypes(sourceFile, modelTypes, schemas, false);
 
     cleanupTs?.();
-    expect(sourceFile.getFullText()).toBe(getExpectedInterfaceString(false));
+    expect(sourceFile.getFullText()).toBe(getExpectedString("user.gen.ts"));
+  });
+
+  // TODO: this test is kinda random and out of place, but it covers all the latest changes
+  // related to allowing multiple schemas per model file. It should be split into unit tests
+  // once that code has been modularized
+  test("generate different types of model inits", async () => {
+    const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/device.ts");
+    const cleanupTs = parser.registerUserTs("tsconfig.test.json");
+
+    const schemas = parser.loadSchemas(modelsPaths);
+
+    let sourceFile = parser.createSourceFile(genFilePath);
+    sourceFile = await parser.generateTypes({ schemas, isAugmented: false, sourceFile });
+
+    const modelTypes = tsReader.getModelTypes(modelsPaths);
+    parser.replaceModelTypes(sourceFile, modelTypes, schemas, true);
+
+    cleanupTs?.();
+    expect(sourceFile.getFullText()).toBe(getExpectedString("device.gen.ts"));
   });
 });
 
