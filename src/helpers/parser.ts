@@ -164,6 +164,9 @@ type ModelTypes = {
     statics: { [funcName: string]: string };
     query: { [funcName: string]: string };
     virtuals: { [virtualName: string]: string };
+    schemaVariableName?: string;
+    modelVariableName?: string;
+    filePath: string;
   };
 };
 
