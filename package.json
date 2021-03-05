@@ -1,7 +1,7 @@
 {
   "name": "mongoose-tsgen",
   "description": "A Typescript interface generator for Mongoose that works out of the box.",
-  "version": "7.1.1",
+  "version": "7.1.2",
   "author": "Francesco Virga @francescov1",
   "bin": {
     "mtgen": "./bin/run"
