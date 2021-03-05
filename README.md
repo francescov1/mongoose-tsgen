@@ -4,7 +4,7 @@ A plug-n-play Typescript interface generator for Mongoose.
 
 [![Version](https://img.shields.io/npm/v/mongoose-tsgen.svg)](https://npmjs.org/package/mongoose-tsgen)
 [![npm](https://img.shields.io/npm/dt/mongoose-tsgen)](https://www.npmjs.com/package/mongoose-tsgen)
-[![License](https://img.shields.io/npm/l/mongoose-tsgen.svg)](https://github.com/Bounced-Inc/mongoose-tsgen/blob/master/package.json)
+[![License](https://img.shields.io/npm/l/mongoose-tsgen.svg)](https://github.com/francescov1/mongoose-tsgen/blob/master/package.json)
 
 <!-- [![Downloads/week](https://img.shields.io/npm/dw/mongoose-tsgen.svg)](https://npmjs.org/package/mongoose-tsgen) -->
 
@@ -36,7 +36,7 @@ This library aims to remove these drawbacks by instead parsing your already-writ
 
 Mongoose: v5.11+
 
-> For previous Mongoose versions, install mongoose-tsgen v6.0.10 with `npm install mongoose-tsgen@6.0.10` and see [its README](https://github.com/Bounced-Inc/mongoose-tsgen/blob/12d2f693957f61776d5b6addf23a8b051c99294c/README.md) for instructions.
+> For previous Mongoose versions, install mongoose-tsgen v6.0.10 with `npm install mongoose-tsgen@6.0.10` and see [its README](https://github.com/francescov1/mongoose-tsgen/blob/12d2f693957f61776d5b6addf23a8b051c99294c/README.md) for instructions.
 
 - [x] All Mongoose types, arrays and maps
 - [x] Virtual properties
@@ -146,7 +146,7 @@ OPTIONS
 
 Specify the directory of your Mongoose schema definitions using `MODEL_PATH`. If left blank, all sub-directories will be searched for `models/*.ts` (ignores `index.ts` files). Files found are expected to export a Mongoose model. 
 
-_See code: [src/index.ts](https://github.com/Bounced-Inc/mongoose-tsgen/blob/master/src/index.ts)_
+_See code: [src/index.ts](https://github.com/francescov1/mongoose-tsgen/blob/master/src/index.ts)_
 
 <!-- commandsstop -->
 
@@ -352,5 +352,5 @@ export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId>
 ## Development
 
 - [ ] <b>In progress:</b> The generating piece of `src/helpers/parser.ts` needs to be rewritten using [ts-morph](https://github.com/dsherret/ts-morph). Currently it builds the interfaces by appending generated lines of code to a string sequentially, with no knowledge of the AST. This leads to pretty confusing logic, using the TS compiler API would simplify it a ton.
-- [ ] Add CLI option to type `_id` fields as a string rather than an ObjectId on lean version of documents (see [#7](https://github.com/Bounced-Inc/mongoose-tsgen/issues/7)).
+- [ ] Add CLI option to type `_id` fields as a string rather than an ObjectId on lean version of documents (see [#7](https://github.com/francescov1/mongoose-tsgen/issues/7)).
 - [ ] Cut down node_modules by using peer dependencies (i.e. mongoose) and stripping oclif.

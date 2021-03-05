@@ -11,7 +11,7 @@
       "pre-commit": "lint-staged"
     }
   },
-  "bugs": "https://github.com/Bounced-Inc/mongoose-tsgen/issues",
+  "bugs": "https://github.com/francescov1/mongoose-tsgen/issues",
   "dependencies": {
     "@oclif/command": "^1.8.0",
     "@oclif/config": "^1.17.0",
@@ -55,7 +55,7 @@
     "/bin",
     "/lib"
   ],
-  "homepage": "https://github.com/Bounced-Inc/mongoose-tsgen",
+  "homepage": "https://github.com/francescov1/mongoose-tsgen",
   "keywords": [
     "mongoose",
     "generator",
@@ -69,7 +69,7 @@
   "oclif": {
     "bin": "mtgen"
   },
-  "repository": "Bounced-Inc/mongoose-tsgen",
+  "repository": "francescov1/mongoose-tsgen",
   "scripts": {
     "posttest": "eslint . --ext .ts --config .eslintrc",
     "prepack": "npm test && rm -rf lib && tsc -b",
