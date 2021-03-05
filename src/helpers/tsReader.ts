@@ -119,18 +119,10 @@ function findTypesInFile(sourceFile: SourceFile, modelTypes: ModelTypes) {
       const modelName = schemaModelMapping[schemaVariableName];
       if (!modelName) continue;
 
-      const funcExpr = callExpr.getFirstChildByKind(SyntaxKind.FunctionExpression);
-
-      // this was an attempt to get return types that are explicitely specified on the .get function (sometimes the current
-      // method we use below gives us `void` incorrectly). This method currently gives us undefiend but by looking at the Typescript
-      // AST tree visualizer it should return the missing info we need. More testing needs to go into this.
-      // const typeRef = funcExpr?.getFirstChildByKind(SyntaxKind.TypeReference);
-      // console.log("return type: ", typeRef?.getFirstChildByKind(SyntaxKind.Identifier)?.getText());
-
+      const funcExpr = propAccessExpr
+        ?.getParent()
+        ?.getFirstChildByKind(SyntaxKind.FunctionExpression);
       const type = funcExpr?.getType()?.getText(funcExpr);
-
-      // another way to get return type, seems less consistent though
-      // console.log(funcExpr?.getReturnType().getText(funcExpr))
 
       const callExpr2 = propAccessExpr.getFirstChildByKind(SyntaxKind.CallExpression);
 
