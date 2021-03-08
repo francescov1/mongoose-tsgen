@@ -40,9 +40,9 @@ Mongoose: v5.11+
 
 - [x] All Mongoose types, arrays and maps
 - [x] Virtual properties
-- [x] Typescript path aliases
 - [x] Mongoose method, static & query functions
-- [x] Both Typescript and Javascript schema files
+- [x] Multiple schemas per file
+- [x] Typescript path aliases
 
 # Installation
 
@@ -352,5 +352,6 @@ export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId>
 ## Development
 
 - [ ] <b>In progress:</b> The generating piece of `src/helpers/parser.ts` needs to be rewritten using [ts-morph](https://github.com/dsherret/ts-morph). Currently it builds the interfaces by appending generated lines of code to a string sequentially, with no knowledge of the AST. This leads to pretty confusing logic, using the TS compiler API would simplify it a ton.
+- [ ] Stronger [populate](https://mongoosejs.com/docs/populate.html) typing by augmenting Mongoose types with more accurate return types (see [Query Population](#query-population)).
 - [ ] Add CLI option to type `_id` fields as a string rather than an ObjectId on lean version of documents (see [#7](https://github.com/francescov1/mongoose-tsgen/issues/7)).
 - [ ] Cut down node_modules by using peer dependencies (i.e. mongoose) and stripping oclif.
