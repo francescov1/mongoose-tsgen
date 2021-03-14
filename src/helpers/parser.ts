@@ -339,15 +339,13 @@ export const parseSchema = ({
   isDocument,
   header = "",
   footer = ""
-}: // isNestedObject = false
-{
+}: {
   schema: any;
   modelName?: string;
   addModel?: boolean;
   isDocument: boolean;
   header?: string;
   footer?: string;
-  isNestedObject?: boolean;
 }) => {
   let template = "";
   const schema = _.cloneDeep(schemaOriginal);
@@ -626,8 +624,7 @@ export const getParseKeyFn = (isDocument: boolean, schema: any) => {
           schema: { tree: val },
           header: "{\n",
           isDocument,
-          footer: "}",
-          isNestedObject: true
+          footer: "}"
         });
 
         isOptional = false;

@@ -110,8 +110,6 @@ async function editEmail(user: UserDocument, newEmail: string): UserDocument {
 
 Generate a Typescript file containing Mongoose Schema typings.
 
-_Note that these docs refer to Typescript files only. If you haven't yet converted Mongoose schema definition files to Typescript, you can use the `--js` flag to still generate types._
-
 ```
 USAGE
   $ mtgen [MODEL_PATH]
@@ -128,8 +126,7 @@ OPTIONS
                          third-party types  in your mongoose schema definitions. For multiple imports, 
                          specify this flag more than once. 
 
-  -j, --js               Search for Javascript schema files rather than Typescript files. 
-                         Passing this flag also triggers --no-func-types.
+  --no-format            Disable formatting generated files with prettier.
 
   -o, --output=output    [default: ./src/interfaces] Path of output file to write generated typings. 
                          If a folder path is passed, the generator will create a `mongoose.gen.ts` file 
@@ -137,11 +134,6 @@ OPTIONS
 
   -p, --project=project  [default: ./] Path of `tsconfig.json` or its root folder.
 
-  --augment              Augment generated typings into the 'mongoose' module.
-
-  --no-format            Disable formatting generated files with prettier.
-
-  --no-func-types        Disable using TS compiler API for method, static, query & virtual typings.
 ```
 
 Specify the directory of your Mongoose schema definitions using `MODEL_PATH`. If left blank, all sub-directories will be searched for `models/*.ts` (ignores `index.ts` files). Files found are expected to export a Mongoose model. 

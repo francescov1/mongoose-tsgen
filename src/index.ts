@@ -27,6 +27,9 @@ class MongooseTsgen extends Command {
         "Custom import statements to add to the output file. Useful if you use third-party types in your mongoose schema definitions. For multiple imports, specify this flag more than once.",
       multiple: true
     }),
+    "no-format": flags.boolean({
+      description: "Disable formatting generated files with prettier."
+    }),
     output: flags.string({
       char: "o",
       description:
@@ -35,9 +38,6 @@ class MongooseTsgen extends Command {
     project: flags.string({
       char: "p",
       description: "[default: ./] Path of `tsconfig.json` or its root folder."
-    }),
-    "no-format": flags.boolean({
-      description: "Disable formatting generated files with prettier."
     })
   };
 
