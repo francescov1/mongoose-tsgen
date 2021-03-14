@@ -27,56 +27,17 @@ describe("generateTypes", () => {
 
   const genFilePath = "mtgen-test.ts";
 
-  test("generate augmented file string success (js)", async () => {
-    setupFolderStructure("./src/models", { js: true, augment: true });
-    const modelsPath = await paths.getModelsPaths("", "js");
-    const schemas = parser.loadSchemas(modelsPath);
-
-    let sourceFile = parser.createSourceFile(genFilePath);
-    sourceFile = await parser.generateTypes({ schemas, isAugmented: true, sourceFile });
-
-    // since we didnt load in typed functions, replace function types in expected string with the defaults.
-    let expectedString = getExpectedString("augmentedUser.gen.ts");
-    expectedString = expectedString
-      .replace("(this: UserDocument) => boolean", "(this: UserDocument, ...args: any[]) => any")
-      .replace(
-        `(this: UserModel, friendUids: UserDocument["_id"][]) => Promise<UserObject[]>`,
-        "(this: UserModel, ...args: any[]) => any"
-      )
-      .replace("(this: Q) => Q", "(this: Q, ...args: any[]) => Q")
-      .replace("name: string", "name: any");
-
-    expect(sourceFile.getFullText()).toBe(expectedString);
-  });
-
-  test("generate augmented file string success (ts)", async () => {
-    setupFolderStructure("./dist/models", { augment: true });
-    const modelsPaths = await paths.getModelsPaths("");
-    const cleanupTs = parser.registerUserTs("tsconfig.test.json");
-
-    const schemas = parser.loadSchemas(modelsPaths);
-
-    let sourceFile = parser.createSourceFile(genFilePath);
-    sourceFile = await parser.generateTypes({ schemas, isAugmented: true, sourceFile });
-
-    const modelTypes = tsReader.getModelTypes(modelsPaths);
-    parser.replaceModelTypes(sourceFile, modelTypes, schemas, true);
-
-    cleanupTs?.();
-    expect(sourceFile.getFullText()).toBe(getExpectedString("augmentedUser.gen.ts"));
-  });
-
-  test("generate unaugmented file string success (ts)", async () => {
-    setupFolderStructure("./models");
+  test("generate file string success", async () => {
+    setupFolderStructure("./models", "user");
     const modelsPaths = await paths.getModelsPaths("");
     const cleanupTs = parser.registerUserTs("tsconfig.test.json");
 
     const schemas = parser.loadSchemas(modelsPaths);
     let sourceFile = parser.createSourceFile(genFilePath);
-    sourceFile = await parser.generateTypes({ schemas, isAugmented: false, sourceFile });
+    sourceFile = await parser.generateTypes({ schemas, sourceFile });
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
-    parser.replaceModelTypes(sourceFile, modelTypes, schemas, false);
+    parser.replaceModelTypes(sourceFile, modelTypes, schemas);
 
     cleanupTs?.();
     expect(sourceFile.getFullText()).toBe(getExpectedString("user.gen.ts"));
@@ -92,10 +53,10 @@ describe("generateTypes", () => {
     const schemas = parser.loadSchemas(modelsPaths);
 
     let sourceFile = parser.createSourceFile(genFilePath);
-    sourceFile = await parser.generateTypes({ schemas, isAugmented: false, sourceFile });
+    sourceFile = await parser.generateTypes({ schemas, sourceFile });
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
-    parser.replaceModelTypes(sourceFile, modelTypes, schemas, true);
+    parser.replaceModelTypes(sourceFile, modelTypes, schemas);
 
     cleanupTs?.();
     expect(sourceFile.getFullText()).toBe(getExpectedString("device.gen.ts"));

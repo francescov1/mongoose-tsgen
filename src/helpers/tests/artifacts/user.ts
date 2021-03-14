@@ -1,7 +1,5 @@
-import mongoose, { mongo } from "mongoose";
-import { UserDocument, UserModel, UserSchema, UserMethods, UserStatics, UserQueries, UserObject } from "mongoose";
-
-const { Schema } = mongoose;
+import mongoose, { Schema } from 'mongoose';
+import { UserDocument, UserModel, UserSchema, UserMethods, UserStatics, UserQueries, UserObject } from "./user.gen";
 
 // UserSchema type
 const UserSchema: UserSchema = new Schema({
