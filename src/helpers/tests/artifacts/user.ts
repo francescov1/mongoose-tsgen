@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { UserDocument, UserModel, UserSchema, UserMethods, UserStatics, UserQueries, UserObject } from "./user.gen";
+import { UserDocument, UserModel, UserSchema, UserQueries, UserObject } from "./user.gen";
 
 // UserSchema type
 const UserSchema: UserSchema = new Schema({
@@ -79,25 +79,26 @@ UserSchema.virtual("name").get(function (this: UserDocument) {
 });
 
 // method functions, use Type Assertion (cast to UserMethods) for type safety
-UserSchema.methods = <UserMethods>{
+UserSchema.methods = {
   isMetadataString() {
     return typeof this.metadata === "string";
   }
 };
 
 // static functions, use Type Assertion (cast to UserStatics) for type safety
-UserSchema.statics = <UserStatics>{
+UserSchema.statics = {
   async getFriends(friendUids: UserDocument["_id"][]): Promise<UserObject[]> {
     return await this.aggregate([{ $match: { _id: { $in: friendUids } } }]);
   }
 };
 
 // query functions, use Type Assertion (cast to UserQueries) for type safety
-UserSchema.query = <UserQueries>{
+UserSchema.query = {
   populateFriends() {
-    return this.populate("friends.uid", "firstName lastName");
+    return this.populate("friends.uid", "firstName lastName")
   }
 };
 
-export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
+export const User: UserModel = mongoose.model<UserDocument, UserModel, UserQueries>("User", UserSchema);
+
 export default User;

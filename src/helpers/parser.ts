@@ -25,27 +25,9 @@ const getObjectDocs = (modelName: string) => `/**
 const getQueryDocs = (modelName: string) => `/**
  * Mongoose Query types
  * 
- * Use type assertion to ensure ${modelName} query type safety:
+ * Pass this type to the Mongoose Model constructor:
  * \`\`\`
- * ${modelName}Schema.query = <${modelName}Queries>{ ... };
- * \`\`\`
- */`;
-
-const getMethodDocs = (modelName: string) => `/**
- * Mongoose Method types
- * 
- * Use type assertion to ensure ${modelName} methods type safety:
- * \`\`\`
- * ${modelName}Schema.methods = <${modelName}Methods>{ ... };
- * \`\`\`
- */`;
-
-const getStaticDocs = (modelName: string) => `/**
- * Mongoose Static types
- * 
- * Use type assertion to ensure ${modelName} statics type safety:
- * \`\`\`
- * ${modelName}Schema.statics = <${modelName}Statics>{ ... };
+ * const ${modelName} = mongoose.model<${modelName}Document, ${modelName}Model, ${modelName}Queries>("${modelName}", ${modelName}Schema);
  * \`\`\`
  */`;
 
@@ -54,7 +36,16 @@ const getModelDocs = (modelName: string) => `/**
  * 
  * Pass this type to the Mongoose Model constructor:
  * \`\`\`
- * const ${modelName} = mongoose.model<${modelName}Document, ${modelName}Model>("${modelName}", ${modelName}Schema);
+ * const ${modelName} = mongoose.model<${modelName}Document, ${modelName}Model, ${modelName}Queries>("${modelName}", ${modelName}Schema);
+ * \`\`\`
+ */`;
+
+const getDocumentDocs = (modelName: string) => `/**
+ * Mongoose Document type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * \`\`\`
+ * const ${modelName} = mongoose.model<${modelName}Document, ${modelName}Model, ${modelName}Queries>("${modelName}", ${modelName}Schema);
  * \`\`\`
  */`;
 
@@ -85,15 +76,6 @@ const getSubdocumentDocs = (modelName: string, path: string) => `/**
  * Mongoose Embedded Document type
  * 
  * Type of \`${modelName}Document["${path}"]\` element.
- */`;
-
-const getDocumentDocs = (modelName: string) => `/**
- * Mongoose Document type
- * 
- * Pass this type to the Mongoose Model constructor:
- * \`\`\`
- * const ${modelName} = mongoose.model<${modelName}Document, ${modelName}Model>("${modelName}", ${modelName}Schema);
- * \`\`\`
  */`;
 
 // TODO: simplify this conditional
@@ -141,7 +123,7 @@ const getFuncType = (
   let type;
   if (funcType === "query") {
     // query funcs always must return a query
-    type = `<Q extends mongoose.Query<any, ${modelName}Document>>(this: Q${
+    type = `<Q extends mongoose.Query<any, ${modelName}Document, any>>(this: Q${
       params?.length > 0 ? ", " + params : ""
     }) => Q`;
   } else if (funcType === "methods") {
@@ -435,29 +417,22 @@ export const parseSchema = ({
   if (!isDocument && schema.statics && modelName && addModel) {
     // add type alias to modelName so that it can be imported without clashing with the mongoose model
     template += getObjectDocs(modelName);
-    template += `\nexport type ${modelName}Object = ${modelName}\n\n`;
+    template += `\nexport type ${modelName}Object = ${modelName}\n`;
 
-    if (Object.keys(schema.query)?.length > 0) {
-      template += getQueryDocs(modelName);
-      template += `\nexport type ${modelName}Queries = {\n`;
-      template += parseFunctions(schema.query ?? {}, modelName, "query");
-      template += "}\n\n";
+    template += getQueryDocs(modelName);
+    template += `\nexport type ${modelName}Queries = {\n`;
+    template += parseFunctions(schema.query ?? {}, modelName, "query");
+    template += "}\n";
 
-      // TODO: this should just be one declare module statement with a single interface that extends every {modelName}Queries
-      template += `declare module "mongoose" {interface Query<ResultType, DocType extends Document> extends ${modelName}Queries {}}\n\n`;
-    }
-
-    template += getMethodDocs(modelName);
     template += `\nexport type ${modelName}Methods = {\n`;
     template += parseFunctions(schema.methods, modelName, "methods");
-    template += "}\n\n";
+    template += "}\n";
 
-    template += getStaticDocs(modelName);
     template += `\nexport type ${modelName}Statics = {\n`;
     template += parseFunctions(schema.statics, modelName, "statics");
     template += "}\n\n";
 
-    const modelExtend = `mongoose.Model<${modelName}Document>`;
+    const modelExtend = `mongoose.Model<${modelName}Document, ${modelName}Queries>`;
 
     template += getModelDocs(modelName);
     template += `\nexport interface ${modelName}Model extends ${modelExtend}, ${modelName}Statics {}\n\n`;
@@ -809,7 +784,7 @@ export const generateTypes = ({
         _idType = convertBaseTypeToTs("_id", (schema as any).tree._id, true);
       }
 
-      const mongooseDocExtend = `mongoose.Document<${_idType ?? "never"}>`;
+      const mongooseDocExtend = `mongoose.Document<${_idType ?? "never"}, ${modelName}Queries>`;
 
       const documentInterfaceStr = parseSchema({
         schema,

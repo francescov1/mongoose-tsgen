@@ -19,26 +19,20 @@ import mongoose from "mongoose";
  * ```
  */
 export type HomeObject = Home
-
 /**
- * Mongoose Method types
+ * Mongoose Query types
  * 
- * Use type assertion to ensure Home methods type safety:
+ * Pass this type to the Mongoose Model constructor:
  * ```
- * HomeSchema.methods = <HomeMethods>{ ... };
+ * const Home = mongoose.model<HomeDocument, HomeModel, HomeQueries>("Home", HomeSchema);
  * ```
  */
+export type HomeQueries = {
+}
+
 export type HomeMethods = {
 }
 
-/**
- * Mongoose Static types
- * 
- * Use type assertion to ensure Home statics type safety:
- * ```
- * HomeSchema.statics = <HomeStatics>{ ... };
- * ```
- */
 export type HomeStatics = {
 }
 
@@ -47,10 +41,10 @@ export type HomeStatics = {
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Home = mongoose.model<HomeDocument, HomeModel>("Home", HomeSchema);
+ * const Home = mongoose.model<HomeDocument, HomeModel, HomeQueries>("Home", HomeSchema);
  * ```
  */
-export interface HomeModel extends mongoose.Model<HomeDocument>, HomeStatics {}
+export interface HomeModel extends mongoose.Model<HomeDocument, HomeQueries>, HomeStatics {}
 
 /**
  * Mongoose Schema type
@@ -80,10 +74,10 @@ homeName?: string;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Home = mongoose.model<HomeDocument, HomeModel>("Home", HomeSchema);
+ * const Home = mongoose.model<HomeDocument, HomeModel, HomeQueries>("Home", HomeSchema);
  * ```
  */
-export interface HomeDocument extends mongoose.Document<never>, HomeMethods {
+export interface HomeDocument extends mongoose.Document<never, HomeQueries>, HomeMethods {
 homeId?: string;
 homeName?: string;
 status: string;
@@ -114,27 +108,21 @@ homeName?: string;
  * ```
  */
 export type DeviceObject = Device
-
 /**
- * Mongoose Method types
+ * Mongoose Query types
  * 
- * Use type assertion to ensure Device methods type safety:
+ * Pass this type to the Mongoose Model constructor:
  * ```
- * DeviceSchema.methods = <DeviceMethods>{ ... };
+ * const Device = mongoose.model<DeviceDocument, DeviceModel, DeviceQueries>("Device", DeviceSchema);
  * ```
  */
+export type DeviceQueries = {
+}
+
 export type DeviceMethods = {
 test: (this: DeviceDocument, ...args: any[]) => any;
 }
 
-/**
- * Mongoose Static types
- * 
- * Use type assertion to ensure Device statics type safety:
- * ```
- * DeviceSchema.statics = <DeviceStatics>{ ... };
- * ```
- */
 export type DeviceStatics = {
 test: (this: DeviceModel, ...args: any[]) => any;
 }
@@ -144,10 +132,10 @@ test: (this: DeviceModel, ...args: any[]) => any;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device = mongoose.model<DeviceDocument, DeviceModel>("Device", DeviceSchema);
+ * const Device = mongoose.model<DeviceDocument, DeviceModel, DeviceQueries>("Device", DeviceSchema);
  * ```
  */
-export interface DeviceModel extends mongoose.Model<DeviceDocument>, DeviceStatics {}
+export interface DeviceModel extends mongoose.Model<DeviceDocument, DeviceQueries>, DeviceStatics {}
 
 /**
  * Mongoose Schema type
@@ -178,7 +166,7 @@ home?: DeviceHome;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device = mongoose.model<DeviceDocument, DeviceModel>("Device", DeviceSchema);
+ * const Device = mongoose.model<DeviceDocument, DeviceModel, DeviceQueries>("Device", DeviceSchema);
  * ```
  */
 export interface DeviceHomeDocument extends mongoose.Document<mongoose.Types.ObjectId> {
@@ -192,10 +180,10 @@ status: any;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device = mongoose.model<DeviceDocument, DeviceModel>("Device", DeviceSchema);
+ * const Device = mongoose.model<DeviceDocument, DeviceModel, DeviceQueries>("Device", DeviceSchema);
  * ```
  */
-export interface DeviceDocument extends mongoose.Document<mongoose.Types.ObjectId>, DeviceMethods {
+export interface DeviceDocument extends mongoose.Document<mongoose.Types.ObjectId, DeviceQueries>, DeviceMethods {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: DeviceHomeDocument;
@@ -226,27 +214,21 @@ homeName?: string;
  * ```
  */
 export type Device2Object = Device2
-
 /**
- * Mongoose Method types
+ * Mongoose Query types
  * 
- * Use type assertion to ensure Device2 methods type safety:
+ * Pass this type to the Mongoose Model constructor:
  * ```
- * Device2Schema.methods = <Device2Methods>{ ... };
+ * const Device2 = mongoose.model<Device2Document, Device2Model, Device2Queries>("Device2", Device2Schema);
  * ```
  */
+export type Device2Queries = {
+}
+
 export type Device2Methods = {
 test: (this: Device2Document, ...args: any[]) => any;
 }
 
-/**
- * Mongoose Static types
- * 
- * Use type assertion to ensure Device2 statics type safety:
- * ```
- * Device2Schema.statics = <Device2Statics>{ ... };
- * ```
- */
 export type Device2Statics = {
 test: (this: Device2Model, ...args: any[]) => any;
 }
@@ -256,10 +238,10 @@ test: (this: Device2Model, ...args: any[]) => any;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device2 = mongoose.model<Device2Document, Device2Model>("Device2", Device2Schema);
+ * const Device2 = mongoose.model<Device2Document, Device2Model, Device2Queries>("Device2", Device2Schema);
  * ```
  */
-export interface Device2Model extends mongoose.Model<Device2Document>, Device2Statics {}
+export interface Device2Model extends mongoose.Model<Device2Document, Device2Queries>, Device2Statics {}
 
 /**
  * Mongoose Schema type
@@ -290,7 +272,7 @@ home?: Device2Home;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device2 = mongoose.model<Device2Document, Device2Model>("Device2", Device2Schema);
+ * const Device2 = mongoose.model<Device2Document, Device2Model, Device2Queries>("Device2", Device2Schema);
  * ```
  */
 export interface Device2HomeDocument extends mongoose.Document<mongoose.Types.ObjectId> {
@@ -304,10 +286,10 @@ status: any;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device2 = mongoose.model<Device2Document, Device2Model>("Device2", Device2Schema);
+ * const Device2 = mongoose.model<Device2Document, Device2Model, Device2Queries>("Device2", Device2Schema);
  * ```
  */
-export interface Device2Document extends mongoose.Document<mongoose.Types.ObjectId>, Device2Methods {
+export interface Device2Document extends mongoose.Document<mongoose.Types.ObjectId, Device2Queries>, Device2Methods {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: Device2HomeDocument;
@@ -338,27 +320,21 @@ homeName?: string;
  * ```
  */
 export type Device3Object = Device3
-
 /**
- * Mongoose Method types
+ * Mongoose Query types
  * 
- * Use type assertion to ensure Device3 methods type safety:
+ * Pass this type to the Mongoose Model constructor:
  * ```
- * Device3Schema.methods = <Device3Methods>{ ... };
+ * const Device3 = mongoose.model<Device3Document, Device3Model, Device3Queries>("Device3", Device3Schema);
  * ```
  */
+export type Device3Queries = {
+}
+
 export type Device3Methods = {
 test: (this: Device3Document, ...args: any[]) => any;
 }
 
-/**
- * Mongoose Static types
- * 
- * Use type assertion to ensure Device3 statics type safety:
- * ```
- * Device3Schema.statics = <Device3Statics>{ ... };
- * ```
- */
 export type Device3Statics = {
 test: (this: Device3Model, ...args: any[]) => any;
 }
@@ -368,10 +344,10 @@ test: (this: Device3Model, ...args: any[]) => any;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device3 = mongoose.model<Device3Document, Device3Model>("Device3", Device3Schema);
+ * const Device3 = mongoose.model<Device3Document, Device3Model, Device3Queries>("Device3", Device3Schema);
  * ```
  */
-export interface Device3Model extends mongoose.Model<Device3Document>, Device3Statics {}
+export interface Device3Model extends mongoose.Model<Device3Document, Device3Queries>, Device3Statics {}
 
 /**
  * Mongoose Schema type
@@ -402,7 +378,7 @@ home?: Device3Home;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device3 = mongoose.model<Device3Document, Device3Model>("Device3", Device3Schema);
+ * const Device3 = mongoose.model<Device3Document, Device3Model, Device3Queries>("Device3", Device3Schema);
  * ```
  */
 export interface Device3HomeDocument extends mongoose.Document<mongoose.Types.ObjectId> {
@@ -416,10 +392,10 @@ status: any;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device3 = mongoose.model<Device3Document, Device3Model>("Device3", Device3Schema);
+ * const Device3 = mongoose.model<Device3Document, Device3Model, Device3Queries>("Device3", Device3Schema);
  * ```
  */
-export interface Device3Document extends mongoose.Document<mongoose.Types.ObjectId>, Device3Methods {
+export interface Device3Document extends mongoose.Document<mongoose.Types.ObjectId, Device3Queries>, Device3Methods {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: Device3HomeDocument;
@@ -450,27 +426,21 @@ homeName?: string;
  * ```
  */
 export type Device4Object = Device4
-
 /**
- * Mongoose Method types
+ * Mongoose Query types
  * 
- * Use type assertion to ensure Device4 methods type safety:
+ * Pass this type to the Mongoose Model constructor:
  * ```
- * Device4Schema.methods = <Device4Methods>{ ... };
+ * const Device4 = mongoose.model<Device4Document, Device4Model, Device4Queries>("Device4", Device4Schema);
  * ```
  */
+export type Device4Queries = {
+}
+
 export type Device4Methods = {
 test: (this: Device4Document, ...args: any[]) => any;
 }
 
-/**
- * Mongoose Static types
- * 
- * Use type assertion to ensure Device4 statics type safety:
- * ```
- * Device4Schema.statics = <Device4Statics>{ ... };
- * ```
- */
 export type Device4Statics = {
 test: (this: Device4Model, ...args: any[]) => any;
 }
@@ -480,10 +450,10 @@ test: (this: Device4Model, ...args: any[]) => any;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device4 = mongoose.model<Device4Document, Device4Model>("Device4", Device4Schema);
+ * const Device4 = mongoose.model<Device4Document, Device4Model, Device4Queries>("Device4", Device4Schema);
  * ```
  */
-export interface Device4Model extends mongoose.Model<Device4Document>, Device4Statics {}
+export interface Device4Model extends mongoose.Model<Device4Document, Device4Queries>, Device4Statics {}
 
 /**
  * Mongoose Schema type
@@ -514,7 +484,7 @@ home?: Device4Home;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device4 = mongoose.model<Device4Document, Device4Model>("Device4", Device4Schema);
+ * const Device4 = mongoose.model<Device4Document, Device4Model, Device4Queries>("Device4", Device4Schema);
  * ```
  */
 export interface Device4HomeDocument extends mongoose.Document<mongoose.Types.ObjectId> {
@@ -528,10 +498,10 @@ status: any;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device4 = mongoose.model<Device4Document, Device4Model>("Device4", Device4Schema);
+ * const Device4 = mongoose.model<Device4Document, Device4Model, Device4Queries>("Device4", Device4Schema);
  * ```
  */
-export interface Device4Document extends mongoose.Document<mongoose.Types.ObjectId>, Device4Methods {
+export interface Device4Document extends mongoose.Document<mongoose.Types.ObjectId, Device4Queries>, Device4Methods {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: Device4HomeDocument;
@@ -562,27 +532,21 @@ homeName?: string;
  * ```
  */
 export type DeviceDefaultObject = DeviceDefault
-
 /**
- * Mongoose Method types
+ * Mongoose Query types
  * 
- * Use type assertion to ensure DeviceDefault methods type safety:
+ * Pass this type to the Mongoose Model constructor:
  * ```
- * DeviceDefaultSchema.methods = <DeviceDefaultMethods>{ ... };
+ * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel, DeviceDefaultQueries>("DeviceDefault", DeviceDefaultSchema);
  * ```
  */
+export type DeviceDefaultQueries = {
+}
+
 export type DeviceDefaultMethods = {
 test: (this: DeviceDefaultDocument) => string;
 }
 
-/**
- * Mongoose Static types
- * 
- * Use type assertion to ensure DeviceDefault statics type safety:
- * ```
- * DeviceDefaultSchema.statics = <DeviceDefaultStatics>{ ... };
- * ```
- */
 export type DeviceDefaultStatics = {
 test: (this: DeviceDefaultModel) => string;
 }
@@ -592,10 +556,10 @@ test: (this: DeviceDefaultModel) => string;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel>("DeviceDefault", DeviceDefaultSchema);
+ * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel, DeviceDefaultQueries>("DeviceDefault", DeviceDefaultSchema);
  * ```
  */
-export interface DeviceDefaultModel extends mongoose.Model<DeviceDefaultDocument>, DeviceDefaultStatics {}
+export interface DeviceDefaultModel extends mongoose.Model<DeviceDefaultDocument, DeviceDefaultQueries>, DeviceDefaultStatics {}
 
 /**
  * Mongoose Schema type
@@ -626,7 +590,7 @@ home?: DeviceDefaultHome;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel>("DeviceDefault", DeviceDefaultSchema);
+ * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel, DeviceDefaultQueries>("DeviceDefault", DeviceDefaultSchema);
  * ```
  */
 export interface DeviceDefaultHomeDocument extends mongoose.Document<mongoose.Types.ObjectId> {
@@ -640,10 +604,10 @@ status: any;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel>("DeviceDefault", DeviceDefaultSchema);
+ * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel, DeviceDefaultQueries>("DeviceDefault", DeviceDefaultSchema);
  * ```
  */
-export interface DeviceDefaultDocument extends mongoose.Document<mongoose.Types.ObjectId>, DeviceDefaultMethods {
+export interface DeviceDefaultDocument extends mongoose.Document<mongoose.Types.ObjectId, DeviceDefaultQueries>, DeviceDefaultMethods {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: DeviceDefaultHomeDocument;

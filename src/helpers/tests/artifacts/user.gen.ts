@@ -50,37 +50,19 @@ export type UserObject = User
 /**
  * Mongoose Query types
  * 
- * Use type assertion to ensure User query type safety:
+ * Pass this type to the Mongoose Model constructor:
  * ```
- * UserSchema.query = <UserQueries>{ ... };
+ * const User = mongoose.model<UserDocument, UserModel, UserQueries>("User", UserSchema);
  * ```
  */
 export type UserQueries = {
-populateFriends: <Q extends mongoose.Query<any, UserDocument>>(this: Q) => Q;
+populateFriends: <Q extends mongoose.Query<any, UserDocument, any>>(this: Q) => Q;
 }
 
-declare module "mongoose" {interface Query<ResultType, DocType extends Document> extends UserQueries {}}
-
-/**
- * Mongoose Method types
- * 
- * Use type assertion to ensure User methods type safety:
- * ```
- * UserSchema.methods = <UserMethods>{ ... };
- * ```
- */
 export type UserMethods = {
 isMetadataString: (this: UserDocument) => boolean;
 }
 
-/**
- * Mongoose Static types
- * 
- * Use type assertion to ensure User statics type safety:
- * ```
- * UserSchema.statics = <UserStatics>{ ... };
- * ```
- */
 export type UserStatics = {
 getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<UserObject[]>;
 }
@@ -90,10 +72,10 @@ getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<User
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
+ * const User = mongoose.model<UserDocument, UserModel, UserQueries>("User", UserSchema);
  * ```
  */
-export interface UserModel extends mongoose.Model<UserDocument>, UserStatics {}
+export interface UserModel extends mongoose.Model<UserDocument, UserQueries>, UserStatics {}
 
 /**
  * Mongoose Schema type
@@ -165,10 +147,10 @@ _id: mongoose.Types.ObjectId;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
+ * const User = mongoose.model<UserDocument, UserModel, UserQueries>("User", UserSchema);
  * ```
  */
-export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId>, UserMethods {
+export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId, UserQueries>, UserMethods {
 email: string;
 firstName: string;
 lastName: string;
