@@ -81,7 +81,7 @@ UserSchema.virtual("name").get(function (this: UserDocument) {
 // method functions, use Type Assertion (cast to UserMethods) for type safety
 UserSchema.methods = {
   isMetadataString() {
-    return typeof this.metadata === "string";
+    return this.metadata === "string";
   }
 };
 

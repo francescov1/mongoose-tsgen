@@ -69,7 +69,9 @@ function findTypesInFile(sourceFile: SourceFile, modelTypes: ModelTypes) {
       );
 
       let rightFuncDeclarations: any[] = [];
-      if (right.getKind() === SyntaxKind.AsExpression) {
+      if (right.getKind() === SyntaxKind.ObjectLiteralExpression) {
+        rightFuncDeclarations = right.getChildrenOfKind(SyntaxKind.MethodDeclaration);
+      } else if (right.getKind() === SyntaxKind.AsExpression) {
         const objLiteralExp = right.getFirstChildByKind(SyntaxKind.ObjectLiteralExpression);
         if (objLiteralExp)
           rightFuncDeclarations = objLiteralExp.getChildrenOfKind(SyntaxKind.MethodDeclaration);
@@ -99,6 +101,8 @@ function findTypesInFile(sourceFile: SourceFile, modelTypes: ModelTypes) {
         });
       }
     } else if (callExpr) {
+      // virtual property
+
       let propAccessExpr = callExpr.getFirstChildByKind(SyntaxKind.PropertyAccessExpression);
 
       if (propAccessExpr?.getName() === "set") {
@@ -171,9 +175,11 @@ const parseModelInitializer = (
 
   // if model is a named import, we can match this without `mongoose.` prefix
   const pattern = isModelNamedImport ?
-    /model(?:<\w+,\w+>)?\(["'`](\w+)["'`],(\w+)\)/ :
-    /mongoose\.model(?:<\w+,\w+>)?\(["'`](\w+)["'`],(\w+)\)/;
+    /model(?:<\w+,\w+(?:,\w+)?>)?\(["'`](\w+)["'`],(\w+)\)/ :
+    /mongoose\.model(?:<\w+,\w+(?:,\w+)?>)?\(["'`](\w+)["'`],(\w+)\)/;
   const modelInitMatch = callExprStr.match(pattern);
+
+  // TODO: should warn users if no match is found at all
   if (!modelInitMatch) return undefined;
 
   const [, modelName, schemaVariableName] = modelInitMatch;

@@ -43,5 +43,7 @@ export const device3 = mongoose.model<
     DeviceDocument,
     DeviceModel
 >('Device3', DeviceSchema);
-export const device4 = model('Device4', DeviceSchema);
+export const device4 = model('Device4', 
+    DeviceSchema
+);
 export default mongoose.model<DeviceDocument, DeviceModel>('DeviceDefault', DeviceSchema);

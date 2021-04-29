@@ -19,6 +19,7 @@ import mongoose from "mongoose";
  * ```
  */
 export type HomeObject = Home
+
 /**
  * Mongoose Query types
  * 
@@ -108,6 +109,7 @@ homeName?: string;
  * ```
  */
 export type DeviceObject = Device
+
 /**
  * Mongoose Query types
  * 
@@ -214,6 +216,7 @@ homeName?: string;
  * ```
  */
 export type Device2Object = Device2
+
 /**
  * Mongoose Query types
  * 
@@ -320,6 +323,7 @@ homeName?: string;
  * ```
  */
 export type Device3Object = Device3
+
 /**
  * Mongoose Query types
  * 
@@ -426,6 +430,7 @@ homeName?: string;
  * ```
  */
 export type Device4Object = Device4
+
 /**
  * Mongoose Query types
  * 
@@ -532,6 +537,7 @@ homeName?: string;
  * ```
  */
 export type DeviceDefaultObject = DeviceDefault
+
 /**
  * Mongoose Query types
  * 

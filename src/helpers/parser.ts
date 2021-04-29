@@ -417,7 +417,7 @@ export const parseSchema = ({
   if (!isDocument && schema.statics && modelName && addModel) {
     // add type alias to modelName so that it can be imported without clashing with the mongoose model
     template += getObjectDocs(modelName);
-    template += `\nexport type ${modelName}Object = ${modelName}\n`;
+    template += `\nexport type ${modelName}Object = ${modelName}\n\n`;
 
     template += getQueryDocs(modelName);
     template += `\nexport type ${modelName}Queries = {\n`;
