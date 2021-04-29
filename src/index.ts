@@ -38,6 +38,9 @@ class MongooseTsgen extends Command {
     project: flags.string({
       char: "p",
       description: "[default: ./] Path of `tsconfig.json` or its root folder."
+    }),
+    debug: flags.boolean({
+      description: "Print debug information if anything isn't working"
     })
   };
 
@@ -73,6 +76,11 @@ class MongooseTsgen extends Command {
 
   async run() {
     const { flags, args } = this.getConfig();
+
+    if (flags.debug) {
+      this.log("Debug mode enabled");
+      process.env.DEBUG = "1";
+    }
 
     cli.action.start("Generating mongoose typescript definitions");
 

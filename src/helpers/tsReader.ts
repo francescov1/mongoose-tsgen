@@ -187,6 +187,8 @@ const parseModelInitializer = (
 };
 
 function initModelTypes(sourceFile: SourceFile, filePath: string) {
+  if (process.env.DEBUG) console.log("tsreader: Searching file for Mongoose schemas: " + filePath);
+
   const modelTypes: ModelTypes = {};
   const mongooseImport = sourceFile.getImportDeclaration("mongoose");
 
@@ -227,6 +229,15 @@ function initModelTypes(sourceFile: SourceFile, filePath: string) {
         virtuals: {}
       };
     }
+  }
+
+  if (process.env.DEBUG) {
+    const schemaNames = Object.keys(modelTypes);
+    if (schemaNames.length === 0)
+      console.warn(
+        `tsreader: No schema found in file. If a schema exists & is exported, it will still be typed but will use generic types for methods, statics, queries & virtuals`
+      );
+    else console.log("tsreader: Schemas found: " + schemaNames);
   }
 
   return modelTypes;
