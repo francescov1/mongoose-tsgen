@@ -27,10 +27,8 @@ class MongooseTsgen extends Command {
         "Custom import statements to add to the output file. Useful if you use third-party types in your mongoose schema definitions. For multiple imports, specify this flag more than once.",
       multiple: true
     }),
-    js: flags.boolean({
-      char: "j",
-      description:
-        "Search for Mongoose schemas in Javascript files rather than in Typescript files. Passing this flag also triggers --no-func-types."
+    "no-format": flags.boolean({
+      description: "Disable formatting generated files with prettier."
     }),
     output: flags.string({
       char: "o",
@@ -41,14 +39,8 @@ class MongooseTsgen extends Command {
       char: "p",
       description: "[default: ./] Path of `tsconfig.json` or its root folder."
     }),
-    augment: flags.boolean({
-      description: `Augment generated interfaces into the 'mongoose' module.`
-    }),
-    "no-format": flags.boolean({
-      description: "Disable formatting generated files with prettier."
-    }),
-    "no-func-types": flags.boolean({
-      description: "Disable using TS compiler API for method, static, query & virtual typings."
+    debug: flags.boolean({
+      description: "Print debug information if anything isn't working"
     })
   };
 
@@ -85,16 +77,17 @@ class MongooseTsgen extends Command {
   async run() {
     const { flags, args } = this.getConfig();
 
+    if (flags.debug) {
+      this.log("Debug mode enabled");
+      process.env.DEBUG = "1";
+    }
+
     cli.action.start("Generating mongoose typescript definitions");
 
     try {
-      const extension = flags.js ? "js" : "ts";
-      const modelsPaths = paths.getModelsPaths(args.model_path, extension);
+      const modelsPaths = paths.getModelsPaths(args.model_path);
 
-      let cleanupTs: any;
-      if (!flags.js) {
-        cleanupTs = parser.registerUserTs(flags.project);
-      }
+      const cleanupTs = parser.registerUserTs(flags.project);
 
       const schemas = parser.loadSchemas(modelsPaths);
 
@@ -104,14 +97,11 @@ class MongooseTsgen extends Command {
       sourceFile = parser.generateTypes({
         schemas,
         sourceFile,
-        isAugmented: flags.augment,
         imports: flags.imports
       });
 
-      if (!flags.js && !flags["no-func-types"]) {
-        const modelTypes = tsReader.getModelTypes(modelsPaths);
-        parser.replaceModelTypes(sourceFile, modelTypes, schemas, flags.augment);
-      }
+      const modelTypes = tsReader.getModelTypes(modelsPaths);
+      parser.replaceModelTypes(sourceFile, modelTypes, schemas);
 
       cleanupTs?.();
 

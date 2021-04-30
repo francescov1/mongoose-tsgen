@@ -9,26 +9,8 @@ beforeEach(cleanup);
 afterAll(cleanup);
 
 describe("getModelsPaths", () => {
-  test("./dist/models (js)", async () => {
-    setupFolderStructure("./dist/models", { js: true });
-    // here the returned value should be an array containing paths of each individual schema
-    const expected = [path.join(__dirname, "dist/models/user.js")];
-
-    // undefined path
-    let modelsPath = await paths.getModelsPaths(undefined, "js");
-    expect(modelsPath).toEqual(expected);
-
-    // empty string path
-    modelsPath = await paths.getModelsPaths("", "js");
-    expect(modelsPath).toEqual(expected);
-
-    // defined path
-    modelsPath = await paths.getModelsPaths("./src/helpers/tests/dist/models", "js");
-    expect(modelsPath).toEqual(expected);
-  });
-
-  test("./dist/models (ts)", async () => {
-    setupFolderStructure("./dist/models");
+  test("./dist/models", async () => {
+    setupFolderStructure("./dist/models", "user");
     // here the returned value should be an array containing paths of each individual schema
     const expected = [path.join(__dirname, "dist/models/user.ts")];
 
@@ -43,23 +25,8 @@ describe("getModelsPaths", () => {
     expect(modelsPath).toEqual(expected);
   });
 
-  test("./models (js)", async () => {
-    setupFolderStructure("./models", { js: true });
-    // here the returned value should be an array containing paths of each individual schema
-    const expected = [path.join(__dirname, "models/user.js")];
-
-    let modelsPath = await paths.getModelsPaths(undefined, "js");
-    expect(modelsPath).toEqual(expected);
-
-    modelsPath = await paths.getModelsPaths("", "js");
-    expect(modelsPath).toEqual(expected);
-
-    modelsPath = await paths.getModelsPaths("./src/helpers/tests/models", "js");
-    expect(modelsPath).toEqual(expected);
-  });
-
-  test("./models (ts)", async () => {
-    setupFolderStructure("./models");
+  test("./models", async () => {
+    setupFolderStructure("./models", "user");
     // here the returned value should be an array containing paths of each individual schema
     const expected = [path.join(__dirname, "models/user.ts")];
 
@@ -73,33 +40,17 @@ describe("getModelsPaths", () => {
     expect(modelsPath).toEqual(expected);
   });
 
-  test("no models with empty path (js)", async () => {
-    // js version
-    expect(() => {
-      paths.getModelsPaths("", "js");
-    }).toThrow(
-      new Error(
-        `Recursive search could not find any model files at "**/models/*.js". Please provide a path to your models folder.`
-      )
-    );
-
-    // ts version
+  test("no models with empty path", async () => {
     expect(() => {
       paths.getModelsPaths("");
     }).toThrow(
       new Error(
-        `Recursive search could not find any model files at "**/models/*.ts". Please provide a path to your models folder.`
+        `Recursive search could not find any model files at "**/models/!(index).ts". Please provide a path to your models folder.`
       )
     );
   });
 
-  test("no models with specific path (ts)", async () => {
-    // js version
-    expect(() => {
-      paths.getModelsPaths("./non/existant", "js");
-    }).toThrow(new Error(`No model files found found at path "./non/existant".`));
-
-    // ts version
+  test("no models with specific path", async () => {
     expect(() => {
       paths.getModelsPaths("./non/existant");
     }).toThrow(new Error(`No model files found found at path "./non/existant".`));

@@ -34,34 +34,41 @@ This library aims to remove these drawbacks by instead parsing your already-writ
 
 # Compatibility
 
-Mongoose: v5.11+
-
-> For previous Mongoose versions, install mongoose-tsgen v6.0.10 with `npm install mongoose-tsgen@6.0.10` and see [its README](https://github.com/francescov1/mongoose-tsgen/blob/12d2f693957f61776d5b6addf23a8b051c99294c/README.md) for instructions.
-
 - [x] All Mongoose types, arrays and maps
 - [x] Virtual properties
 - [x] Mongoose method, static & query functions
 - [x] Multiple schemas per file
 - [x] Typescript path aliases
 
+### Mongoose version
+
+Find your Mongoose version below and install the associated mongoose-tsgen version. Ensure to refer to each version's respective README for documentation (hyperlinked in table).
+
+| mongoose       | mongoose-tsgen |
+| -------------- | -------------- |
+| 5.11.19+       | latest         |
+| 5.11.0-5.11.18 | [7.1.3](https://github.com/francescov1/mongoose-tsgen/blob/85ccc70b13e875b0de135a171563292fa58e5472/README.md)          |
+| <5.11.0        | [6.0.10](https://github.com/francescov1/mongoose-tsgen/blob/12d2f693957f61776d5b6addf23a8b051c99294c/README.md)         |
+
 # Installation
 
-<!-- usage -->
+mongoose-tsgen can be installed globally or locally as a dev dependency. Refer to the table above to ensure you are using the correct version.
 
-```sh-session
-$ npm install -D mongoose-tsgen
-$ npx mtgen --help # print usage
+```bash
+# install as dev dependency with npm
+npm install -D mongoose-tsgen
+
+# install for mongoose v5.10.19 (see table above for compatibility)
+npm install -D mongoose-tsgen@5.10.19
+
+# install as dev dependency with yarn
+yarn add -D mongoose-tsgen
 ```
-
-<!-- usagestop -->
 
 # The Gist
 
-Once you've generated your typings file (see [Usage](#usage)), all you need to do is use the generated types in your schema definitions and throughout your project. Note that this practice is well documented online, I've found the following two Medium articles especially useful:
-- [Complete guide for Typescript with Mongoose for Node.js](https://medium.com/@agentwhs/complete-guide-for-typescript-for-mongoose-for-node-js-8cc0a7e470c1)
-- [Strongly typed models with Mongoose and TypeScript](https://medium.com/@tomanagle/strongly-typed-models-with-mongoose-and-typescript-7bc2f7197722)
+Once you've generated your typings file (see [Usage](#usage)), all you need to do is use the generated types in your schema definitions and throughout your project. 
 
-> If you run into unknown type issues, ensure you've updated Mongoose to v5.11+ and have removed the deprecated community typings `@types/mongoose`.
 ### user.ts before:
 
 ```typescript
@@ -77,11 +84,11 @@ export default User;
 
 ```typescript
 import mongoose from "mongoose";
-import { UserDocument, UserModel, UserSchema } from "../interfaces/mongoose.gen.ts";
+import { UserDocument, UserModel, UserQueries, UserSchema } from "../interfaces/mongoose.gen.ts";
 
 const UserSchema: UserSchema = new Schema(...);
 
-export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
+export const User: UserModel = mongoose.model<UserDocument, UserModel, UserQueries>("User", UserSchema);
 export default User;
 ```
 
@@ -102,6 +109,10 @@ async function editEmail(user: UserDocument, newEmail: string): UserDocument {
 }
 ```
 
+Note that this practice is well documented online, I've found the following two Medium articles especially useful:
+- [Complete guide for Typescript with Mongoose for Node.js](https://medium.com/@agentwhs/complete-guide-for-typescript-for-mongoose-for-node-js-8cc0a7e470c1)
+- [Strongly typed models with Mongoose and TypeScript](https://medium.com/@tomanagle/strongly-typed-models-with-mongoose-and-typescript-7bc2f7197722)
+
 # Usage
 
 <!-- commands -->
@@ -110,7 +121,7 @@ async function editEmail(user: UserDocument, newEmail: string): UserDocument {
 
 Generate a Typescript file containing Mongoose Schema typings.
 
-_Note that these docs refer to Typescript files only. If you haven't yet converted Mongoose schema definition files to Typescript, you can use the `--js` flag to still generate types._
+> If you run into unknown type issues, [check your Mongoose version](#mongoose-version). For Mongoose v5.11+, ensure you have removed the deprecated community typings `@types/mongoose`.
 
 ```
 USAGE
@@ -128,20 +139,15 @@ OPTIONS
                          third-party types  in your mongoose schema definitions. For multiple imports, 
                          specify this flag more than once. 
 
-  -j, --js               Search for Javascript schema files rather than Typescript files. 
-                         Passing this flag also triggers --no-func-types.
-
   -o, --output=output    [default: ./src/interfaces] Path of output file to write generated typings. 
                          If a folder path is passed, the generator will create a `mongoose.gen.ts` file 
                          in the specified folder.
 
   -p, --project=project  [default: ./] Path of `tsconfig.json` or its root folder.
 
-  --augment              Augment generated typings into the 'mongoose' module.
+  --debug                Print debug information if anything isn't working
 
   --no-format            Disable formatting generated files with prettier.
-
-  --no-func-types        Disable using TS compiler API for method, static, query & virtual typings.
 ```
 
 Specify the directory of your Mongoose schema definitions using `MODEL_PATH`. If left blank, all sub-directories will be searched for `models/*.ts` (ignores `index.ts` files). Files found are expected to export a Mongoose model. 
@@ -196,10 +202,8 @@ if (isPopulated<UserDocument>(user.bestFriend)) {
 ### ./src/models/user.ts
 
 ```typescript
-import mongoose from "mongoose";
-import { UserDocument, UserModel, UserSchema, UserMethods, UserStatics, UserQueries, UserObject } from "../interfaces/mongoose.gen.ts";
-
-const { Schema } = mongoose;
+import mongoose, { Schema } from "mongoose";
+import { UserDocument, UserModel, UserSchema, UserQueries, UserObject } from "../interfaces/mongoose.gen.ts";
 
 // UserSchema type
 const UserSchema: UserSchema = new Schema({
@@ -243,48 +247,38 @@ UserSchema.virtual("name").get(function (this: UserDocument) {
   return `${this.firstName} ${this.lastName}`;
 });
 
-// method functions, use Type Assertion (cast to UserMethods) for type safety
-UserSchema.methods = <UserMethods>{
-  // the return type (boolean) will be inferred from the TS compiler here 
+UserSchema.methods = {
   isMetadataString() {
-    return typeof this.metadata === "string";
+    return this.metadata === "string";
   }
 };
 
-// static functions, use Type Assertion (cast to UserStatics) for type safety
-UserSchema.statics = <UserStatics>{
+UserSchema.statics = {
   async getFriends(friendUids: UserDocument["_id"][]): Promise<UserObject[]> {
     return await this.aggregate([{ $match: { _id: { $in: friendUids } } }]);
   }
 };
 
-// query functions, use Type Assertion (cast to UserQueries) for type safety
-UserSchema.query = <UserQueries>{
+UserSchema.query = {
   populateFriends() {
     return this.populate("friends.uid", "firstName lastName");
   }
 };
 
-export const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
+export const User = mongoose.model<UserDocument, UserModel, UserQueries>("User", UserSchema);
 export default User;
 ```
 
 ### generate typings
 
 ```bash
-$ mtgen
+# run mongoose-tsgen
+npx mtgen
 ```
 
 ### generated typings file ./src/interfaces/mongoose.gen.ts
 
 ```typescript
-/* tslint:disable */
-/* eslint-disable */
-
-// ######################################## THIS FILE WAS GENERATED BY MONGOOSE-TSGEN ######################################## //
-
-// NOTE: ANY CHANGES MADE WILL BE OVERWRITTEN ON SUBSEQUENT EXECUTIONS OF MONGOOSE-TSGEN.
-
 import mongoose from "mongoose";
 
 export interface UserFriend {
@@ -296,11 +290,7 @@ export interface UserFriend {
 export type UserObject = User;
 
 export type UserQueries = {
-  populateFriends: <Q extends mongoose.Query<any, UserDocument>>(this: Q) => Q;
-}
-
-declare module "mongoose" {
-  interface Query<ResultType, DocType extends Document> extends UserQueries {}
+  populateFriends: <Q extends mongoose.Query<any, UserDocument, any>>(this: Q) => Q;
 }
 
 export type UserMethods = {
@@ -311,7 +301,7 @@ export type UserStatics = {
   getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<UserObject[]>;
 }
 
-export interface UserModel extends mongoose.Model<UserDocument>, UserStatics {}
+export interface UserModel extends mongoose.Model<UserDocument, UserQueries>, UserStatics {}
 
 export type UserSchema = mongoose.Schema<UserDocument, UserModel>
 
@@ -333,7 +323,7 @@ export interface UserFriendDocument extends mongoose.Types.EmbeddedDocument {
   _id: mongoose.Types.ObjectId;
 };
 
-export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId>,
+export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId, UserQueries>,
   UserMethods {
     email: string;
     firstName: string;
@@ -351,7 +341,6 @@ export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId>
 
 ## Development
 
-- [ ] <b>In progress:</b> The generating piece of `src/helpers/parser.ts` needs to be rewritten using [ts-morph](https://github.com/dsherret/ts-morph). Currently it builds the interfaces by appending generated lines of code to a string sequentially, with no knowledge of the AST. This leads to pretty confusing logic, using the TS compiler API would simplify it a ton.
-- [ ] Stronger [populate](https://mongoosejs.com/docs/populate.html) typing by augmenting Mongoose types with more accurate return types (see [Query Population](#query-population)).
+- [ ] Stronger/automatic [populate](https://mongoosejs.com/docs/populate.html) typing (see [Query Population](#query-population)).
 - [ ] Add CLI option to type `_id` fields as a string rather than an ObjectId on lean version of documents (see [#7](https://github.com/francescov1/mongoose-tsgen/issues/7)).
 - [ ] Cut down node_modules by using peer dependencies (i.e. mongoose) and stripping oclif.
