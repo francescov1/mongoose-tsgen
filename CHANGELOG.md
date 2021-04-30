@@ -3,6 +3,7 @@
 ## 8.0.0 / 2021-04-29
 
 * Removed need to typecast method, static and query objects (this was required to support function types)
+* Query types can now be passed as a generic to the Mongoose model constructor. This greatly simplifies query typing
 * Update to Mongoose 5.12.6
 * remove CLI options:
   - `--js` (generator depends too much on TS compiler libraries now, so using this with JS has very limited functionality. Convert type files to TS before using mongoose-tsgen moving forward)

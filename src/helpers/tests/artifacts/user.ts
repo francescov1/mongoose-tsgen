@@ -78,21 +78,18 @@ UserSchema.virtual("name").get(function (this: UserDocument) {
   return `${this.firstName} ${this.lastName}`;
 });
 
-// method functions, use Type Assertion (cast to UserMethods) for type safety
 UserSchema.methods = {
   isMetadataString() {
     return this.metadata === "string";
   }
 };
 
-// static functions, use Type Assertion (cast to UserStatics) for type safety
 UserSchema.statics = {
   async getFriends(friendUids: UserDocument["_id"][]): Promise<UserObject[]> {
     return await this.aggregate([{ $match: { _id: { $in: friendUids } } }]);
   }
 };
 
-// query functions, use Type Assertion (cast to UserQueries) for type safety
 UserSchema.query = {
   populateFriends() {
     return this.populate("friends.uid", "firstName lastName")
