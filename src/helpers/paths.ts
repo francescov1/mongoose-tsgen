@@ -45,7 +45,9 @@ export const getModelsPaths = (basePath?: string): string[] => {
     modelsPaths.sort((_a, b) => (b.endsWith("index.ts") ? -1 : 0));
   } else {
     // no base path, recursive search files in a `models/` folder
-    modelsPaths = glob.sync("**/models/!(index).ts", {
+    const modelsFolderPath = `**/models/!(index).ts`;
+
+    modelsPaths = glob.sync(modelsFolderPath, {
       ignore: "**/node_modules/**"
     });
 
