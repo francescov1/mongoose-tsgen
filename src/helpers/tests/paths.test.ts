@@ -45,7 +45,7 @@ describe("getModelsPaths", () => {
       paths.getModelsPaths("");
     }).toThrow(
       new Error(
-        `Recursive search could not find any model files at "**/models/*.ts". Please provide a path to your models folder.`
+        `Recursive search could not find any model files at "**/models/!(index).ts". Please provide a path to your models folder.`
       )
     );
   });

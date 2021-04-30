@@ -727,7 +727,7 @@ export const loadSchemas = (modelsPaths: string[]) => {
     const schemaCount = Object.keys(schemas).length - prevSchemaCount;
     if (schemaCount === 0) {
       console.warn(
-        `A module was found at ${singleModelPath}, but no exported models were found. Please ensure this file exports a Mongoose Model (preferably default export).`
+        `A module was found at ${singleModelPath}, but no new exported models were found. If this file contains a Mongoose schema, ensure it is exported and its name does not conflict with others.`
       );
     }
   });
