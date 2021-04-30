@@ -84,11 +84,11 @@ export default User;
 
 ```typescript
 import mongoose from "mongoose";
-import { UserDocument, UserModel, UserSchema } from "../interfaces/mongoose.gen.ts";
+import { UserDocument, UserModel, UserQueries, UserSchema } from "../interfaces/mongoose.gen.ts";
 
 const UserSchema: UserSchema = new Schema(...);
 
-export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
+export const User: UserModel = mongoose.model<UserDocument, UserModel, UserQueries>("User", UserSchema);
 export default User;
 ```
 
