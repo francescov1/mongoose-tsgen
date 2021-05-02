@@ -58,8 +58,8 @@ mongoose-tsgen can be installed globally or locally as a dev dependency. Refer t
 # install as dev dependency with npm
 npm install -D mongoose-tsgen
 
-# install for mongoose v5.10.19 (see table above for compatibility)
-npm install -D mongoose-tsgen@5.10.19
+# install mongoose-tsgen v7.1.3 for mongoose v5.10.19 (see table above for compatibility)
+npm install -D mongoose-tsgen@7.1.3
 
 # install as dev dependency with yarn
 yarn add -D mongoose-tsgen
