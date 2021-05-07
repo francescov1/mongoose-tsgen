@@ -59,6 +59,22 @@ export type UserQueries = {
 populateFriends: <Q extends mongoose.Query<any, UserDocument, any>>(this: Q) => Q;
 }
 
+// generate versions of populate overload with each possible string
+
+declare module "mongoose" {
+  interface Query<ResultType, DocType extends UserDocument, THelpers = {}>  {
+      // populate<T extends keyof DocType>(path: T, select?: string | any, model?: string | Model<any>, match?: any): Query<DocType & { [ref in T]: Omit<DocType[T], keyof Types.ObjectId> }, DocType, THelpers>
+      populate<T extends keyof DocType>(path: T, select?: string | any, model?: string | Model<any>, match?: any): Query<DocType & { [ref in T]: Exclude<DocType[T], Types.ObjectId> }, DocType, THelpers>
+
+      // populate(path: "bestFriend"): Query<UserDocument & { bestFriend: UserDocument }, UserDocument & { bestFriend: UserDocument }, THelpers>
+
+      /** Specifies paths which should be populated with other documents. */
+      // populate(path: string | any, select?: string | any, model?: string | Model<any, THelpers>, match?: any): this;
+      // populate(options: PopulateOptions | Array<PopulateOptions>): this;
+    }
+}
+
+
 export type UserMethods = {
 isMetadataString: (this: UserDocument) => boolean;
 }
