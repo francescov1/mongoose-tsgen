@@ -58,6 +58,10 @@ const UserSchema: UserSchema = new Schema({
     required: true
   },
   bufferString: 'Buffer',
+  bufferSchemaType: {
+    type: Schema.Types.Buffer,
+    default: null
+  },
   decimal128: Schema.Types.Decimal128,
   otherDecimal128: mongoose.Types.Decimal128,
   numberString: "Number",
