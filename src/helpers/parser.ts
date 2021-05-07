@@ -292,6 +292,8 @@ const convertBaseTypeToTs = (key: string, val: any, isDocument: boolean) => {
       case Date:
         valType = "Date";
         break;
+      case mongoose.Types.Buffer:
+      case mongoose.Schema.Types.Buffer:
       case Buffer:
       case "Buffer":
         valType = "Buffer";
@@ -522,6 +524,7 @@ export const getParseKeyFn = (isDocument: boolean, schema: any) => {
       }
     }
 
+    // TODO: this list should be combined with the convertBaseTypeToTs somehow so that we dont duplicate types
     // if type is provided directly on property, expand it
     if (
       [
@@ -534,6 +537,8 @@ export const getParseKeyFn = (isDocument: boolean, schema: any) => {
         Date,
         Buffer,
         "Buffer",
+        mongoose.Types.Buffer,
+        mongoose.Schema.Types.Buffer,
         mongoose.Schema.Types.ObjectId,
         mongoose.Types.ObjectId,
         mongoose.Types.Decimal128,
