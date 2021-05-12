@@ -139,7 +139,7 @@ OPTIONS
                           third-party types in your mongoose schema definitions. For multiple imports,
                           specify this flag more than once.
 
-  -o, --output=output     [default: ./src/interfaces] Path of output file containing generated typings.
+  -o, --output=output     [default: ./src/interfaces] Path of output file to write generated typings.
                           If a folder path is passed, the generator will create a `mongoose.gen.ts` file
                           in the specified folder.
 
