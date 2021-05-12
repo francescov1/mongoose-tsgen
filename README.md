@@ -174,30 +174,25 @@ All CLI options can be provided using a `mtgen.config.json` file. Use the `--con
 
 ## Query Population
 
-Any field with a `ref` property will be typed as `RefDocument["_id"] | RefDocument`. This allows you to use the same type whether you populate a field or not. When populating a field, you will need to use [Typeguards](https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types) or [Type Assertion](https://www.typescriptlang.org/docs/handbook/basic-types.html#type-assertions) to tell Typescript that the field is populated:
+Any field with a `ref` property will be typed as `RefDocument["_id"] | RefDocument`. As part of the generated file, mongoose will be augmented with `Query.populate` overloads to narrow return types of populated queries (this can be disabled using the `--no-populate-overload` flag). A helper type `IsPopulated` and a type guard function `PopulatedDocument` will also be generated to help with handling populated documents, see usage below:
 
 ```typescript
-// fetch user with bestFriend populated
-const user = await User.findById(uid).populate("bestFriend").exec()
+import { IsPopulated, PopulatedDocument } from "../interfaces/mongoose.gen.ts";
 
-// typescript won't allow this, since `bestFriend` is typed as `UserDocument["_id"] | UserDocument`  
-console.log(user.bestFriend._id)
+// `user` is typed as a UserDocument with `bestFriend` populated
+function example(user: PopulatedDocument<UserDocument, "bestFriend">) {
+  // type guard
+  console.log(IsPopulated(user.bestFriend))) // true
 
-// instead use type assertion
-const bestFriend = user.bestFriend as UserDocument;
-console.log(bestFriend._id);
-
-// or use typeguards
-
-function isPopulated<T>(doc: T | mongoose.Types.ObjectId): doc is T {
-  return doc instanceof mongoose.Document;
-}
-
-if (isPopulated<UserDocument>(user.bestFriend)) {
-  // user.bestFriend is a UserDocument
   console.log(user.bestFriend._id)
 }
 
+// due to the `Query.populate` overload, `user` will be typed as `PopulatedDocument<UserDocument, "bestFriend">`
+// rather than the usual `UserDocument`
+const user = await User.findById(uid).populate("bestFriend").exec()
+
+// completely typesafe
+example(user)
 ```
 
 # Example
