@@ -619,3 +619,41 @@ _id: mongoose.Types.ObjectId;
 home?: DeviceDefaultHomeDocument;
 }
 
+/**
+* Populate properties on a document type:
+* ```
+* import { PopulatedDocument } from "../interfaces/mongoose.gen.ts"
+* 
+* function example(user: PopulatedDocument<UserDocument, "bestFriend">) {
+*   console.log(user.bestFriend) // this will be typed as UserDocument rather than mongoose.Types.ObjectId
+* }
+* ```
+*/
+export type PopulatedDocument<DocType extends mongoose.Document, T extends keyof DocType> = Omit<DocType, T> & { [ref in T]: Exclude<DocType[T], mongoose.Types.ObjectId> }
+
+/**
+ * Check if a property on a document is populated:
+ * ```
+ * import { IsPopulated } from "../interfaces/mongoose.gen.ts"
+ * 
+ * if (IsPopulated<UserDocument["bestFriend"]>) { ... }
+ * ```
+ */
+export function IsPopulated<T>(doc: T | mongoose.Types.ObjectId): doc is T {
+  return doc instanceof mongoose.Document;
+}
+
+/**
+* Helper types for unwrapping an array type, used by populate overload
+*/
+type Unarray<T> = T extends Array<infer U> ? U : T;
+
+/**
+* Augment mongoose with Query.populate overloads
+*/
+declare module "mongoose" {
+ interface Query<ResultType, DocType extends Document, THelpers = {}> {
+   populate<T extends keyof DocType>(path: T, select?: string | any, model?: string | Model<any>, match?: any): Query<ResultType extends Array<DocType> ? Array<PopulatedDocument<Unarray<ResultType>, T>> : PopulatedDocument<DocType, T>, DocType, THelpers>
+ }
+}
+

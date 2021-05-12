@@ -37,6 +37,8 @@ describe("generateTypes", () => {
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
     parser.replaceModelTypes(sourceFile, modelTypes, schemas);
+    parser.addPopulateHelpers(sourceFile);
+    parser.overloadQueryPopulate(sourceFile);
 
     cleanupTs?.();
     expect(sourceFile.getFullText()).toBe(getExpectedString("user.gen.ts"));
@@ -56,6 +58,8 @@ describe("generateTypes", () => {
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
     parser.replaceModelTypes(sourceFile, modelTypes, schemas);
+    parser.addPopulateHelpers(sourceFile);
+    parser.overloadQueryPopulate(sourceFile);
 
     cleanupTs?.();
     expect(sourceFile.getFullText()).toBe(getExpectedString("device.gen.ts"));

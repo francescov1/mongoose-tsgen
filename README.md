@@ -128,26 +128,29 @@ USAGE
   $ mtgen [MODEL_PATH]
 
 OPTIONS
-  -c, --config=config    [default: ./] Path of `mtgen.config.json` or its root folder. CLI flag 
-                         options will take precendence over settings in `mtgen.config.json`.
+  -c, --config=config     [default: ./] Path of `mtgen.config.json` or its root folder. CLI flag
+                          options will take precendence over settings in `mtgen.config.json`.
 
-  -d, --dry-run          Print output rather than writing to file.
+  -d, --dry-run           Print output rather than writing to file.
 
-  -h, --help             Show CLI help
+  -h, --help              Show CLI help
 
-  -i, --imports=import   Custom import statements to add to the output file. Useful if you use 
-                         third-party types  in your mongoose schema definitions. For multiple imports, 
-                         specify this flag more than once. 
+  -i, --imports=imports   Custom import statements to add to the output file. Useful if you use
+                          third-party types in your mongoose schema definitions. For multiple imports,
+                          specify this flag more than once.
 
-  -o, --output=output    [default: ./src/interfaces] Path of output file to write generated typings. 
-                         If a folder path is passed, the generator will create a `mongoose.gen.ts` file 
-                         in the specified folder.
+  -o, --output=output     [default: ./src/interfaces] Path of output file containing generated typings.
+                          If a folder path is passed, the generator will create a `mongoose.gen.ts` file
+                          in the specified folder.
 
-  -p, --project=project  [default: ./] Path of `tsconfig.json` or its root folder.
+  -p, --project=project   [default: ./] Path of `tsconfig.json` or its root folder.
 
-  --debug                Print debug information if anything isn't working
+  --debug                 Print debug information if anything isn't working
 
-  --no-format            Disable formatting generated files with prettier.
+  --no-format             Disable formatting generated files with prettier.
+
+  --no-populate-overload  Disable augmenting mongoose with Query.populate overloads (the overloads narrow
+                          the return type of populated documents queries).
 ```
 
 Specify the directory of your Mongoose schema definitions using `MODEL_PATH`. If left blank, all sub-directories will be searched for `models/*.ts` (ignores `index.ts` files). Files found are expected to export a Mongoose model. 
