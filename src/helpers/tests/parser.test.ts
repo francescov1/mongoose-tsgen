@@ -39,6 +39,7 @@ describe("generateTypes", () => {
     parser.replaceModelTypes(sourceFile, modelTypes, schemas);
 
     cleanupTs?.();
+    fs.writeFileSync("new.user.gen.ts", sourceFile.getFullText());
     expect(sourceFile.getFullText()).toBe(getExpectedString("user.gen.ts"));
   });
 
@@ -58,6 +59,7 @@ describe("generateTypes", () => {
     parser.replaceModelTypes(sourceFile, modelTypes, schemas);
 
     cleanupTs?.();
+    fs.writeFileSync("new.device.gen.ts", sourceFile.getFullText());
     expect(sourceFile.getFullText()).toBe(getExpectedString("device.gen.ts"));
   });
 });
@@ -65,9 +67,13 @@ describe("generateTypes", () => {
 describe("getParseKeyFn", () => {
   test("handles untyped Array equivalents as `any[]`", () => {
     // see https://mongoosejs.com/docs/schematypes.html#arrays
-    const parseKey = parser.getParseKeyFn(false, {
-      test1a: { type: [mongoose.Schema.Types.Mixed], default: undefined }
-    });
+    const parseKey = parser.getParseKeyFn(
+      false,
+      {
+        test1a: { type: [mongoose.Schema.Types.Mixed], default: undefined }
+      },
+      false
+    );
 
     expect(parseKey("test1a", { type: [mongoose.Schema.Types.Mixed] })).toBe("test1a: any[];\n");
     expect(parseKey("test1b", [mongoose.Schema.Types.Mixed])).toBe("test1b: any[];\n");
@@ -84,7 +90,7 @@ describe("getParseKeyFn", () => {
 
   test("handles Object equivalents as `any`", () => {
     // see https://mongoosejs.com/docs/schematypes.html#mixed
-    const parseKey = parser.getParseKeyFn(false, {});
+    const parseKey = parser.getParseKeyFn(false, {}, false);
 
     expect(parseKey("test1a", { type: mongoose.Schema.Types.Mixed })).toBe("test1a?: any;\n");
     expect(parseKey("test1b", mongoose.Schema.Types.Mixed)).toBe("test1b?: any;\n");
@@ -106,7 +112,7 @@ describe("getParseKeyFn", () => {
   });
 
   test("handles 2dsphere index edge case", () => {
-    const parseKey = parser.getParseKeyFn(false, {});
+    const parseKey = parser.getParseKeyFn(false, {}, false);
 
     // should be optional; not required like normal arrays
     expect(parseKey("test1a", { type: [Number], index: "2dsphere" })).toBe("test1a?: number[];\n");
