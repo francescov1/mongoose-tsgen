@@ -204,16 +204,44 @@ export function IsPopulated<T>(doc: T | mongoose.Types.ObjectId): doc is T {
 }
 
 /**
-* Helper types for unwrapping an array type, used by populate overload
+* Helper types for unwrapping an array type &and  modifying an interface property, used by the populate overloads
 */
 type Unarray<T> = T extends Array<infer U> ? U : T;
+type Modify<T, R> = Omit<T, keyof R> & R;
+
+type T0 = Exclude<"a" & "b" & "c", "a">;
 
 /**
 * Augment mongoose with Query.populate overloads
 */
 declare module "mongoose" {
  interface Query<ResultType, DocType extends Document, THelpers = {}> {
-   populate<T extends keyof DocType>(path: T, select?: string | any, model?: string | Model<any>, match?: any): Query<ResultType extends Array<DocType> ? Array<PopulatedDocument<Unarray<ResultType>, T>> : PopulatedDocument<DocType, T>, DocType, THelpers>
+  //  populate<T extends keyof DocType>(path: T, select?: string | any, model?: string | Model<any>, match?: any): Query<ResultType extends Array<DocType> ? Array<PopulatedDocument<Unarray<ResultType>, T>> : PopulatedDocument<DocType, T>, DocType, THelpers>
+      
+   populate<T extends keyof DocType>(
+    path: T,
+    select?: string | any,
+    model?: string | Model<any, THelpers>,
+    match?: any
+  ): Query<
+    ResultType extends Array<DocType>
+      ? Array<PopulatedDocument<Unarray<ResultType>, T>>
+      : (ResultType extends DocType 
+        ? PopulatedDocument<Unarray<ResultType>, T> 
+        : ResultType),
+    DocType,
+    THelpers
+  >;
+
+  populate<T extends keyof DocType>(
+    options: Modify<PopulateOptions, { path: T }> | Array<PopulateOptions>
+    ): Query<
+      ResultType extends Array<DocType> 
+        ? Array<PopulatedDocument<Unarray<ResultType>, T>> 
+        : (ResultType extends DocType ? PopulatedDocument<ResultType, T> : ResultType),
+      DocType, 
+      THelpers
+    >;
  }
 }
 
