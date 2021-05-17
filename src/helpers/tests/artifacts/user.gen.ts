@@ -35,59 +35,6 @@ _id: mongoose.Types.ObjectId;
 }
 
 /**
- * Lean version of UserDocument (type alias of `User`)
- * 
- * Use this type alias to avoid conflicts with model names:
- * ```
- * import { User } from "../models"
- * import { UserObject } from "../interfaces/mongoose.gen.ts"
- * 
- * const userObject: UserObject = user.toObject();
- * ```
- */
-export type UserObject = User
-
-/**
- * Mongoose Query types
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const User = mongoose.model<UserDocument, UserModel, UserQueries>("User", UserSchema);
- * ```
- */
-export type UserQueries = {
-populateFriends: <Q extends mongoose.Query<any, UserDocument, any>>(this: Q) => Q;
-}
-
-export type UserMethods = {
-isMetadataString: (this: UserDocument) => boolean;
-}
-
-export type UserStatics = {
-getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<UserObject[]>;
-}
-
-/**
- * Mongoose Model type
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const User = mongoose.model<UserDocument, UserModel, UserQueries>("User", UserSchema);
- * ```
- */
-export interface UserModel extends mongoose.Model<UserDocument, UserQueries>, UserStatics {}
-
-/**
- * Mongoose Schema type
- * 
- * Assign this type to new User schema instances:
- * ```
- * const UserSchema: UserSchema = new mongoose.Schema({ ... })
- * ```
- */
-export type UserSchema = mongoose.Schema<UserDocument, UserModel>
-
-/**
  * Lean version of UserDocument
  * 
  * This has all Mongoose getters & functions removed. This type will be returned from `UserDocument.toObject()`. To avoid conflicts with model names, use the type alias `UserObject`.
@@ -142,6 +89,59 @@ export interface UserCitySubdocWithoutDefaultDocument extends mongoose.Types.Emb
 a?: string;
 _id: mongoose.Types.ObjectId;
 }
+
+/**
+ * Lean version of UserDocument (type alias of `User`)
+ * 
+ * Use this type alias to avoid conflicts with model names:
+ * ```
+ * import { User } from "../models"
+ * import { UserObject } from "../interfaces/mongoose.gen.ts"
+ * 
+ * const userObject: UserObject = user.toObject();
+ * ```
+ */
+export type UserObject = User
+
+/**
+ * Mongoose Query types
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const User = mongoose.model<UserDocument, UserModel, UserQueries>("User", UserSchema);
+ * ```
+ */
+export type UserQueries = {
+populateFriends: <Q extends mongoose.Query<any, UserDocument, any>>(this: Q) => Q;
+}
+
+export type UserMethods = {
+isMetadataString: (this: UserDocument) => boolean;
+}
+
+export type UserStatics = {
+getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<UserObject[]>;
+}
+
+/**
+ * Mongoose Model type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const User = mongoose.model<UserDocument, UserModel, UserQueries>("User", UserSchema);
+ * ```
+ */
+export interface UserModel extends mongoose.Model<UserDocument, UserQueries>, UserStatics {}
+
+/**
+ * Mongoose Schema type
+ * 
+ * Assign this type to new User schema instances:
+ * ```
+ * const UserSchema: UserSchema = new mongoose.Schema({ ... })
+ * ```
+ */
+export type UserSchema = mongoose.Schema<UserDocument, UserModel>
 
 /**
  * Mongoose Document type

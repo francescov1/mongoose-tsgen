@@ -148,6 +148,9 @@ OPTIONS
   --debug                Print debug information if anything isn't working
 
   --no-format            Disable formatting generated files with prettier.
+
+  --no-mongoose          Don't generate types that reference mongoose (i.e. documents). Replace ObjectId with
+                         string.
 ```
 
 Specify the directory of your Mongoose schema definitions using `MODEL_PATH`. If left blank, all sub-directories will be searched for `models/*.ts` (ignores `index.ts` files). Files found are expected to export a Mongoose model. 
