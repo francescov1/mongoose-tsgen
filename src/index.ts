@@ -41,6 +41,10 @@ class MongooseTsgen extends Command {
     }),
     debug: flags.boolean({
       description: "Print debug information if anything isn't working"
+    }),
+    "no-mongoose": flags.boolean({
+      description:
+        "Don't generate types that reference mongoose (i.e. documents). Replace ObjectId with string."
     })
   };
 
@@ -94,14 +98,21 @@ class MongooseTsgen extends Command {
       const genFilePath = paths.cleanOutputPath(flags.output);
       let sourceFile = parser.createSourceFile(genFilePath);
 
+      const noMongoose = flags["no-mongoose"];
       sourceFile = parser.generateTypes({
         schemas,
         sourceFile,
-        imports: flags.imports
+        imports: flags.imports,
+        noMongoose
       });
 
-      const modelTypes = tsReader.getModelTypes(modelsPaths);
-      parser.replaceModelTypes(sourceFile, modelTypes, schemas);
+      // only get model types (methods, statics, queries & virtuals) if user does not specify `noMongoose`,
+      if (noMongoose) {
+        this.log("Skipping TS model parsing and sourceFile model type replacement");
+      } else {
+        const modelTypes = tsReader.getModelTypes(modelsPaths);
+        parser.replaceModelTypes(sourceFile, modelTypes, schemas);
+      }
 
       cleanupTs?.();
 
