@@ -185,7 +185,7 @@ name: string;
 * import { PopulatedDocument } from "../interfaces/mongoose.gen.ts"
 * 
 * function example(user: PopulatedDocument<UserDocument, "bestFriend">) {
-*   console.log(user.bestFriend) // this will be typed as UserDocument rather than mongoose.Types.ObjectId
+*   console.log(user.bestFriend._id) // typescript knows this is populated
 * }
 * ```
 */
