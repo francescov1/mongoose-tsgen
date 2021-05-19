@@ -27,7 +27,7 @@ const getQueryDocs = (modelName: string) => `/**
  * 
  * Pass this type to the Mongoose Model constructor:
  * \`\`\`
- * const ${modelName} = mongoose.model<${modelName}Document, ${modelName}Model, ${modelName}Queries>("${modelName}", ${modelName}Schema);
+ * const ${modelName} = mongoose.model<${modelName}Document, ${modelName}Model>("${modelName}", ${modelName}Schema);
  * \`\`\`
  */`;
 
@@ -36,7 +36,7 @@ const getModelDocs = (modelName: string) => `/**
  * 
  * Pass this type to the Mongoose Model constructor:
  * \`\`\`
- * const ${modelName} = mongoose.model<${modelName}Document, ${modelName}Model, ${modelName}Queries>("${modelName}", ${modelName}Schema);
+ * const ${modelName} = mongoose.model<${modelName}Document, ${modelName}Model>("${modelName}", ${modelName}Schema);
  * \`\`\`
  */`;
 
@@ -45,7 +45,7 @@ const getDocumentDocs = (modelName: string) => `/**
  * 
  * Pass this type to the Mongoose Model constructor:
  * \`\`\`
- * const ${modelName} = mongoose.model<${modelName}Document, ${modelName}Model, ${modelName}Queries>("${modelName}", ${modelName}Schema);
+ * const ${modelName} = mongoose.model<${modelName}Document, ${modelName}Model>("${modelName}", ${modelName}Schema);
  * \`\`\`
  */`;
 
@@ -122,10 +122,7 @@ const getFuncType = (
   const [, params, returnType] = funcSignature.match(/\((?:this: \w*(?:, )?)?(.*)\) => (.*)/) ?? [];
   let type;
   if (funcType === "query") {
-    // query funcs always must return a query
-    type = `<Q extends mongoose.Query<any, ${modelName}Document, any>>(this: Q${
-      params?.length > 0 ? ", " + params : ""
-    }) => Q`;
+    type = `(${params}) => mongoose.Query<any, ${modelName}Document, ${modelName}Queries> & ${modelName}Queries`;
   } else if (funcType === "methods") {
     type = `(this: ${modelName}Document${params?.length > 0 ? ", " + params : ""}) => ${
       returnType ?? "any"

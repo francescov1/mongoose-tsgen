@@ -108,11 +108,11 @@ export type UserObject = User
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const User = mongoose.model<UserDocument, UserModel, UserQueries>("User", UserSchema);
+ * const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
  * ```
  */
 export type UserQueries = {
-populateFriends: <Q extends mongoose.Query<any, UserDocument, any>>(this: Q) => Q;
+populateFriends: () => mongoose.Query<any, UserDocument, UserQueries> & UserQueries;
 }
 
 export type UserMethods = {
@@ -128,7 +128,7 @@ getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<User
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const User = mongoose.model<UserDocument, UserModel, UserQueries>("User", UserSchema);
+ * const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
  * ```
  */
 export interface UserModel extends mongoose.Model<UserDocument, UserQueries>, UserStatics {}
@@ -148,7 +148,7 @@ export type UserSchema = mongoose.Schema<UserDocument, UserModel>
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const User = mongoose.model<UserDocument, UserModel, UserQueries>("User", UserSchema);
+ * const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
  * ```
  */
 export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId, UserQueries>, UserMethods {
