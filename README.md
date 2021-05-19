@@ -182,11 +182,17 @@ Any field with a `ref` property will be typed as `RefDocument["_id"] | RefDocume
 ```typescript
 import { IsPopulated, PopulatedDocument } from "../interfaces/mongoose.gen.ts";
 
-// `user` is typed as a UserDocument with `bestFriend` populated
-function example(user: PopulatedDocument<UserDocument, "bestFriend">) {
+// UserDocument["bestFriend"] = mongoose.Types.ObjectId | UserDocument
+function unsafeType(user: UserDocument) {
   // type guard
-  console.log(IsPopulated(user.bestFriend))) // true
+  if (IsPopulated(user.bestFriend))) {
+    // user.bestFriend is confirmed to be populated, typescript will allow accessing its properties now
+    console.log(user.bestFriend._id)
+  }
+}
 
+// `user` is typed as a UserDocument with `bestFriend` populated
+function safeType(user: PopulatedDocument<UserDocument, "bestFriend">) {
   console.log(user.bestFriend._id)
 }
 
@@ -195,7 +201,7 @@ function example(user: PopulatedDocument<UserDocument, "bestFriend">) {
 const user = await User.findById(uid).populate("bestFriend").exec()
 
 // completely typesafe
-example(user)
+safeType(user)
 ```
 
 # Example
