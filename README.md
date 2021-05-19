@@ -84,11 +84,11 @@ export default User;
 
 ```typescript
 import mongoose from "mongoose";
-import { UserDocument, UserModel, UserQueries, UserSchema } from "../interfaces/mongoose.gen.ts";
+import { UserDocument, UserModel, UserSchema } from "../interfaces/mongoose.gen.ts";
 
 const UserSchema: UserSchema = new Schema(...);
 
-export const User: UserModel = mongoose.model<UserDocument, UserModel, UserQueries>("User", UserSchema);
+export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
 export default User;
 ```
 
@@ -210,7 +210,7 @@ safeType(user)
 
 ```typescript
 import mongoose, { Schema } from "mongoose";
-import { UserDocument, UserModel, UserSchema, UserQueries, UserObject } from "../interfaces/mongoose.gen.ts";
+import { UserDocument, UserModel, UserSchema, UserObject } from "../interfaces/mongoose.gen.ts";
 
 // UserSchema type
 const UserSchema: UserSchema = new Schema({
@@ -272,7 +272,7 @@ UserSchema.query = {
   }
 };
 
-export const User = mongoose.model<UserDocument, UserModel, UserQueries>("User", UserSchema);
+export const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
 export default User;
 ```
 
@@ -297,7 +297,7 @@ export interface UserFriend {
 export type UserObject = User;
 
 export type UserQueries = {
-  populateFriends: <Q extends mongoose.Query<any, UserDocument, any>>(this: Q) => Q;
+  populateFriends: () => mongoose.Query<any, UserDocument, UserQueries> & UserQueries;
 }
 
 export type UserMethods = {
