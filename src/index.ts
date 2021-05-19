@@ -116,11 +116,13 @@ class MongooseTsgen extends Command {
       } else {
         const modelTypes = tsReader.getModelTypes(modelsPaths);
         parser.replaceModelTypes(sourceFile, modelTypes, schemas);
-      }
 
-      await parser.addPopulateHelpers(sourceFile);
-      if (!flags["no-populate-overload"]) {
-        await parser.overloadQueryPopulate(sourceFile);
+        // add populate helpers
+        await parser.addPopulateHelpers(sourceFile);
+        // add mongoose.Query.populate overloads
+        if (!flags["no-populate-overload"]) {
+          await parser.overloadQueryPopulate(sourceFile);
+        }
       }
 
       cleanupTs?.();
