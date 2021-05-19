@@ -347,7 +347,4 @@ export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId,
 ```
 
 ## Development
-
-- [ ] Stronger/automatic [populate](https://mongoosejs.com/docs/populate.html) typing (see [Query Population](#query-population)).
-- [ ] Add CLI option to type `_id` fields as a string rather than an ObjectId on lean version of documents (see [#7](https://github.com/francescov1/mongoose-tsgen/issues/7)).
 - [ ] Cut down node_modules by using peer dependencies (i.e. mongoose) and stripping oclif.
