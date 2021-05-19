@@ -347,4 +347,5 @@ export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId,
 ```
 
 ## Development
+
 - [ ] Cut down node_modules by using peer dependencies (i.e. mongoose) and stripping oclif.
