@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 8.2.0 / 2021-05-19
+
+* Added `mongoose.Query.populate` overload to narrow query typings & `--no-populate-overload` flag to disable the behaviour
+* Added new population helper types and type guards `PopulatedDocument`, `IsPopulated`
+* Update to Mongoose 5.12.10
+
 ## 8.1.0 / 2021-05-17
 
 * Added `--no-mongoose` flag to generate types without mongoose references. This option removes document types and replaces ObjectId with string #7

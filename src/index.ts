@@ -33,7 +33,7 @@ class MongooseTsgen extends Command {
     output: flags.string({
       char: "o",
       description:
-        "[default: ./src/interfaces] Path of output file containing generated typings. If a folder path is passed, the generator will default to creating a `mongoose.gen.ts` file in the specified folder."
+        "[default: ./src/interfaces] Path of output file to write generated typings. If a folder path is passed, the generator will create a `mongoose.gen.ts` file in the specified folder."
     }),
     project: flags.string({
       char: "p",
@@ -45,6 +45,10 @@ class MongooseTsgen extends Command {
     "no-mongoose": flags.boolean({
       description:
         "Don't generate types that reference mongoose (i.e. documents). Replace ObjectId with string."
+    }),
+    "no-populate-overload": flags.boolean({
+      description:
+        "Disable augmenting mongoose with Query.populate overloads (the overloads narrow the return type of populated documents queries)."
     })
   };
 
@@ -112,6 +116,11 @@ class MongooseTsgen extends Command {
       } else {
         const modelTypes = tsReader.getModelTypes(modelsPaths);
         parser.replaceModelTypes(sourceFile, modelTypes, schemas);
+      }
+
+      await parser.addPopulateHelpers(sourceFile);
+      if (!flags["no-populate-overload"]) {
+        await parser.overloadQueryPopulate(sourceFile);
       }
 
       cleanupTs?.();

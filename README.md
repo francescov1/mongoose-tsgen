@@ -128,29 +128,32 @@ USAGE
   $ mtgen [MODEL_PATH]
 
 OPTIONS
-  -c, --config=config    [default: ./] Path of `mtgen.config.json` or its root folder. CLI flag 
-                         options will take precendence over settings in `mtgen.config.json`.
+  -c, --config=config     [default: ./] Path of `mtgen.config.json` or its root folder. CLI flag
+                          options will take precendence over settings in `mtgen.config.json`.
 
-  -d, --dry-run          Print output rather than writing to file.
+  -d, --dry-run           Print output rather than writing to file.
 
-  -h, --help             Show CLI help
+  -h, --help              Show CLI help
 
-  -i, --imports=import   Custom import statements to add to the output file. Useful if you use 
-                         third-party types  in your mongoose schema definitions. For multiple imports, 
-                         specify this flag more than once. 
+  -i, --imports=imports   Custom import statements to add to the output file. Useful if you use
+                          third-party types in your mongoose schema definitions. For multiple imports,
+                          specify this flag more than once.
 
-  -o, --output=output    [default: ./src/interfaces] Path of output file to write generated typings. 
-                         If a folder path is passed, the generator will create a `mongoose.gen.ts` file 
-                         in the specified folder.
+  -o, --output=output     [default: ./src/interfaces] Path of output file to write generated typings.
+                          If a folder path is passed, the generator will create a `mongoose.gen.ts` file
+                          in the specified folder.
 
-  -p, --project=project  [default: ./] Path of `tsconfig.json` or its root folder.
+  -p, --project=project   [default: ./] Path of `tsconfig.json` or its root folder.
 
-  --debug                Print debug information if anything isn't working
+  --debug                 Print debug information if anything isn't working
 
-  --no-format            Disable formatting generated files with prettier.
+  --no-format             Disable formatting generated files with prettier.
 
-  --no-mongoose          Don't generate types that reference mongoose (i.e. documents). Replace ObjectId with
-                         string.
+  --no-mongoose           Don't generate types that reference mongoose (i.e. documents). Replace ObjectId with
+                          string.
+
+  --no-populate-overload  Disable augmenting mongoose with Query.populate overloads (the overloads narrow
+                          the return type of populated documents queries).
 ```
 
 Specify the directory of your Mongoose schema definitions using `MODEL_PATH`. If left blank, all sub-directories will be searched for `models/*.ts` (ignores `index.ts` files). Files found are expected to export a Mongoose model. 
@@ -174,30 +177,31 @@ All CLI options can be provided using a `mtgen.config.json` file. Use the `--con
 
 ## Query Population
 
-Any field with a `ref` property will be typed as `RefDocument["_id"] | RefDocument`. This allows you to use the same type whether you populate a field or not. When populating a field, you will need to use [Typeguards](https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types) or [Type Assertion](https://www.typescriptlang.org/docs/handbook/basic-types.html#type-assertions) to tell Typescript that the field is populated:
+Any field with a `ref` property will be typed as `RefDocument["_id"] | RefDocument`. As part of the generated file, mongoose will be augmented with `Query.populate` overloads to narrow return types of populated queries (this can be disabled using the `--no-populate-overload` flag). A helper type `IsPopulated` and a type guard function `PopulatedDocument` will also be generated to help with handling populated documents, see usage below:
 
 ```typescript
-// fetch user with bestFriend populated
-const user = await User.findById(uid).populate("bestFriend").exec()
+import { IsPopulated, PopulatedDocument } from "../interfaces/mongoose.gen.ts";
 
-// typescript won't allow this, since `bestFriend` is typed as `UserDocument["_id"] | UserDocument`  
-console.log(user.bestFriend._id)
-
-// instead use type assertion
-const bestFriend = user.bestFriend as UserDocument;
-console.log(bestFriend._id);
-
-// or use typeguards
-
-function isPopulated<T>(doc: T | mongoose.Types.ObjectId): doc is T {
-  return doc instanceof mongoose.Document;
+// UserDocument["bestFriend"] = mongoose.Types.ObjectId | UserDocument
+function unsafeType(user: UserDocument) {
+  // type guard
+  if (IsPopulated(user.bestFriend))) {
+    // user.bestFriend is confirmed to be populated, typescript will allow accessing its properties now
+    console.log(user.bestFriend._id)
+  }
 }
 
-if (isPopulated<UserDocument>(user.bestFriend)) {
-  // user.bestFriend is a UserDocument
+// `user` is typed as a UserDocument with `bestFriend` populated
+function safeType(user: PopulatedDocument<UserDocument, "bestFriend">) {
   console.log(user.bestFriend._id)
 }
 
+// due to the `Query.populate` overload, `user` will be typed as `PopulatedDocument<UserDocument, "bestFriend">`
+// rather than the usual `UserDocument`
+const user = await User.findById(uid).populate("bestFriend").exec()
+
+// completely typesafe
+safeType(user)
 ```
 
 # Example
@@ -344,6 +348,4 @@ export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId,
 
 ## Development
 
-- [ ] Stronger/automatic [populate](https://mongoosejs.com/docs/populate.html) typing (see [Query Population](#query-population)).
-- [ ] Add CLI option to type `_id` fields as a string rather than an ObjectId on lean version of documents (see [#7](https://github.com/francescov1/mongoose-tsgen/issues/7)).
 - [ ] Cut down node_modules by using peer dependencies (i.e. mongoose) and stripping oclif.

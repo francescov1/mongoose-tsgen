@@ -37,9 +37,10 @@ describe("generateTypes", () => {
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
     parser.replaceModelTypes(sourceFile, modelTypes, schemas);
+    parser.addPopulateHelpers(sourceFile);
+    parser.overloadQueryPopulate(sourceFile);
 
     cleanupTs?.();
-    fs.writeFileSync("new.user.gen.ts", sourceFile.getFullText());
     expect(sourceFile.getFullText()).toBe(getExpectedString("user.gen.ts"));
   });
 
@@ -57,9 +58,10 @@ describe("generateTypes", () => {
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
     parser.replaceModelTypes(sourceFile, modelTypes, schemas);
+    parser.addPopulateHelpers(sourceFile);
+    parser.overloadQueryPopulate(sourceFile);
 
     cleanupTs?.();
-    fs.writeFileSync("new.device.gen.ts", sourceFile.getFullText());
     expect(sourceFile.getFullText()).toBe(getExpectedString("device.gen.ts"));
   });
 });
