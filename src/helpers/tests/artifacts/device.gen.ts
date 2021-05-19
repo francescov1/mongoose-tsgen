@@ -8,6 +8,19 @@
 import mongoose from "mongoose";
 
 /**
+ * Lean version of HomeDocument
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from `HomeDocument.toObject()`. To avoid conflicts with model names, use the type alias `HomeObject`.
+ * ```
+ * const homeObject = home.toObject();
+ * ```
+ */
+export interface Home {
+homeId?: string;
+homeName?: string;
+}
+
+/**
  * Lean version of HomeDocument (type alias of `Home`)
  * 
  * Use this type alias to avoid conflicts with model names:
@@ -25,7 +38,7 @@ export type HomeObject = Home
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Home = mongoose.model<HomeDocument, HomeModel, HomeQueries>("Home", HomeSchema);
+ * const Home = mongoose.model<HomeDocument, HomeModel>("Home", HomeSchema);
  * ```
  */
 export type HomeQueries = {
@@ -42,7 +55,7 @@ export type HomeStatics = {
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Home = mongoose.model<HomeDocument, HomeModel, HomeQueries>("Home", HomeSchema);
+ * const Home = mongoose.model<HomeDocument, HomeModel>("Home", HomeSchema);
  * ```
  */
 export interface HomeModel extends mongoose.Model<HomeDocument, HomeQueries>, HomeStatics {}
@@ -58,24 +71,11 @@ export interface HomeModel extends mongoose.Model<HomeDocument, HomeQueries>, Ho
 export type HomeSchema = mongoose.Schema<HomeDocument, HomeModel>
 
 /**
- * Lean version of HomeDocument
- * 
- * This has all Mongoose getters & functions removed. This type will be returned from `HomeDocument.toObject()`. To avoid conflicts with model names, use the type alias `HomeObject`.
- * ```
- * const homeObject = home.toObject();
- * ```
- */
-export interface Home {
-homeId?: string;
-homeName?: string;
-}
-
-/**
  * Mongoose Document type
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Home = mongoose.model<HomeDocument, HomeModel, HomeQueries>("Home", HomeSchema);
+ * const Home = mongoose.model<HomeDocument, HomeModel>("Home", HomeSchema);
  * ```
  */
 export interface HomeDocument extends mongoose.Document<never, HomeQueries>, HomeMethods {
@@ -98,58 +98,6 @@ homeName?: string;
 }
 
 /**
- * Lean version of DeviceDocument (type alias of `Device`)
- * 
- * Use this type alias to avoid conflicts with model names:
- * ```
- * import { Device } from "../models"
- * import { DeviceObject } from "../interfaces/mongoose.gen.ts"
- * 
- * const deviceObject: DeviceObject = device.toObject();
- * ```
- */
-export type DeviceObject = Device
-
-/**
- * Mongoose Query types
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const Device = mongoose.model<DeviceDocument, DeviceModel, DeviceQueries>("Device", DeviceSchema);
- * ```
- */
-export type DeviceQueries = {
-}
-
-export type DeviceMethods = {
-test: (this: DeviceDocument, ...args: any[]) => any;
-}
-
-export type DeviceStatics = {
-test: (this: DeviceModel, ...args: any[]) => any;
-}
-
-/**
- * Mongoose Model type
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const Device = mongoose.model<DeviceDocument, DeviceModel, DeviceQueries>("Device", DeviceSchema);
- * ```
- */
-export interface DeviceModel extends mongoose.Model<DeviceDocument, DeviceQueries>, DeviceStatics {}
-
-/**
- * Mongoose Schema type
- * 
- * Assign this type to new Device schema instances:
- * ```
- * const DeviceSchema: DeviceSchema = new mongoose.Schema({ ... })
- * ```
- */
-export type DeviceSchema = mongoose.Schema<DeviceDocument, DeviceModel>
-
-/**
  * Lean version of DeviceDocument
  * 
  * This has all Mongoose getters & functions removed. This type will be returned from `DeviceDocument.toObject()`. To avoid conflicts with model names, use the type alias `DeviceObject`.
@@ -168,7 +116,7 @@ home?: DeviceHome;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device = mongoose.model<DeviceDocument, DeviceModel, DeviceQueries>("Device", DeviceSchema);
+ * const Device = mongoose.model<DeviceDocument, DeviceModel>("Device", DeviceSchema);
  * ```
  */
 export interface DeviceHomeDocument extends mongoose.Document<mongoose.Types.ObjectId> {
@@ -178,11 +126,63 @@ status: any;
 }
 
 /**
+ * Lean version of DeviceDocument (type alias of `Device`)
+ * 
+ * Use this type alias to avoid conflicts with model names:
+ * ```
+ * import { Device } from "../models"
+ * import { DeviceObject } from "../interfaces/mongoose.gen.ts"
+ * 
+ * const deviceObject: DeviceObject = device.toObject();
+ * ```
+ */
+export type DeviceObject = Device
+
+/**
+ * Mongoose Query types
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const Device = mongoose.model<DeviceDocument, DeviceModel>("Device", DeviceSchema);
+ * ```
+ */
+export type DeviceQueries = {
+}
+
+export type DeviceMethods = {
+test: (this: DeviceDocument, ...args: any[]) => any;
+}
+
+export type DeviceStatics = {
+test: (this: DeviceModel, ...args: any[]) => any;
+}
+
+/**
+ * Mongoose Model type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const Device = mongoose.model<DeviceDocument, DeviceModel>("Device", DeviceSchema);
+ * ```
+ */
+export interface DeviceModel extends mongoose.Model<DeviceDocument, DeviceQueries>, DeviceStatics {}
+
+/**
+ * Mongoose Schema type
+ * 
+ * Assign this type to new Device schema instances:
+ * ```
+ * const DeviceSchema: DeviceSchema = new mongoose.Schema({ ... })
+ * ```
+ */
+export type DeviceSchema = mongoose.Schema<DeviceDocument, DeviceModel>
+
+/**
  * Mongoose Document type
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device = mongoose.model<DeviceDocument, DeviceModel, DeviceQueries>("Device", DeviceSchema);
+ * const Device = mongoose.model<DeviceDocument, DeviceModel>("Device", DeviceSchema);
  * ```
  */
 export interface DeviceDocument extends mongoose.Document<mongoose.Types.ObjectId, DeviceQueries>, DeviceMethods {
@@ -205,58 +205,6 @@ homeName?: string;
 }
 
 /**
- * Lean version of Device2Document (type alias of `Device2`)
- * 
- * Use this type alias to avoid conflicts with model names:
- * ```
- * import { Device2 } from "../models"
- * import { Device2Object } from "../interfaces/mongoose.gen.ts"
- * 
- * const device2Object: Device2Object = device2.toObject();
- * ```
- */
-export type Device2Object = Device2
-
-/**
- * Mongoose Query types
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const Device2 = mongoose.model<Device2Document, Device2Model, Device2Queries>("Device2", Device2Schema);
- * ```
- */
-export type Device2Queries = {
-}
-
-export type Device2Methods = {
-test: (this: Device2Document, ...args: any[]) => any;
-}
-
-export type Device2Statics = {
-test: (this: Device2Model, ...args: any[]) => any;
-}
-
-/**
- * Mongoose Model type
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const Device2 = mongoose.model<Device2Document, Device2Model, Device2Queries>("Device2", Device2Schema);
- * ```
- */
-export interface Device2Model extends mongoose.Model<Device2Document, Device2Queries>, Device2Statics {}
-
-/**
- * Mongoose Schema type
- * 
- * Assign this type to new Device2 schema instances:
- * ```
- * const Device2Schema: Device2Schema = new mongoose.Schema({ ... })
- * ```
- */
-export type Device2Schema = mongoose.Schema<Device2Document, Device2Model>
-
-/**
  * Lean version of Device2Document
  * 
  * This has all Mongoose getters & functions removed. This type will be returned from `Device2Document.toObject()`. To avoid conflicts with model names, use the type alias `Device2Object`.
@@ -275,7 +223,7 @@ home?: Device2Home;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device2 = mongoose.model<Device2Document, Device2Model, Device2Queries>("Device2", Device2Schema);
+ * const Device2 = mongoose.model<Device2Document, Device2Model>("Device2", Device2Schema);
  * ```
  */
 export interface Device2HomeDocument extends mongoose.Document<mongoose.Types.ObjectId> {
@@ -285,11 +233,63 @@ status: any;
 }
 
 /**
+ * Lean version of Device2Document (type alias of `Device2`)
+ * 
+ * Use this type alias to avoid conflicts with model names:
+ * ```
+ * import { Device2 } from "../models"
+ * import { Device2Object } from "../interfaces/mongoose.gen.ts"
+ * 
+ * const device2Object: Device2Object = device2.toObject();
+ * ```
+ */
+export type Device2Object = Device2
+
+/**
+ * Mongoose Query types
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const Device2 = mongoose.model<Device2Document, Device2Model>("Device2", Device2Schema);
+ * ```
+ */
+export type Device2Queries = {
+}
+
+export type Device2Methods = {
+test: (this: Device2Document, ...args: any[]) => any;
+}
+
+export type Device2Statics = {
+test: (this: Device2Model, ...args: any[]) => any;
+}
+
+/**
+ * Mongoose Model type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const Device2 = mongoose.model<Device2Document, Device2Model>("Device2", Device2Schema);
+ * ```
+ */
+export interface Device2Model extends mongoose.Model<Device2Document, Device2Queries>, Device2Statics {}
+
+/**
+ * Mongoose Schema type
+ * 
+ * Assign this type to new Device2 schema instances:
+ * ```
+ * const Device2Schema: Device2Schema = new mongoose.Schema({ ... })
+ * ```
+ */
+export type Device2Schema = mongoose.Schema<Device2Document, Device2Model>
+
+/**
  * Mongoose Document type
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device2 = mongoose.model<Device2Document, Device2Model, Device2Queries>("Device2", Device2Schema);
+ * const Device2 = mongoose.model<Device2Document, Device2Model>("Device2", Device2Schema);
  * ```
  */
 export interface Device2Document extends mongoose.Document<mongoose.Types.ObjectId, Device2Queries>, Device2Methods {
@@ -312,58 +312,6 @@ homeName?: string;
 }
 
 /**
- * Lean version of Device3Document (type alias of `Device3`)
- * 
- * Use this type alias to avoid conflicts with model names:
- * ```
- * import { Device3 } from "../models"
- * import { Device3Object } from "../interfaces/mongoose.gen.ts"
- * 
- * const device3Object: Device3Object = device3.toObject();
- * ```
- */
-export type Device3Object = Device3
-
-/**
- * Mongoose Query types
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const Device3 = mongoose.model<Device3Document, Device3Model, Device3Queries>("Device3", Device3Schema);
- * ```
- */
-export type Device3Queries = {
-}
-
-export type Device3Methods = {
-test: (this: Device3Document, ...args: any[]) => any;
-}
-
-export type Device3Statics = {
-test: (this: Device3Model, ...args: any[]) => any;
-}
-
-/**
- * Mongoose Model type
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const Device3 = mongoose.model<Device3Document, Device3Model, Device3Queries>("Device3", Device3Schema);
- * ```
- */
-export interface Device3Model extends mongoose.Model<Device3Document, Device3Queries>, Device3Statics {}
-
-/**
- * Mongoose Schema type
- * 
- * Assign this type to new Device3 schema instances:
- * ```
- * const Device3Schema: Device3Schema = new mongoose.Schema({ ... })
- * ```
- */
-export type Device3Schema = mongoose.Schema<Device3Document, Device3Model>
-
-/**
  * Lean version of Device3Document
  * 
  * This has all Mongoose getters & functions removed. This type will be returned from `Device3Document.toObject()`. To avoid conflicts with model names, use the type alias `Device3Object`.
@@ -382,7 +330,7 @@ home?: Device3Home;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device3 = mongoose.model<Device3Document, Device3Model, Device3Queries>("Device3", Device3Schema);
+ * const Device3 = mongoose.model<Device3Document, Device3Model>("Device3", Device3Schema);
  * ```
  */
 export interface Device3HomeDocument extends mongoose.Document<mongoose.Types.ObjectId> {
@@ -392,11 +340,63 @@ status: any;
 }
 
 /**
+ * Lean version of Device3Document (type alias of `Device3`)
+ * 
+ * Use this type alias to avoid conflicts with model names:
+ * ```
+ * import { Device3 } from "../models"
+ * import { Device3Object } from "../interfaces/mongoose.gen.ts"
+ * 
+ * const device3Object: Device3Object = device3.toObject();
+ * ```
+ */
+export type Device3Object = Device3
+
+/**
+ * Mongoose Query types
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const Device3 = mongoose.model<Device3Document, Device3Model>("Device3", Device3Schema);
+ * ```
+ */
+export type Device3Queries = {
+}
+
+export type Device3Methods = {
+test: (this: Device3Document, ...args: any[]) => any;
+}
+
+export type Device3Statics = {
+test: (this: Device3Model, ...args: any[]) => any;
+}
+
+/**
+ * Mongoose Model type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const Device3 = mongoose.model<Device3Document, Device3Model>("Device3", Device3Schema);
+ * ```
+ */
+export interface Device3Model extends mongoose.Model<Device3Document, Device3Queries>, Device3Statics {}
+
+/**
+ * Mongoose Schema type
+ * 
+ * Assign this type to new Device3 schema instances:
+ * ```
+ * const Device3Schema: Device3Schema = new mongoose.Schema({ ... })
+ * ```
+ */
+export type Device3Schema = mongoose.Schema<Device3Document, Device3Model>
+
+/**
  * Mongoose Document type
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device3 = mongoose.model<Device3Document, Device3Model, Device3Queries>("Device3", Device3Schema);
+ * const Device3 = mongoose.model<Device3Document, Device3Model>("Device3", Device3Schema);
  * ```
  */
 export interface Device3Document extends mongoose.Document<mongoose.Types.ObjectId, Device3Queries>, Device3Methods {
@@ -419,58 +419,6 @@ homeName?: string;
 }
 
 /**
- * Lean version of Device4Document (type alias of `Device4`)
- * 
- * Use this type alias to avoid conflicts with model names:
- * ```
- * import { Device4 } from "../models"
- * import { Device4Object } from "../interfaces/mongoose.gen.ts"
- * 
- * const device4Object: Device4Object = device4.toObject();
- * ```
- */
-export type Device4Object = Device4
-
-/**
- * Mongoose Query types
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const Device4 = mongoose.model<Device4Document, Device4Model, Device4Queries>("Device4", Device4Schema);
- * ```
- */
-export type Device4Queries = {
-}
-
-export type Device4Methods = {
-test: (this: Device4Document, ...args: any[]) => any;
-}
-
-export type Device4Statics = {
-test: (this: Device4Model, ...args: any[]) => any;
-}
-
-/**
- * Mongoose Model type
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const Device4 = mongoose.model<Device4Document, Device4Model, Device4Queries>("Device4", Device4Schema);
- * ```
- */
-export interface Device4Model extends mongoose.Model<Device4Document, Device4Queries>, Device4Statics {}
-
-/**
- * Mongoose Schema type
- * 
- * Assign this type to new Device4 schema instances:
- * ```
- * const Device4Schema: Device4Schema = new mongoose.Schema({ ... })
- * ```
- */
-export type Device4Schema = mongoose.Schema<Device4Document, Device4Model>
-
-/**
  * Lean version of Device4Document
  * 
  * This has all Mongoose getters & functions removed. This type will be returned from `Device4Document.toObject()`. To avoid conflicts with model names, use the type alias `Device4Object`.
@@ -489,7 +437,7 @@ home?: Device4Home;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device4 = mongoose.model<Device4Document, Device4Model, Device4Queries>("Device4", Device4Schema);
+ * const Device4 = mongoose.model<Device4Document, Device4Model>("Device4", Device4Schema);
  * ```
  */
 export interface Device4HomeDocument extends mongoose.Document<mongoose.Types.ObjectId> {
@@ -499,11 +447,63 @@ status: any;
 }
 
 /**
+ * Lean version of Device4Document (type alias of `Device4`)
+ * 
+ * Use this type alias to avoid conflicts with model names:
+ * ```
+ * import { Device4 } from "../models"
+ * import { Device4Object } from "../interfaces/mongoose.gen.ts"
+ * 
+ * const device4Object: Device4Object = device4.toObject();
+ * ```
+ */
+export type Device4Object = Device4
+
+/**
+ * Mongoose Query types
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const Device4 = mongoose.model<Device4Document, Device4Model>("Device4", Device4Schema);
+ * ```
+ */
+export type Device4Queries = {
+}
+
+export type Device4Methods = {
+test: (this: Device4Document, ...args: any[]) => any;
+}
+
+export type Device4Statics = {
+test: (this: Device4Model, ...args: any[]) => any;
+}
+
+/**
+ * Mongoose Model type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const Device4 = mongoose.model<Device4Document, Device4Model>("Device4", Device4Schema);
+ * ```
+ */
+export interface Device4Model extends mongoose.Model<Device4Document, Device4Queries>, Device4Statics {}
+
+/**
+ * Mongoose Schema type
+ * 
+ * Assign this type to new Device4 schema instances:
+ * ```
+ * const Device4Schema: Device4Schema = new mongoose.Schema({ ... })
+ * ```
+ */
+export type Device4Schema = mongoose.Schema<Device4Document, Device4Model>
+
+/**
  * Mongoose Document type
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const Device4 = mongoose.model<Device4Document, Device4Model, Device4Queries>("Device4", Device4Schema);
+ * const Device4 = mongoose.model<Device4Document, Device4Model>("Device4", Device4Schema);
  * ```
  */
 export interface Device4Document extends mongoose.Document<mongoose.Types.ObjectId, Device4Queries>, Device4Methods {
@@ -526,58 +526,6 @@ homeName?: string;
 }
 
 /**
- * Lean version of DeviceDefaultDocument (type alias of `DeviceDefault`)
- * 
- * Use this type alias to avoid conflicts with model names:
- * ```
- * import { DeviceDefault } from "../models"
- * import { DeviceDefaultObject } from "../interfaces/mongoose.gen.ts"
- * 
- * const devicedefaultObject: DeviceDefaultObject = devicedefault.toObject();
- * ```
- */
-export type DeviceDefaultObject = DeviceDefault
-
-/**
- * Mongoose Query types
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel, DeviceDefaultQueries>("DeviceDefault", DeviceDefaultSchema);
- * ```
- */
-export type DeviceDefaultQueries = {
-}
-
-export type DeviceDefaultMethods = {
-test: (this: DeviceDefaultDocument) => string;
-}
-
-export type DeviceDefaultStatics = {
-test: (this: DeviceDefaultModel) => string;
-}
-
-/**
- * Mongoose Model type
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel, DeviceDefaultQueries>("DeviceDefault", DeviceDefaultSchema);
- * ```
- */
-export interface DeviceDefaultModel extends mongoose.Model<DeviceDefaultDocument, DeviceDefaultQueries>, DeviceDefaultStatics {}
-
-/**
- * Mongoose Schema type
- * 
- * Assign this type to new DeviceDefault schema instances:
- * ```
- * const DeviceDefaultSchema: DeviceDefaultSchema = new mongoose.Schema({ ... })
- * ```
- */
-export type DeviceDefaultSchema = mongoose.Schema<DeviceDefaultDocument, DeviceDefaultModel>
-
-/**
  * Lean version of DeviceDefaultDocument
  * 
  * This has all Mongoose getters & functions removed. This type will be returned from `DeviceDefaultDocument.toObject()`. To avoid conflicts with model names, use the type alias `DeviceDefaultObject`.
@@ -596,7 +544,7 @@ home?: DeviceDefaultHome;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel, DeviceDefaultQueries>("DeviceDefault", DeviceDefaultSchema);
+ * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel>("DeviceDefault", DeviceDefaultSchema);
  * ```
  */
 export interface DeviceDefaultHomeDocument extends mongoose.Document<mongoose.Types.ObjectId> {
@@ -606,11 +554,63 @@ status: any;
 }
 
 /**
+ * Lean version of DeviceDefaultDocument (type alias of `DeviceDefault`)
+ * 
+ * Use this type alias to avoid conflicts with model names:
+ * ```
+ * import { DeviceDefault } from "../models"
+ * import { DeviceDefaultObject } from "../interfaces/mongoose.gen.ts"
+ * 
+ * const devicedefaultObject: DeviceDefaultObject = devicedefault.toObject();
+ * ```
+ */
+export type DeviceDefaultObject = DeviceDefault
+
+/**
+ * Mongoose Query types
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel>("DeviceDefault", DeviceDefaultSchema);
+ * ```
+ */
+export type DeviceDefaultQueries = {
+}
+
+export type DeviceDefaultMethods = {
+test: (this: DeviceDefaultDocument) => string;
+}
+
+export type DeviceDefaultStatics = {
+test: (this: DeviceDefaultModel) => string;
+}
+
+/**
+ * Mongoose Model type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel>("DeviceDefault", DeviceDefaultSchema);
+ * ```
+ */
+export interface DeviceDefaultModel extends mongoose.Model<DeviceDefaultDocument, DeviceDefaultQueries>, DeviceDefaultStatics {}
+
+/**
+ * Mongoose Schema type
+ * 
+ * Assign this type to new DeviceDefault schema instances:
+ * ```
+ * const DeviceDefaultSchema: DeviceDefaultSchema = new mongoose.Schema({ ... })
+ * ```
+ */
+export type DeviceDefaultSchema = mongoose.Schema<DeviceDefaultDocument, DeviceDefaultModel>
+
+/**
  * Mongoose Document type
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
- * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel, DeviceDefaultQueries>("DeviceDefault", DeviceDefaultSchema);
+ * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel>("DeviceDefault", DeviceDefaultSchema);
  * ```
  */
 export interface DeviceDefaultDocument extends mongoose.Document<mongoose.Types.ObjectId, DeviceDefaultQueries>, DeviceDefaultMethods {

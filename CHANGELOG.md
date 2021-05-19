@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 8.1.0 / 2021-05-17
+
+* Added `--no-mongoose` flag to generate types without mongoose references. This option removes document types and replaces ObjectId with string #7
+
 ## 8.0.0 / 2021-04-29
 
 * Removed need to typecast method, static and query objects (this was required to support function types)

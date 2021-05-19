@@ -149,6 +149,9 @@ OPTIONS
 
   --no-format             Disable formatting generated files with prettier.
 
+  --no-mongoose           Don't generate types that reference mongoose (i.e. documents). Replace ObjectId with
+                          string.
+
   --no-populate-overload  Disable augmenting mongoose with Query.populate overloads (the overloads narrow
                           the return type of populated documents queries).
 ```
