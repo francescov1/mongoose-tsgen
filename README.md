@@ -30,6 +30,7 @@ This library aims to remove these drawbacks by instead parsing your already-writ
 
 - [x] Automatically generate Typescript typings for each Mongoose document, model and subdocument
 - [x] Works out of the box, don't need to rewrite your schemas
+- [x] Type-safe [population](#query-population)
 - [x] Includes a "Mongoose-less" version of each schema interface (Mongoose typings removed)
 
 # Compatibility
@@ -200,7 +201,7 @@ function safeType(user: PopulatedDocument<UserDocument, "bestFriend">) {
 // rather than the usual `UserDocument`
 const user = await User.findById(uid).populate("bestFriend").exec()
 
-// completely typesafe
+// completely type-safe
 safeType(user)
 ```
 
