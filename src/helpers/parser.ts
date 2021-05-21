@@ -396,6 +396,11 @@ export const parseSchema = ({
         child.schema._inferredInterfaceName = name;
         child.schema._isSubdocArray = isSubdocArray;
 
+        const requiredValuePath = `${path}.required`;
+        if (requiredValuePath in flatSchemaTree && flatSchemaTree[requiredValuePath] === true) {
+          child.schema.required = true;
+        }
+
         /**
          * for subdocument arrays, mongoose supports passing `default: undefined` to disable the default empty array created.
          * here we indicate this on the child schema using _isDefaultSetToUndefined so that the parser properly sets the `isOptional` flag
