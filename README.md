@@ -288,7 +288,7 @@ npx mtgen
 ```typescript
 import mongoose from "mongoose";
 
-export interface UserFriend {
+export type UserFriend = {
   uid: User["_id"] | User;
   nickname?: string;
   _id: mongoose.Types.ObjectId;
@@ -308,11 +308,11 @@ export type UserStatics = {
   getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<UserObject[]>;
 }
 
-export interface UserModel extends mongoose.Model<UserDocument, UserQueries>, UserStatics {}
+export type UserModel = mongoose.Model<UserDocument, UserQueries> & UserStatics
 
 export type UserSchema = mongoose.Schema<UserDocument, UserModel>
 
-export interface User {
+export type User = {
   email: string;
   firstName: string;
   lastName: string;
@@ -324,14 +324,14 @@ export interface User {
   _id: mongoose.Types.ObjectId;
 }
 
-export interface UserFriendDocument extends mongoose.Types.EmbeddedDocument {
+export type UserFriendDocument = mongoose.Types.EmbeddedDocument & {
   uid: UserDocument["_id"] | UserDocument;
   nickname?: string;
   _id: mongoose.Types.ObjectId;
 };
 
-export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId, UserQueries>,
-  UserMethods {
+export type UserDocument = mongoose.Document<mongoose.Types.ObjectId, UserQueries> &
+  UserMethods & {
     email: string;
     firstName: string;
     lastName: string;
