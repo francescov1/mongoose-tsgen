@@ -44,9 +44,9 @@ describe("generateTypes", () => {
     expect(sourceFile.getFullText()).toBe(getExpectedString("user.gen.ts"));
   });
 
-  // TODO: this test is kinda random and out of place, but it covers all the latest changes
-  // related to allowing multiple schemas per model file. It should be split into unit tests
-  // once that code has been modularized
+  // TODO: the next 2 tests are kinda random and out of place. First one covers all the latest changes
+  // related to allowing multiple schemas per model file. Second covers a few niche schema options.
+  // Both should be split into unit tests once their code has been modularized
   test("generate different types of model inits", async () => {
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/device.ts");
     const cleanupTs = parser.registerUserTs("tsconfig.test.json");
@@ -63,6 +63,24 @@ describe("generateTypes", () => {
 
     cleanupTs?.();
     expect(sourceFile.getFullText()).toBe(getExpectedString("device.gen.ts"));
+  });
+
+  test("generate other schema options", async () => {
+    const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/user2.ts");
+    const cleanupTs = parser.registerUserTs("tsconfig.test.json");
+
+    const schemas = parser.loadSchemas(modelsPaths);
+
+    let sourceFile = parser.createSourceFile(genFilePath);
+    sourceFile = await parser.generateTypes({ schemas, sourceFile });
+
+    const modelTypes = tsReader.getModelTypes(modelsPaths);
+    parser.replaceModelTypes(sourceFile, modelTypes, schemas);
+    parser.addPopulateHelpers(sourceFile);
+    parser.overloadQueryPopulate(sourceFile);
+
+    cleanupTs?.();
+    expect(sourceFile.getFullText()).toBe(getExpectedString("user2.gen.ts"));
   });
 });
 
