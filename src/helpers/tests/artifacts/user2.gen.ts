@@ -15,7 +15,7 @@ import mongoose from "mongoose";
  * const user2Object = user2.toObject();
  * ```
  */
-export interface User2Address {
+export type User2Address = {
 city: string;
 }
 
@@ -27,7 +27,7 @@ city: string;
  * const user2Object = user2.toObject();
  * ```
  */
-export interface User2 {
+export type User2 = {
 _id: number;
 lastOnlineAt?: Date;
 updatedAt?: Date;
@@ -43,7 +43,7 @@ address: User2Address;
  * const User2 = mongoose.model<User2Document, User2Model>("User2", User2Schema);
  * ```
  */
-export interface User2AddressDocument extends mongoose.Document<number> {
+export type User2AddressDocument = mongoose.Document<number> & {
 city: string;
 }
 
@@ -85,7 +85,7 @@ export type User2Statics = {
  * const User2 = mongoose.model<User2Document, User2Model>("User2", User2Schema);
  * ```
  */
-export interface User2Model extends mongoose.Model<User2Document, User2Queries>, User2Statics {}
+export type User2Model = mongoose.Model<User2Document, User2Queries> & User2Statics
 
 /**
  * Mongoose Schema type
@@ -105,7 +105,7 @@ export type User2Schema = mongoose.Schema<User2Document, User2Model>
  * const User2 = mongoose.model<User2Document, User2Model>("User2", User2Schema);
  * ```
  */
-export interface User2Document extends mongoose.Document<number, User2Queries>, User2Methods {
+export type User2Document = mongoose.Document<number, User2Queries> & User2Methods & {
 _id: number;
 lastOnlineAt?: Date;
 updatedAt?: Date;

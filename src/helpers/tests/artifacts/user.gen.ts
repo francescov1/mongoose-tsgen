@@ -15,7 +15,7 @@ import mongoose from "mongoose";
  * const userObject = user.toObject();
  * ```
  */
-export interface UserFriend {
+export type UserFriend = {
 uid: User["_id"] | User;
 nickname?: string;
 _id: mongoose.Types.ObjectId;
@@ -29,7 +29,7 @@ _id: mongoose.Types.ObjectId;
  * const userObject = user.toObject();
  * ```
  */
-export interface UserCitySubdocWithoutDefault {
+export type UserCitySubdocWithoutDefault = {
 a?: string;
 _id: mongoose.Types.ObjectId;
 }
@@ -42,7 +42,7 @@ _id: mongoose.Types.ObjectId;
  * const userObject = user.toObject();
  * ```
  */
-export interface User {
+export type User = {
 email: string;
 firstName: string;
 lastName: string;
@@ -74,7 +74,7 @@ _id: mongoose.Types.ObjectId;
  * 
  * Type of `UserDocument["friends"]` element.
  */
-export interface UserFriendDocument extends mongoose.Types.EmbeddedDocument {
+export type UserFriendDocument = mongoose.Types.EmbeddedDocument & {
 uid: UserDocument["_id"] | UserDocument;
 nickname?: string;
 _id: mongoose.Types.ObjectId;
@@ -85,7 +85,7 @@ _id: mongoose.Types.ObjectId;
  * 
  * Type of `UserDocument["city.subdocWithoutDefault"]` element.
  */
-export interface UserCitySubdocWithoutDefaultDocument extends mongoose.Types.EmbeddedDocument {
+export type UserCitySubdocWithoutDefaultDocument = mongoose.Types.EmbeddedDocument & {
 a?: string;
 _id: mongoose.Types.ObjectId;
 }
@@ -131,7 +131,7 @@ getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<User
  * const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
  * ```
  */
-export interface UserModel extends mongoose.Model<UserDocument, UserQueries>, UserStatics {}
+export type UserModel = mongoose.Model<UserDocument, UserQueries> & UserStatics
 
 /**
  * Mongoose Schema type
@@ -151,7 +151,7 @@ export type UserSchema = mongoose.Schema<UserDocument, UserModel>
  * const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
  * ```
  */
-export interface UserDocument extends mongoose.Document<mongoose.Types.ObjectId, UserQueries>, UserMethods {
+export type UserDocument = mongoose.Document<mongoose.Types.ObjectId, UserQueries> & UserMethods & {
 email: string;
 firstName: string;
 lastName: string;

@@ -15,7 +15,7 @@ import mongoose from "mongoose";
  * const homeObject = home.toObject();
  * ```
  */
-export interface Home {
+export type Home = {
 homeId?: string;
 homeName?: string;
 }
@@ -58,7 +58,7 @@ export type HomeStatics = {
  * const Home = mongoose.model<HomeDocument, HomeModel>("Home", HomeSchema);
  * ```
  */
-export interface HomeModel extends mongoose.Model<HomeDocument, HomeQueries>, HomeStatics {}
+export type HomeModel = mongoose.Model<HomeDocument, HomeQueries> & HomeStatics
 
 /**
  * Mongoose Schema type
@@ -78,7 +78,7 @@ export type HomeSchema = mongoose.Schema<HomeDocument, HomeModel>
  * const Home = mongoose.model<HomeDocument, HomeModel>("Home", HomeSchema);
  * ```
  */
-export interface HomeDocument extends mongoose.Document<never, HomeQueries>, HomeMethods {
+export type HomeDocument = mongoose.Document<never, HomeQueries> & HomeMethods & {
 homeId?: string;
 homeName?: string;
 status: string;
@@ -92,7 +92,7 @@ status: string;
  * const deviceObject = device.toObject();
  * ```
  */
-export interface DeviceHome {
+export type DeviceHome = {
 homeId?: string;
 homeName?: string;
 }
@@ -105,7 +105,7 @@ homeName?: string;
  * const deviceObject = device.toObject();
  * ```
  */
-export interface Device {
+export type Device = {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: DeviceHome;
@@ -119,7 +119,7 @@ home?: DeviceHome;
  * const Device = mongoose.model<DeviceDocument, DeviceModel>("Device", DeviceSchema);
  * ```
  */
-export interface DeviceHomeDocument extends mongoose.Document<mongoose.Types.ObjectId> {
+export type DeviceHomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
 homeId?: string;
 homeName?: string;
 status: any;
@@ -165,7 +165,7 @@ test: (this: DeviceModel, ...args: any[]) => any;
  * const Device = mongoose.model<DeviceDocument, DeviceModel>("Device", DeviceSchema);
  * ```
  */
-export interface DeviceModel extends mongoose.Model<DeviceDocument, DeviceQueries>, DeviceStatics {}
+export type DeviceModel = mongoose.Model<DeviceDocument, DeviceQueries> & DeviceStatics
 
 /**
  * Mongoose Schema type
@@ -185,7 +185,7 @@ export type DeviceSchema = mongoose.Schema<DeviceDocument, DeviceModel>
  * const Device = mongoose.model<DeviceDocument, DeviceModel>("Device", DeviceSchema);
  * ```
  */
-export interface DeviceDocument extends mongoose.Document<mongoose.Types.ObjectId, DeviceQueries>, DeviceMethods {
+export type DeviceDocument = mongoose.Document<mongoose.Types.ObjectId, DeviceQueries> & DeviceMethods & {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: DeviceHomeDocument;
@@ -199,7 +199,7 @@ home?: DeviceHomeDocument;
  * const device2Object = device2.toObject();
  * ```
  */
-export interface Device2Home {
+export type Device2Home = {
 homeId?: string;
 homeName?: string;
 }
@@ -212,7 +212,7 @@ homeName?: string;
  * const device2Object = device2.toObject();
  * ```
  */
-export interface Device2 {
+export type Device2 = {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: Device2Home;
@@ -226,7 +226,7 @@ home?: Device2Home;
  * const Device2 = mongoose.model<Device2Document, Device2Model>("Device2", Device2Schema);
  * ```
  */
-export interface Device2HomeDocument extends mongoose.Document<mongoose.Types.ObjectId> {
+export type Device2HomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
 homeId?: string;
 homeName?: string;
 status: any;
@@ -272,7 +272,7 @@ test: (this: Device2Model, ...args: any[]) => any;
  * const Device2 = mongoose.model<Device2Document, Device2Model>("Device2", Device2Schema);
  * ```
  */
-export interface Device2Model extends mongoose.Model<Device2Document, Device2Queries>, Device2Statics {}
+export type Device2Model = mongoose.Model<Device2Document, Device2Queries> & Device2Statics
 
 /**
  * Mongoose Schema type
@@ -292,7 +292,7 @@ export type Device2Schema = mongoose.Schema<Device2Document, Device2Model>
  * const Device2 = mongoose.model<Device2Document, Device2Model>("Device2", Device2Schema);
  * ```
  */
-export interface Device2Document extends mongoose.Document<mongoose.Types.ObjectId, Device2Queries>, Device2Methods {
+export type Device2Document = mongoose.Document<mongoose.Types.ObjectId, Device2Queries> & Device2Methods & {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: Device2HomeDocument;
@@ -306,7 +306,7 @@ home?: Device2HomeDocument;
  * const device3Object = device3.toObject();
  * ```
  */
-export interface Device3Home {
+export type Device3Home = {
 homeId?: string;
 homeName?: string;
 }
@@ -319,7 +319,7 @@ homeName?: string;
  * const device3Object = device3.toObject();
  * ```
  */
-export interface Device3 {
+export type Device3 = {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: Device3Home;
@@ -333,7 +333,7 @@ home?: Device3Home;
  * const Device3 = mongoose.model<Device3Document, Device3Model>("Device3", Device3Schema);
  * ```
  */
-export interface Device3HomeDocument extends mongoose.Document<mongoose.Types.ObjectId> {
+export type Device3HomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
 homeId?: string;
 homeName?: string;
 status: any;
@@ -379,7 +379,7 @@ test: (this: Device3Model, ...args: any[]) => any;
  * const Device3 = mongoose.model<Device3Document, Device3Model>("Device3", Device3Schema);
  * ```
  */
-export interface Device3Model extends mongoose.Model<Device3Document, Device3Queries>, Device3Statics {}
+export type Device3Model = mongoose.Model<Device3Document, Device3Queries> & Device3Statics
 
 /**
  * Mongoose Schema type
@@ -399,7 +399,7 @@ export type Device3Schema = mongoose.Schema<Device3Document, Device3Model>
  * const Device3 = mongoose.model<Device3Document, Device3Model>("Device3", Device3Schema);
  * ```
  */
-export interface Device3Document extends mongoose.Document<mongoose.Types.ObjectId, Device3Queries>, Device3Methods {
+export type Device3Document = mongoose.Document<mongoose.Types.ObjectId, Device3Queries> & Device3Methods & {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: Device3HomeDocument;
@@ -413,7 +413,7 @@ home?: Device3HomeDocument;
  * const device4Object = device4.toObject();
  * ```
  */
-export interface Device4Home {
+export type Device4Home = {
 homeId?: string;
 homeName?: string;
 }
@@ -426,7 +426,7 @@ homeName?: string;
  * const device4Object = device4.toObject();
  * ```
  */
-export interface Device4 {
+export type Device4 = {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: Device4Home;
@@ -440,7 +440,7 @@ home?: Device4Home;
  * const Device4 = mongoose.model<Device4Document, Device4Model>("Device4", Device4Schema);
  * ```
  */
-export interface Device4HomeDocument extends mongoose.Document<mongoose.Types.ObjectId> {
+export type Device4HomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
 homeId?: string;
 homeName?: string;
 status: any;
@@ -486,7 +486,7 @@ test: (this: Device4Model, ...args: any[]) => any;
  * const Device4 = mongoose.model<Device4Document, Device4Model>("Device4", Device4Schema);
  * ```
  */
-export interface Device4Model extends mongoose.Model<Device4Document, Device4Queries>, Device4Statics {}
+export type Device4Model = mongoose.Model<Device4Document, Device4Queries> & Device4Statics
 
 /**
  * Mongoose Schema type
@@ -506,7 +506,7 @@ export type Device4Schema = mongoose.Schema<Device4Document, Device4Model>
  * const Device4 = mongoose.model<Device4Document, Device4Model>("Device4", Device4Schema);
  * ```
  */
-export interface Device4Document extends mongoose.Document<mongoose.Types.ObjectId, Device4Queries>, Device4Methods {
+export type Device4Document = mongoose.Document<mongoose.Types.ObjectId, Device4Queries> & Device4Methods & {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: Device4HomeDocument;
@@ -520,7 +520,7 @@ home?: Device4HomeDocument;
  * const devicedefaultObject = devicedefault.toObject();
  * ```
  */
-export interface DeviceDefaultHome {
+export type DeviceDefaultHome = {
 homeId?: string;
 homeName?: string;
 }
@@ -533,7 +533,7 @@ homeName?: string;
  * const devicedefaultObject = devicedefault.toObject();
  * ```
  */
-export interface DeviceDefault {
+export type DeviceDefault = {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: DeviceDefaultHome;
@@ -547,7 +547,7 @@ home?: DeviceDefaultHome;
  * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel>("DeviceDefault", DeviceDefaultSchema);
  * ```
  */
-export interface DeviceDefaultHomeDocument extends mongoose.Document<mongoose.Types.ObjectId> {
+export type DeviceDefaultHomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
 homeId?: string;
 homeName?: string;
 status: any;
@@ -593,7 +593,7 @@ test: (this: DeviceDefaultModel) => string;
  * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel>("DeviceDefault", DeviceDefaultSchema);
  * ```
  */
-export interface DeviceDefaultModel extends mongoose.Model<DeviceDefaultDocument, DeviceDefaultQueries>, DeviceDefaultStatics {}
+export type DeviceDefaultModel = mongoose.Model<DeviceDefaultDocument, DeviceDefaultQueries> & DeviceDefaultStatics
 
 /**
  * Mongoose Schema type
@@ -613,7 +613,7 @@ export type DeviceDefaultSchema = mongoose.Schema<DeviceDefaultDocument, DeviceD
  * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel>("DeviceDefault", DeviceDefaultSchema);
  * ```
  */
-export interface DeviceDefaultDocument extends mongoose.Document<mongoose.Types.ObjectId, DeviceDefaultQueries>, DeviceDefaultMethods {
+export type DeviceDefaultDocument = mongoose.Document<mongoose.Types.ObjectId, DeviceDefaultQueries> & DeviceDefaultMethods & {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: DeviceDefaultHomeDocument;

@@ -252,7 +252,9 @@ export const replaceModelTypes = (
     // virtuals
     if (Object.keys(virtuals).length > 0) {
       sourceFile
-        ?.getInterface(`${modelName}Document`)
+        ?.getTypeAlias(`${modelName}Document`)
+        ?.getFirstChildByKind(SyntaxKind.IntersectionType)
+        ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
         ?.getChildrenOfKind(SyntaxKind.PropertySignature)
         .forEach(prop => {
           const newType = virtuals[prop.getName()];
@@ -262,7 +264,9 @@ export const replaceModelTypes = (
       // if toObject options indicate to include virtuals in lean, then also change types for lean doc
       if (shouldLeanIncludeVirtuals(schemas[modelName])) {
         sourceFile
-          ?.getInterface(`${modelName}`)
+          ?.getTypeAlias(`${modelName}`)
+          ?.getFirstChildByKind(SyntaxKind.IntersectionType)
+          ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
           ?.getChildrenOfKind(SyntaxKind.PropertySignature)
           .forEach(prop => {
             const newType = virtuals[prop.getName()];
@@ -431,7 +435,7 @@ export const parseSchema = ({
         header += "\nexport ";
 
         if (isDocument) {
-          header += `interface ${name}Document extends `;
+          header += `type ${name}Document = `;
           if (isSubdocArray) {
             header += "mongoose.Types.EmbeddedDocument";
           }
@@ -449,8 +453,8 @@ export const parseSchema = ({
             header += `mongoose.Document<${_idType ?? "never"}>`;
           }
 
-          header += " {\n";
-        } else header += `interface ${name} {\n`;
+          header += " & {\n";
+        } else header += `type ${name} = {\n`;
 
         childInterfaces += parseSchema({
           schema: child.schema,
@@ -491,7 +495,7 @@ export const parseSchema = ({
     const modelExtend = `mongoose.Model<${modelName}Document, ${modelName}Queries>`;
 
     template += getModelDocs(modelName);
-    template += `\nexport interface ${modelName}Model extends ${modelExtend}, ${modelName}Statics {}\n\n`;
+    template += `\nexport type ${modelName}Model = ${modelExtend} & ${modelName}Statics\n\n`;
 
     template += getSchemaDocs(modelName);
     template += `\nexport type ${modelName}Schema = mongoose.Schema<${modelName}Document, ${modelName}Model>\n\n`;
@@ -842,7 +846,7 @@ export const generateTypes = ({
         modelName,
         addModel: true,
         isDocument: false,
-        header: getLeanDocs(modelName) + `\nexport interface ${modelName} {\n`,
+        header: getLeanDocs(modelName) + `\nexport type ${modelName} = {\n`,
         footer: "}",
         noMongoose
       });
@@ -868,7 +872,7 @@ export const generateTypes = ({
         isDocument: true,
         header:
           getDocumentDocs(modelName) +
-          `\nexport interface ${modelName}Document extends ${mongooseDocExtend}, ${modelName}Methods {\n`,
+          `\nexport type ${modelName}Document = ${mongooseDocExtend} & ${modelName}Methods & {\n`,
         footer: "}"
       });
 
