@@ -265,7 +265,6 @@ export const replaceModelTypes = (
       if (shouldLeanIncludeVirtuals(schemas[modelName])) {
         sourceFile
           ?.getTypeAlias(`${modelName}`)
-          ?.getFirstChildByKind(SyntaxKind.IntersectionType)
           ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
           ?.getChildrenOfKind(SyntaxKind.PropertySignature)
           .forEach(prop => {

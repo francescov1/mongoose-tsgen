@@ -73,6 +73,10 @@ const UserSchema: UserSchema = new Schema({
   otherStringString: {
     type: "String",
     required: true
+  },
+}, {
+  toObject: {
+    virtuals: true,
   }
 });
 

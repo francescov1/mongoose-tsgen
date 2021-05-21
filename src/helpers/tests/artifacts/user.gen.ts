@@ -67,6 +67,7 @@ stringString?: string;
 otherNumberString: number;
 otherStringString: string;
 _id: mongoose.Types.ObjectId;
+name: string;
 }
 
 /**
