@@ -281,7 +281,7 @@ const getSubDocName = (path: string, modelName = "") => {
       .map((p: string) => p[0].toUpperCase() + p.slice(1))
       .join("");
 
-  if (subDocName.endsWith("s")) subDocName = subDocName.slice(0, -1);
+  if (subDocName.endsWith("s") && !subDocName.endsWith("ss")) subDocName = subDocName.slice(0, -1);
   return subDocName;
 };
 
