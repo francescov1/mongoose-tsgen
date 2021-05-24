@@ -87,13 +87,7 @@ describe("generateTypes", () => {
 describe("getParseKeyFn", () => {
   test("handles untyped Array equivalents as `any[]`", () => {
     // see https://mongoosejs.com/docs/schematypes.html#arrays
-    const parseKey = parser.getParseKeyFn(
-      false,
-      {
-        test1a: { type: [mongoose.Schema.Types.Mixed], default: undefined }
-      },
-      false
-    );
+    const parseKey = parser.getParseKeyFn(false, false, false);
 
     expect(parseKey("test1a", { type: [mongoose.Schema.Types.Mixed] })).toBe("test1a: any[];\n");
     expect(parseKey("test1b", [mongoose.Schema.Types.Mixed])).toBe("test1b: any[];\n");
@@ -110,7 +104,7 @@ describe("getParseKeyFn", () => {
 
   test("handles Object equivalents as `any`", () => {
     // see https://mongoosejs.com/docs/schematypes.html#mixed
-    const parseKey = parser.getParseKeyFn(false, {}, false);
+    const parseKey = parser.getParseKeyFn(false, false, false);
 
     expect(parseKey("test1a", { type: mongoose.Schema.Types.Mixed })).toBe("test1a?: any;\n");
     expect(parseKey("test1b", mongoose.Schema.Types.Mixed)).toBe("test1b?: any;\n");
@@ -132,7 +126,7 @@ describe("getParseKeyFn", () => {
   });
 
   test("handles 2dsphere index edge case", () => {
-    const parseKey = parser.getParseKeyFn(false, {}, false);
+    const parseKey = parser.getParseKeyFn(false, false, false);
 
     // should be optional; not required like normal arrays
     expect(parseKey("test1a", { type: [Number], index: "2dsphere" })).toBe("test1a?: number[];\n");
