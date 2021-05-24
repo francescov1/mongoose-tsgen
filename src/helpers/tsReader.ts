@@ -118,10 +118,20 @@ function findTypesInFile(sourceFile: SourceFile, modelTypes: ModelTypes) {
         ?.getFirstChildByKind(SyntaxKind.PropertyAccessExpression)
         ?.getFirstChildByKind(SyntaxKind.Identifier)
         ?.getText();
-      if (!schemaVariableName) continue;
+
+      if (schemaVariableName) {
+        if (process.env.DEBUG)
+          console.log("tsreader: Found virtual on schema: " + schemaVariableName);
+      } else continue;
 
       const modelName = schemaModelMapping[schemaVariableName];
-      if (!modelName) continue;
+      if (!modelName) {
+        if (process.env.DEBUG)
+          console.warn(
+            "tsreader: Associated model name not found for schema: " + schemaVariableName
+          );
+        continue;
+      }
 
       const funcExpr = propAccessExpr
         ?.getParent()
@@ -136,7 +146,14 @@ function findTypesInFile(sourceFile: SourceFile, modelTypes: ModelTypes) {
 
       const virtualName = stringLiteral?.getText();
       let returnType = type?.split("=> ")?.[1];
-      if (!returnType || !virtualName) continue;
+      if (!returnType || !virtualName) {
+        if (process.env.DEBUG)
+          console.warn("tsreader: virtualName or returnType not found: ", {
+            virtualName,
+            returnType
+          });
+        continue;
+      }
 
       /**
        * @experimental trying this out since certain virtual types are indeterminable and get set to void, which creates incorrect TS errors
