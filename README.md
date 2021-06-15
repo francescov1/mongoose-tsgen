@@ -349,4 +349,4 @@ export type UserDocument = mongoose.Document<mongoose.Types.ObjectId, UserQuerie
 
 ## Development
 
-- [ ] Cut down node_modules by using peer dependencies (i.e. mongoose) and stripping oclif.
+- [ ] Remove oclif - it adds a lot of unnecessary dependencies
