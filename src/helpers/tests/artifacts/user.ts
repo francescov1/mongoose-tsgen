@@ -53,6 +53,10 @@ const UserSchema: UserSchema = new Schema({
       of: Number
     }
   ],
+  mapOfArrays: {
+    type: Map,
+    of: [Number]
+  },
   buffer: {
     type: Buffer,
     required: true

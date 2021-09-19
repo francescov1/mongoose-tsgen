@@ -567,6 +567,7 @@ export const getParseKeyFn = (
 
     let isArray = Array.isArray(val);
     let isUntypedArray = false;
+    let isMapOfArray = false;
     /**
      * If _isDefaultSetToUndefined is set, it means this is a subdoc array with `default: undefined`, indicating that mongoose will not automatically
      * assign an empty array to the value. Therefore, isOptional = true. In other cases, isOptional is false since the field will be automatically initialized
@@ -645,6 +646,13 @@ export const getParseKeyFn = (
 
     const isMap = val?.type === Map;
 
+    // // handles maps of arrays as per https://github.com/francescov1/mongoose-tsgen/issues/63
+    if (isMap && Array.isArray(val.of)) {
+      val.of = val.of[0];
+      isMapOfArray = true;
+      isArray = true;
+    }
+
     if (val === Array || val?.type === Array || isUntypedArray) {
       // treat Array constructor and [] as an Array<Mixed>
       isArray = true;
@@ -713,7 +721,8 @@ export const getParseKeyFn = (
 
     if (!valType) return "";
 
-    if (isMap) valType = isDocument ? `mongoose.Types.Map<${valType}>` : `Map<string, ${valType}>`;
+    if (isMap && !isMapOfArray)
+      valType = isDocument ? `mongoose.Types.Map<${valType}>` : `Map<string, ${valType}>`;
 
     if (valType === "Buffer" && isDocument) valType = "mongoose.Types.Buffer";
 
@@ -726,6 +735,10 @@ export const getParseKeyFn = (
         valType = `${valType}[]`;
       }
     }
+
+    // a little messy, but if we have a map of arrays, we need to wrap the value after adding the array info
+    if (isMap && isMapOfArray)
+      valType = isDocument ? `mongoose.Types.Map<${valType}>` : `Map<string, ${valType}>`;
 
     return makeLine({ key, val: valType, isOptional });
   };
@@ -780,7 +793,7 @@ export const loadSchemas = (modelsPaths: string[]) => {
     try {
       exportedData = require(singleModelPath);
     } catch (err) {
-      if (err.message?.includes(`Cannot find module '${singleModelPath}'`))
+      if ((err as Error).message?.includes(`Cannot find module '${singleModelPath}'`))
         throw new Error(`Could not find a module at path ${singleModelPath}.`);
       else throw err;
     }

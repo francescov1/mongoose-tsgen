@@ -140,7 +140,7 @@ class MongooseTsgen extends Command {
         process.exit();
       }
     } catch (error) {
-      this.error(error);
+      this.error(error as Error);
     }
   }
 }
