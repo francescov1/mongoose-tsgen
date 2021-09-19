@@ -793,7 +793,7 @@ export const loadSchemas = (modelsPaths: string[]) => {
     try {
       exportedData = require(singleModelPath);
     } catch (err) {
-      if (err.message?.includes(`Cannot find module '${singleModelPath}'`))
+      if ((err as Error).message?.includes(`Cannot find module '${singleModelPath}'`))
         throw new Error(`Could not find a module at path ${singleModelPath}.`);
       else throw err;
     }
