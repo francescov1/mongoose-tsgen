@@ -269,7 +269,7 @@ UserSchema.statics = {
 
 UserSchema.query = {
   populateFriends() {
-    return this.populate("friends.uid", "firstName lastName");
+    return this.populate("bestFriend", "firstName lastName");
   }
 };
 
@@ -349,4 +349,5 @@ export type UserDocument = mongoose.Document<mongoose.Types.ObjectId, UserQuerie
 
 ## Development
 
+- [ ] Handle deeper nested populate types (currently only handles single level of nesting)
 - [ ] Remove oclif - it adds a lot of unnecessary dependencies
