@@ -41,7 +41,7 @@ describe("generateTypes", () => {
     parser.overloadQueryPopulate(sourceFile);
 
     cleanupTs?.();
-    expect(sourceFile.getFullText()).toBe(getExpectedString("user.gen.ts"));
+    expect(sourceFile.getFullText().trim()).toBe(getExpectedString("user.gen.ts").trim());
   });
 
   // TODO: the next 2 tests are kinda random and out of place. First one covers all the latest changes
@@ -62,7 +62,7 @@ describe("generateTypes", () => {
     parser.overloadQueryPopulate(sourceFile);
 
     cleanupTs?.();
-    expect(sourceFile.getFullText()).toBe(getExpectedString("device.gen.ts"));
+    expect(sourceFile.getFullText().trim()).toBe(getExpectedString("device.gen.ts").trim());
   });
 
   test("generate other schema options", async () => {
@@ -80,7 +80,7 @@ describe("generateTypes", () => {
     parser.overloadQueryPopulate(sourceFile);
 
     cleanupTs?.();
-    expect(sourceFile.getFullText()).toBe(getExpectedString("user2.gen.ts"));
+    expect(sourceFile.getFullText().trim()).toBe(getExpectedString("user2.gen.ts").trim());
   });
 });
 

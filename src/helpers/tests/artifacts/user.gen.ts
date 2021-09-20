@@ -183,18 +183,6 @@ name: string;
 }
 
 /**
-* Populate properties on a document type:
-* ```
-* import { PopulatedDocument } from "../interfaces/mongoose.gen.ts"
-* 
-* function example(user: PopulatedDocument<UserDocument, "bestFriend">) {
-*   console.log(user.bestFriend._id) // typescript knows this is populated
-* }
-* ```
-*/
-export type PopulatedDocument<DocType extends mongoose.Document, T> = T extends keyof DocType ? Omit<DocType, T> & { [ref in T]: Exclude<DocType[T], mongoose.Types.ObjectId> } : DocType;
-
-/**
  * Check if a property on a document is populated:
  * ```
  * import { IsPopulated } from "../interfaces/mongoose.gen.ts"
@@ -207,23 +195,59 @@ export function IsPopulated<T>(doc: T | mongoose.Types.ObjectId): doc is T {
 }
 
 /**
-* Helper types used by the populate overloads
-*/
+ * Helper types used by `NestedPopulatedDocument`.
+ * Returns the parent & child properties respectively, for a string representing a nested property (i.e. `friend.user`)
+ */
+type ParentProperty<T> = T extends `${infer P}.${string}` ? P : never;
+type ChildProperty<T> = T extends `${string}.${infer C}` ? C : never;
+ 
+/**
+ * Helper type used by `PopulatedDocument` to populate nested properties (i.e. `friend.user`).
+ */
+type NestedPopulatedDocument<
+DocType extends mongoose.Document,
+T
+> = ParentProperty<T> extends keyof DocType 
+  ? ChildProperty<T> extends keyof DocType[ParentProperty<T>]
+    ? Omit<DocType, ParentProperty<T>> &
+      { 
+        [ref in ParentProperty<T>]: Omit<DocType[ParentProperty<T>], ChildProperty<T>> & { 
+          [ref in ChildProperty<T>]: Exclude<DocType[ParentProperty<T>][ChildProperty<T>], mongoose.Types.ObjectId> 
+        } 
+      }
+    : DocType 
+  : DocType;
+
+/**
+ * Populate properties on a document type:
+ * ```
+ * import { PopulatedDocument } from "../interfaces/mongoose.gen.ts"
+ * 
+ * function example(user: PopulatedDocument<UserDocument, "bestFriend">) {
+ *   console.log(user.bestFriend._id) // typescript knows this is populated
+ * }
+ * ```
+ */
+export type PopulatedDocument<DocType extends mongoose.Document, T> = T extends keyof DocType ? Omit<DocType, T> & { [ref in T]: Exclude<DocType[T], mongoose.Types.ObjectId> } : NestedPopulatedDocument<DocType, T>;
+
+/**
+ * Helper types used by the populate overloads
+ */
 type Unarray<T> = T extends Array<infer U> ? U : T;
 type Modify<T, R> = Omit<T, keyof R> & R;
 
 /**
-* Augment mongoose with Query.populate overloads
-*/
+ * Augment mongoose with Query.populate overloads
+ */
 declare module "mongoose" {
   interface Query<ResultType, DocType extends Document, THelpers = {}> {
-    populate<T extends keyof DocType>(path: T, select?: string | any, model?: string | Model<any, THelpers>, match?: any): Query<
+    populate<T extends string>(path: T, select?: string | any, model?: string | Model<any, THelpers>, match?: any): Query<
       ResultType extends Array<DocType> ? Array<PopulatedDocument<Unarray<ResultType>, T>> : (ResultType extends DocType ? PopulatedDocument<Unarray<ResultType>, T> : ResultType),
       DocType,
       THelpers
     > & THelpers;
 
-    populate<T extends keyof DocType>(options: Modify<PopulateOptions, { path: T }> | Array<PopulateOptions>): Query<
+    populate<T extends string>(options: Modify<PopulateOptions, { path: T }> | Array<PopulateOptions>): Query<
       ResultType extends Array<DocType> ? Array<PopulatedDocument<Unarray<ResultType>, T>> : (ResultType extends DocType ? PopulatedDocument<Unarray<ResultType>, T> : ResultType),
       DocType,
       THelpers
