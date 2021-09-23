@@ -95,7 +95,7 @@ class MongooseTsgen extends Command {
     try {
       const modelsPaths = paths.getModelsPaths(args.model_path);
 
-      const cleanupTs = parser.registerUserTs(flags.project);
+      const cleanupTs = tsReader.registerUserTs(flags.project);
 
       const schemas = parser.loadSchemas(modelsPaths);
 

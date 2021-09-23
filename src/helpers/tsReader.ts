@@ -7,6 +7,10 @@ import {
   VariableDeclaration,
   ExportAssignment
 } from "ts-morph";
+import glob from "glob";
+import path from "path";
+import * as fs from "fs";
+import stripJsonComments from "strip-json-comments";
 
 function getNameAndType(funcDeclaration: MethodDeclaration) {
   const name = funcDeclaration.getName();
@@ -280,4 +284,35 @@ export const getModelTypes = (modelsPaths: string[]): ModelTypes => {
   });
 
   return allModelTypes;
+};
+
+export const registerUserTs = (basePath: string): (() => void) | null => {
+  let pathToSearch: string;
+  if (basePath.endsWith(".json")) pathToSearch = basePath;
+  else pathToSearch = path.join(basePath, "**/tsconfig.json");
+
+  const files = glob.sync(pathToSearch, { ignore: "**/node_modules/**" });
+
+  if (files.length === 0) throw new Error(`No tsconfig.json file found at path "${basePath}"`);
+  else if (files.length > 1)
+    throw new Error(
+      `Multiple tsconfig.json files found. Please specify a more specific --project value.\nPaths found: ${files}`
+    );
+
+  const foundPath = path.join(process.cwd(), files[0]);
+  require("ts-node").register({ transpileOnly: true, project: foundPath });
+
+  // handle path aliases
+  const tsConfigString = fs.readFileSync(foundPath, "utf8");
+  const tsConfig = JSON.parse(stripJsonComments(tsConfigString));
+  if (tsConfig?.compilerOptions?.paths) {
+    const cleanup = require("tsconfig-paths").register({
+      baseUrl: process.cwd(),
+      paths: tsConfig.compilerOptions.paths
+    });
+
+    return cleanup;
+  }
+
+  return null;
 };
