@@ -28,18 +28,18 @@ This library aims to remove these drawbacks by instead parsing your already-writ
 
 # Features
 
-- [x] Automatically generate Typescript typings for each Mongoose document, model and subdocument
-- [x] Works out of the box, don't need to rewrite your schemas
-- [x] Type-safe [population](#query-population)
-- [x] Includes a "Mongoose-less" version of each schema interface (Mongoose typings removed)
+- 😌 Automatically generate Typescript typings for each Mongoose document, model and subdocument
+- 📦 Works out of the box, don't need to rewrite your schemas
+- ⛑ Type-safe [population](#query-population)
+- ➕ Includes a "Mongoose-less" version of each schema interface (Mongoose typings removed)
 
 # Compatibility
 
-- [x] All Mongoose types, arrays and maps
-- [x] Virtual properties
-- [x] Mongoose method, static & query functions
-- [x] Multiple schemas per file
-- [x] Typescript path aliases
+- ✅ All Mongoose types, arrays and maps
+- ✅ Virtual properties
+- ✅ Mongoose method, static & query functions
+- ✅ Multiple schemas per file
+- ✅ Typescript path aliases
 
 ### Mongoose version
 
