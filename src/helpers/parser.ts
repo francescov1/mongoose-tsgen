@@ -91,13 +91,30 @@ export const parseFunctions = (
   return interfaceString;
 };
 
+const BASE_TYPES = [
+  Object,
+  String,
+  "String",
+  Number,
+  "Number",
+  Boolean,
+  Date,
+  Buffer,
+  "Buffer",
+  mongoose.Types.Buffer,
+  mongoose.Schema.Types.Buffer,
+  mongoose.Schema.Types.ObjectId,
+  mongoose.Types.ObjectId,
+  mongoose.Types.Decimal128,
+  mongoose.Schema.Types.Decimal128
+];
+
 export const convertBaseTypeToTs = (
   key: string,
   val: any,
   isDocument: boolean,
   noMongoose = false
 ) => {
-  let valType: string | undefined;
   // NOTE: ideally we check actual type of value to ensure its Schema.Types.Mixed (the same way we do with Schema.Types.ObjectId),
   // but this doesnt seem to work for some reason
   // {} is treated as Mixed
@@ -107,52 +124,39 @@ export const convertBaseTypeToTs = (
     (val.constructor === Object && _.isEmpty(val)) ||
     (val.type?.constructor === Object && _.isEmpty(val.type))
   ) {
-    valType = "any";
-  } else {
-    const mongooseType = val.type === Map ? val.of : val.type;
-    switch (mongooseType) {
-      case String:
-      case "String":
-        if (val.enum?.length > 0) {
-          valType = `"` + val.enum.join(`" | "`) + `"`;
-        } else valType = "string";
-        break;
-      case Number:
-      case "Number":
-        if (key !== "__v") valType = "number";
-        break;
-      case mongoose.Schema.Types.Decimal128:
-      case mongoose.Types.Decimal128:
-        valType = isDocument ? "mongoose.Types.Decimal128" : "number";
-        break;
-      case Boolean:
-        valType = "boolean";
-        break;
-      case Date:
-        valType = "Date";
-        break;
-      case mongoose.Types.Buffer:
-      case mongoose.Schema.Types.Buffer:
-      case Buffer:
-      case "Buffer":
-        valType = "Buffer";
-        break;
-      case mongoose.Schema.Types.ObjectId:
-      case mongoose.Types.ObjectId:
-      case "ObjectId": // _id fields have type set to the string "ObjectId"
-        valType = noMongoose ? "string" : "mongoose.Types.ObjectId";
-        break;
-      case Object:
-        valType = "any";
-        break;
-      default:
-        // this indicates to the parent func that this type is nested and we need to traverse one level deeper
-        valType = "{}";
-        break;
-    }
+    return "any";
   }
 
-  return valType;
+  const mongooseType = val.type === Map ? val.of : val.type;
+  switch (mongooseType) {
+    case String:
+    case "String":
+      return val.enum?.length > 0 ? `"` + val.enum.join(`" | "`) + `"` : "string";
+    case Number:
+    case "Number":
+      return key === "__v" ? undefined : "number";
+    case mongoose.Schema.Types.Decimal128:
+    case mongoose.Types.Decimal128:
+      return isDocument ? "mongoose.Types.Decimal128" : "number";
+    case Boolean:
+      return "boolean";
+    case Date:
+      return "Date";
+    case mongoose.Types.Buffer:
+    case mongoose.Schema.Types.Buffer:
+    case Buffer:
+    case "Buffer":
+      return isDocument ? "mongoose.Types.Buffer" : "Buffer";
+    case mongoose.Schema.Types.ObjectId:
+    case mongoose.Types.ObjectId:
+    case "ObjectId": // _id fields have type set to the string "ObjectId"
+      return noMongoose ? "string" : "mongoose.Types.ObjectId";
+    case Object:
+      return "any";
+    default:
+      // this indicates to the parent func that this type is nested and we need to traverse one level deeper
+      return "{}";
+  }
 };
 
 const parseChildSchemas = ({
@@ -324,28 +328,7 @@ export const getParseKeyFn = (
       }
     }
 
-    // TODO: this list should be combined with the convertBaseTypeToTs somehow so that we dont duplicate types
-    // if type is provided directly on property, expand it
-    if (
-      [
-        Object,
-        String,
-        "String",
-        Number,
-        "Number",
-        Boolean,
-        Date,
-        Buffer,
-        "Buffer",
-        mongoose.Types.Buffer,
-        mongoose.Schema.Types.Buffer,
-        mongoose.Schema.Types.ObjectId,
-        mongoose.Types.ObjectId,
-        mongoose.Types.Decimal128,
-        mongoose.Schema.Types.Decimal128
-      ].includes(val)
-    )
-      val = { type: val };
+    if (BASE_TYPES.includes(val)) val = { type: val };
 
     const isMap = val?.type === Map;
 
@@ -426,8 +409,6 @@ export const getParseKeyFn = (
 
     if (isMap && !isMapOfArray)
       valType = isDocument ? `mongoose.Types.Map<${valType}>` : `Map<string, ${valType}>`;
-
-    if (valType === "Buffer" && isDocument) valType = "mongoose.Types.Buffer";
 
     if (isArray) {
       if (isDocument)
