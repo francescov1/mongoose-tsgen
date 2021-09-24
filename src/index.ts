@@ -5,6 +5,7 @@ import * as parser from "./helpers/parser";
 import * as tsReader from "./helpers/tsReader";
 import * as paths from "./helpers/paths";
 import * as formatter from "./helpers/formatter";
+import * as generator from "./helpers/generator";
 
 class MongooseTsgen extends Command {
   static description =
@@ -100,10 +101,10 @@ class MongooseTsgen extends Command {
       const schemas = parser.loadSchemas(modelsPaths);
 
       const genFilePath = paths.cleanOutputPath(flags.output);
-      let sourceFile = parser.createSourceFile(genFilePath);
+      let sourceFile = generator.createSourceFile(genFilePath);
 
       const noMongoose = flags["no-mongoose"];
-      sourceFile = parser.generateTypes({
+      sourceFile = generator.generateTypes({
         schemas,
         sourceFile,
         imports: flags.imports,
@@ -115,13 +116,13 @@ class MongooseTsgen extends Command {
         this.log("Skipping TS model parsing and sourceFile model type replacement");
       } else {
         const modelTypes = tsReader.getModelTypes(modelsPaths);
-        parser.replaceModelTypes(sourceFile, modelTypes, schemas);
+        generator.replaceModelTypes(sourceFile, modelTypes, schemas);
 
         // add populate helpers
-        await parser.addPopulateHelpers(sourceFile);
+        await generator.addPopulateHelpers(sourceFile);
         // add mongoose.Query.populate overloads
         if (!flags["no-populate-overload"]) {
-          await parser.overloadQueryPopulate(sourceFile);
+          await generator.overloadQueryPopulate(sourceFile);
         }
       }
 
@@ -134,7 +135,7 @@ class MongooseTsgen extends Command {
       } else {
         this.log(`Writing interfaces to ${genFilePath}`);
 
-        parser.saveFile({ genFilePath, sourceFile });
+        generator.saveFile({ genFilePath, sourceFile });
         if (!flags["no-format"]) await formatter.format([genFilePath]);
         this.log("Writing complete 🐒");
         process.exit();

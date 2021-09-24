@@ -1,11 +1,10 @@
 import mongoose from "mongoose";
 import flatten, { unflatten } from "flat";
 import _ from "lodash";
-import { Project, SourceFile, SyntaxKind, PropertySignature } from "ts-morph";
+
 import * as templates from "./templates";
 
-// TODO: simplify this conditional
-const getShouldLeanIncludeVirtuals = (schema: any) => {
+export const getShouldLeanIncludeVirtuals = (schema: any) => {
   // Check the toObject options to determine if virtual property should be included.
   // See https://mongoosejs.com/docs/api.html#document_Document-toObject for toObject option documentation.
   const toObjectOptions = schema.options?.toObject ?? {};
@@ -40,7 +39,7 @@ const makeLine = ({
   return line;
 };
 
-const getFuncType = (
+export const convertFuncSignatureToType = (
   funcSignature: string,
   funcType: "methods" | "statics" | "query",
   modelName: string
@@ -59,130 +58,6 @@ const getFuncType = (
     }`;
   }
   return type;
-};
-
-type ModelTypes = {
-  [modelName: string]: {
-    methods: { [funcName: string]: string };
-    statics: { [funcName: string]: string };
-    query: { [funcName: string]: string };
-    virtuals: { [virtualName: string]: string };
-    schemaVariableName?: string;
-    modelVariableName?: string;
-    filePath: string;
-  };
-};
-
-export const replaceModelTypes = (
-  sourceFile: SourceFile,
-  modelTypes: ModelTypes,
-  schemas: LoadedSchemas
-) => {
-  Object.entries(modelTypes).forEach(([modelName, types]) => {
-    const { methods, statics, query, virtuals } = types;
-
-    // methods
-    if (Object.keys(methods).length > 0) {
-      sourceFile
-        ?.getTypeAlias(`${modelName}Methods`)
-        ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
-        ?.getChildrenOfKind(SyntaxKind.PropertySignature)
-        .forEach(prop => {
-          const newType = methods[prop.getName()];
-          if (newType) {
-            const funcType = getFuncType(newType, "methods", modelName);
-            prop.setType(funcType);
-          }
-        });
-    }
-
-    // statics
-    if (Object.keys(statics).length > 0) {
-      sourceFile
-        ?.getTypeAlias(`${modelName}Statics`)
-        ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
-        ?.getChildrenOfKind(SyntaxKind.PropertySignature)
-        .forEach(prop => {
-          const newType = statics[prop.getName()];
-          if (newType) {
-            const funcType = getFuncType(newType, "statics", modelName);
-            prop.setType(funcType);
-          }
-        });
-    }
-
-    // queries
-    if (Object.keys(query).length > 0) {
-      sourceFile
-        ?.getTypeAlias(`${modelName}Queries`)
-        ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
-        ?.getChildrenOfKind(SyntaxKind.PropertySignature)
-        .forEach(prop => {
-          const newType = query[prop.getName()];
-          if (newType) {
-            const funcType = getFuncType(newType, "query", modelName);
-            prop.setType(funcType);
-          }
-        });
-    }
-
-    // virtuals
-    const virtualNames = Object.keys(virtuals);
-    if (virtualNames.length > 0) {
-      const documentProperties = sourceFile
-        ?.getTypeAlias(`${modelName}Document`)
-        ?.getFirstChildByKind(SyntaxKind.IntersectionType)
-        ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
-        ?.getChildrenOfKind(SyntaxKind.PropertySignature);
-
-      const leanProperties =
-        getShouldLeanIncludeVirtuals(schemas[modelName]) &&
-        sourceFile
-          ?.getTypeAlias(`${modelName}`)
-          ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
-          ?.getChildrenOfKind(SyntaxKind.PropertySignature);
-
-      if (documentProperties || leanProperties) {
-        virtualNames.forEach(virtualName => {
-          const virtualNameComponents = virtualName.split(".");
-          let nestedDocProps: PropertySignature[] | undefined;
-          let nestedLeanProps: PropertySignature[] | undefined;
-
-          virtualNameComponents.forEach((nameComponent, i) => {
-            if (i === virtualNameComponents.length - 1) {
-              if (documentProperties) {
-                const docPropMatch = (nestedDocProps ?? documentProperties).find(
-                  prop => prop.getName() === nameComponent
-                );
-                docPropMatch?.setType(virtuals[virtualName]);
-              }
-              if (leanProperties) {
-                const leanPropMatch = (nestedLeanProps ?? leanProperties).find(
-                  prop => prop.getName() === nameComponent
-                );
-                leanPropMatch?.setType(virtuals[virtualName]);
-              }
-
-              return;
-            }
-
-            if (documentProperties) {
-              nestedDocProps = (nestedDocProps ?? documentProperties)
-                .find(prop => prop.getName() === nameComponent)
-                ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
-                ?.getChildrenOfKind(SyntaxKind.PropertySignature);
-            }
-            if (leanProperties) {
-              nestedLeanProps = (nestedLeanProps ?? leanProperties)
-                .find(prop => prop.getName() === nameComponent)
-                ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
-                ?.getChildrenOfKind(SyntaxKind.PropertySignature);
-            }
-          });
-        });
-      }
-    }
-  });
 };
 
 const getSubDocName = (path: string, modelName = "") => {
@@ -208,14 +83,19 @@ const parseFunctions = (
     if (["initializeTimestamps"].includes(key)) return;
 
     const funcSignature = "(...args: any[]) => any";
-    const type = getFuncType(funcSignature, funcType, modelName);
+    const type = convertFuncSignatureToType(funcSignature, funcType, modelName);
     interfaceString += makeLine({ key, val: type });
   });
 
   return interfaceString;
 };
 
-const convertBaseTypeToTs = (key: string, val: any, isDocument: boolean, noMongoose = false) => {
+export const convertBaseTypeToTs = (
+  key: string,
+  val: any,
+  isDocument: boolean,
+  noMongoose = false
+) => {
   let valType: string | undefined;
   // NOTE: ideally we check actual type of value to ensure its Schema.Types.Mixed (the same way we do with Schema.Types.ObjectId),
   // but this doesnt seem to work for some reason
@@ -274,6 +154,107 @@ const convertBaseTypeToTs = (key: string, val: any, isDocument: boolean, noMongo
   return valType;
 };
 
+const parseChildSchemas = ({
+  schema,
+  isDocument,
+  noMongoose,
+  modelName
+}: {
+  schema: any;
+  isDocument: boolean;
+  noMongoose: boolean;
+  modelName: string;
+}) => {
+  const flatSchemaTree: any = flatten(schema.tree, { safe: true });
+  let childInterfaces = "";
+
+  const processChild = (rootPath: string) => {
+    return (child: any) => {
+      const path = child.model.path;
+      const isSubdocArray = child.model.$isArraySubdocument;
+      const name = getSubDocName(path, rootPath);
+
+      child.schema._isReplacedWithSchema = true;
+      child.schema._inferredInterfaceName = name;
+      child.schema._isSubdocArray = isSubdocArray;
+
+      const requiredValuePath = `${path}.required`;
+      if (requiredValuePath in flatSchemaTree && flatSchemaTree[requiredValuePath] === true) {
+        child.schema.required = true;
+      }
+
+      /**
+       * for subdocument arrays, mongoose supports passing `default: undefined` to disable the default empty array created.
+       * here we indicate this on the child schema using _isDefaultSetToUndefined so that the parser properly sets the `isOptional` flag
+       */
+      if (isSubdocArray) {
+        const defaultValuePath = `${path}.default`;
+        if (defaultValuePath in flatSchemaTree && flatSchemaTree[defaultValuePath] === undefined) {
+          child.schema._isDefaultSetToUndefined = true;
+        }
+      }
+      flatSchemaTree[path] = isSubdocArray ? [child.schema] : child.schema;
+
+      // since we now will process this child by using the schema, we can remove any further nested properties in flatSchemaTree
+      for (const key in flatSchemaTree) {
+        if (key.startsWith(path) && key.length > path.length) {
+          delete flatSchemaTree[key];
+        }
+      }
+
+      let header = "";
+      if (isDocument)
+        header += isSubdocArray ?
+          templates.getSubdocumentDocs(rootPath, path) :
+          templates.getDocumentDocs(rootPath);
+      else header += templates.getLeanDocs(rootPath, name);
+
+      header += "\nexport ";
+
+      if (isDocument) {
+        header += `type ${name}Document = `;
+        if (isSubdocArray) {
+          header += "mongoose.Types.EmbeddedDocument";
+        }
+        // not sure why schema doesnt have `tree` property for typings
+        else {
+          let _idType;
+          // get type of _id to pass to mongoose.Document
+          // this is likely unecessary, since non-subdocs are not allowed to have option _id: false (https://mongoosejs.com/docs/guide.html#_id)
+          if ((schema as any).tree._id)
+            _idType = convertBaseTypeToTs("_id", (schema as any).tree._id, true, noMongoose);
+
+          // TODO: this should extend `${name}Methods` like normal docs, but generator will only have methods, statics, etc. under the model name, not the subdoc model name
+          // so after this is generated, we should do a pass and see if there are any child schemas that have non-subdoc definitions.
+          // or could just wait until we dont need duplicate subdoc versions of docs (use the same one for both embedded doc and non-subdoc)
+          header += `mongoose.Document<${_idType ?? "never"}>`;
+        }
+
+        header += " & {\n";
+      } else header += `type ${name} = {\n`;
+
+      // TODO: this should not circularly call parseSchema
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      childInterfaces += parseSchema({
+        schema: child.schema,
+        modelName: name,
+        header,
+        isDocument,
+        footer: `}\n\n`,
+        noMongoose,
+        shouldLeanIncludeVirtuals: getShouldLeanIncludeVirtuals(child.schema)
+      });
+    };
+  };
+
+  schema.childSchemas.forEach(processChild(modelName));
+
+  const schemaTree = unflatten(flatSchemaTree);
+  schema.tree = schemaTree;
+
+  return childInterfaces;
+};
+
 export const parseSchema = ({
   schema: schemaOriginal,
   modelName,
@@ -297,94 +278,7 @@ export const parseSchema = ({
   const schema = _.cloneDeep(schemaOriginal);
 
   if (schema.childSchemas?.length > 0 && modelName) {
-    const flatSchemaTree: any = flatten(schema.tree, { safe: true });
-    let childInterfaces = "";
-
-    const processChild = (rootPath: string) => {
-      return (child: any) => {
-        const path = child.model.path;
-        const isSubdocArray = child.model.$isArraySubdocument;
-        const name = getSubDocName(path, rootPath);
-
-        child.schema._isReplacedWithSchema = true;
-        child.schema._inferredInterfaceName = name;
-        child.schema._isSubdocArray = isSubdocArray;
-
-        const requiredValuePath = `${path}.required`;
-        if (requiredValuePath in flatSchemaTree && flatSchemaTree[requiredValuePath] === true) {
-          child.schema.required = true;
-        }
-
-        /**
-         * for subdocument arrays, mongoose supports passing `default: undefined` to disable the default empty array created.
-         * here we indicate this on the child schema using _isDefaultSetToUndefined so that the parser properly sets the `isOptional` flag
-         */
-        if (isSubdocArray) {
-          const defaultValuePath = `${path}.default`;
-          if (
-            defaultValuePath in flatSchemaTree &&
-            flatSchemaTree[defaultValuePath] === undefined
-          ) {
-            child.schema._isDefaultSetToUndefined = true;
-          }
-        }
-        flatSchemaTree[path] = isSubdocArray ? [child.schema] : child.schema;
-
-        // since we now will process this child by using the schema, we can remove any further nested properties in flatSchemaTree
-        for (const key in flatSchemaTree) {
-          if (key.startsWith(path) && key.length > path.length) {
-            delete flatSchemaTree[key];
-          }
-        }
-
-        let header = "";
-        if (isDocument)
-          header += isSubdocArray ?
-            templates.getSubdocumentDocs(rootPath, path) :
-            templates.getDocumentDocs(rootPath);
-        else header += templates.getLeanDocs(rootPath, name);
-
-        header += "\nexport ";
-
-        if (isDocument) {
-          header += `type ${name}Document = `;
-          if (isSubdocArray) {
-            header += "mongoose.Types.EmbeddedDocument";
-          }
-          // not sure why schema doesnt have `tree` property for typings
-          else {
-            let _idType;
-            // get type of _id to pass to mongoose.Document
-            // this is likely unecessary, since non-subdocs are not allowed to have option _id: false (https://mongoosejs.com/docs/guide.html#_id)
-            if ((schema as any).tree._id)
-              _idType = convertBaseTypeToTs("_id", (schema as any).tree._id, true, noMongoose);
-
-            // TODO: this should extend `${name}Methods` like normal docs, but generator will only have methods, statics, etc. under the model name, not the subdoc model name
-            // so after this is generated, we should do a pass and see if there are any child schemas that have non-subdoc definitions.
-            // or could just wait until we dont need duplicate subdoc versions of docs (use the same one for both embedded doc and non-subdoc)
-            header += `mongoose.Document<${_idType ?? "never"}>`;
-          }
-
-          header += " & {\n";
-        } else header += `type ${name} = {\n`;
-
-        childInterfaces += parseSchema({
-          schema: child.schema,
-          modelName: name,
-          header,
-          isDocument,
-          footer: `}\n\n`,
-          noMongoose,
-          shouldLeanIncludeVirtuals: getShouldLeanIncludeVirtuals(child.schema)
-        });
-      };
-    };
-
-    schema.childSchemas.forEach(processChild(modelName));
-
-    const schemaTree = unflatten(flatSchemaTree);
-    schema.tree = schemaTree;
-    template += childInterfaces;
+    template += parseChildSchemas({ schema, isDocument, noMongoose, modelName });
   }
 
   if (isDocument && schema.statics && modelName && addModel) {
@@ -697,110 +591,4 @@ export const loadSchemas = (modelsPaths: string[]) => {
   });
 
   return schemas;
-};
-
-export const addPopulateHelpers = (sourceFile: SourceFile) => {
-  sourceFile.addStatements("\n" + templates.POPULATE_HELPERS);
-};
-
-export const overloadQueryPopulate = (sourceFile: SourceFile) => {
-  sourceFile.addStatements("\n" + templates.QUERY_POPULATE);
-};
-
-export const createSourceFile = (genPath: string) => {
-  const project = new Project();
-  const sourceFile = project.createSourceFile(genPath, "", { overwrite: true });
-  return sourceFile;
-};
-
-export const generateTypes = ({
-  sourceFile,
-  schemas,
-  imports = [],
-  noMongoose
-}: {
-  sourceFile: SourceFile;
-  schemas: LoadedSchemas;
-  imports?: string[];
-  noMongoose?: boolean;
-}) => {
-  sourceFile.addStatements(writer => {
-    writer.write(templates.MAIN_HEADER).blankLine();
-    // mongoose import
-    if (!noMongoose) writer.write(templates.MONGOOSE_IMPORT);
-
-    // custom, user-defined imports
-    if (imports.length > 0) writer.write(imports.join("\n"));
-
-    writer.blankLine();
-    // writer.write("if (true)").block(() => {
-    //     writer.write("something;");
-    // });
-
-    Object.keys(schemas).forEach(modelName => {
-      const schema = schemas[modelName];
-
-      const shouldLeanIncludeVirtuals = getShouldLeanIncludeVirtuals(schema);
-      // passing modelName causes childSchemas to be processed
-      const leanInterfaceStr = parseSchema({
-        schema,
-        modelName,
-        addModel: true,
-        isDocument: false,
-        header: templates.getLeanDocs(modelName) + `\nexport type ${modelName} = {\n`,
-        footer: "}",
-        noMongoose,
-        shouldLeanIncludeVirtuals
-      });
-
-      writer.write(leanInterfaceStr).blankLine();
-
-      // if noMongoose, skip adding document types
-      if (noMongoose) return;
-
-      // get type of _id to pass to mongoose.Document
-      // not sure why schema doesnt have `tree` property for typings
-      let _idType;
-      if ((schema as any).tree._id) {
-        _idType = convertBaseTypeToTs("_id", (schema as any).tree._id, true, noMongoose);
-      }
-
-      const mongooseDocExtend = `mongoose.Document<${_idType ?? "never"}, ${modelName}Queries>`;
-
-      const documentInterfaceStr = parseSchema({
-        schema,
-        modelName,
-        addModel: true,
-        isDocument: true,
-        header:
-          templates.getDocumentDocs(modelName) +
-          `\nexport type ${modelName}Document = ${mongooseDocExtend} & ${modelName}Methods & {\n`,
-        footer: "}",
-        shouldLeanIncludeVirtuals
-      });
-
-      writer.write(documentInterfaceStr).blankLine();
-    });
-  });
-
-  return sourceFile;
-};
-
-export const saveFile = ({ sourceFile }: { sourceFile: SourceFile; genFilePath: string }) => {
-  try {
-    sourceFile.saveSync();
-    // fs.writeFileSync(genFilePath, sourceFile.getFullText(), "utf8");
-  } catch (err) {
-    // if folder doesnt exist, create and then write again
-    // if (err.message.includes("ENOENT: no such file or directory")) {
-    //   console.log(`Path ${genFilePath} not found; creating...`);
-
-    //   const { dir } = path.parse(genFilePath);
-    //   mkdirp.sync(dir);
-
-    //   fs.writeFileSync(genFilePath, sourceFile.getFullText(), "utf8");
-    // }
-    console.error(err);
-    throw err;
-  }
 };
