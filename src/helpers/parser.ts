@@ -16,7 +16,7 @@ export const getShouldLeanIncludeVirtuals = (schema: any) => {
   return true;
 };
 
-const makeLine = ({
+const formatKeyEntry = ({
   key,
   val,
   isOptional = false,
@@ -85,7 +85,7 @@ export const parseFunctions = (
 
     const funcSignature = "(...args: any[]) => any";
     const type = convertFuncSignatureToType(funcSignature, funcType, modelName);
-    interfaceString += makeLine({ key, val: type });
+    interfaceString += formatKeyEntry({ key, val: type });
   });
 
   return interfaceString;
@@ -256,48 +256,6 @@ const parseChildSchemas = ({
   return childInterfaces;
 };
 
-export const parseSchema = ({
-  schema: schemaOriginal,
-  modelName,
-  isDocument,
-  header = "",
-  footer = "",
-  noMongoose = false,
-  shouldLeanIncludeVirtuals
-}: {
-  schema: any;
-  modelName?: string;
-  isDocument: boolean;
-  header?: string;
-  footer?: string;
-  noMongoose?: boolean;
-  shouldLeanIncludeVirtuals: boolean;
-}) => {
-  let template = "";
-  const schema = _.cloneDeep(schemaOriginal);
-
-  if (schema.childSchemas?.length > 0 && modelName) {
-    template += parseChildSchemas({ schema, isDocument, noMongoose, modelName });
-  }
-
-  template += header;
-
-  const schemaTree = schema.tree;
-
-  // parseSchema and getParseKeyFn call each other - both are exported consts
-  // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  const parseKey = getParseKeyFn(isDocument, shouldLeanIncludeVirtuals, noMongoose);
-
-  Object.keys(schemaTree).forEach((key: string) => {
-    const val = schemaTree[key];
-    template += parseKey(key, val);
-  });
-
-  template += footer;
-
-  return template;
-};
-
 export const getParseKeyFn = (
   isDocument: boolean,
   shouldLeanIncludeVirtuals: boolean,
@@ -307,7 +265,7 @@ export const getParseKeyFn = (
     // if the value is an object, we need to deepClone it to ensure changes to `val` aren't persisted in parent function
     let val = _.isPlainObject(valOriginal) ? _.cloneDeep(valOriginal) : valOriginal;
 
-    let valType;
+    let valType: string | undefined;
     let isOptional = !val.required;
 
     let isArray = Array.isArray(val);
@@ -446,18 +404,18 @@ export const getParseKeyFn = (
       if (key === "_id") isOptional = false;
       const convertedType = convertBaseTypeToTs(key, val, isDocument, noMongoose);
 
+      // TODO: we should detect nested types from unknown types and handle differently.
+      // Currently, if we get an unknown type (ie not handled) then users run into a "max callstack exceeded error"
       if (convertedType === "{}") {
-        // if we dont find it, go one level deeper
-        // here we pass isNestedObject: true to prevent `export ` from being prepended to the header
-        valType = parseSchema({
-          schema: { tree: val },
-          header: "{\n",
-          isDocument,
-          footer: "}",
-          noMongoose,
-          shouldLeanIncludeVirtuals
+        const nestedSchema = _.cloneDeep(val);
+        valType = "{\n";
+
+        const parseKey = getParseKeyFn(isDocument, shouldLeanIncludeVirtuals, noMongoose);
+        Object.keys(nestedSchema).forEach((key: string) => {
+          valType += parseKey(key, nestedSchema[key]);
         });
 
+        valType += "}";
         isOptional = false;
       } else {
         valType = convertedType;
@@ -485,8 +443,48 @@ export const getParseKeyFn = (
     if (isMap && isMapOfArray)
       valType = isDocument ? `mongoose.Types.Map<${valType}>` : `Map<string, ${valType}>`;
 
-    return makeLine({ key, val: valType, isOptional });
+    return formatKeyEntry({ key, val: valType, isOptional });
   };
+};
+
+export const parseSchema = ({
+  schema: schemaOriginal,
+  modelName,
+  isDocument,
+  header = "",
+  footer = "",
+  noMongoose = false,
+  shouldLeanIncludeVirtuals
+}: {
+  schema: any;
+  modelName?: string;
+  isDocument: boolean;
+  header?: string;
+  footer?: string;
+  noMongoose?: boolean;
+  shouldLeanIncludeVirtuals: boolean;
+}) => {
+  let template = "";
+  const schema = _.cloneDeep(schemaOriginal);
+
+  if (schema.childSchemas?.length > 0 && modelName) {
+    template += parseChildSchemas({ schema, isDocument, noMongoose, modelName });
+  }
+
+  template += header;
+
+  const schemaTree = schema.tree;
+
+  const parseKey = getParseKeyFn(isDocument, shouldLeanIncludeVirtuals, noMongoose);
+
+  Object.keys(schemaTree).forEach((key: string) => {
+    const val = schemaTree[key];
+    template += parseKey(key, val);
+  });
+
+  template += footer;
+
+  return template;
 };
 
 interface LoadedSchemas {
