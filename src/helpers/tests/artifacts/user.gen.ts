@@ -72,27 +72,6 @@ name: string;
 }
 
 /**
- * Mongoose Embedded Document type
- * 
- * Type of `UserDocument["friends"]` element.
- */
-export type UserFriendDocument = mongoose.Types.EmbeddedDocument & {
-uid: UserDocument["_id"] | UserDocument;
-nickname?: string;
-_id: mongoose.Types.ObjectId;
-}
-
-/**
- * Mongoose Embedded Document type
- * 
- * Type of `UserDocument["city.subdocWithoutDefault"]` element.
- */
-export type UserCitySubdocWithoutDefaultDocument = mongoose.Types.EmbeddedDocument & {
-a?: string;
-_id: mongoose.Types.ObjectId;
-}
-
-/**
  * Lean version of UserDocument (type alias of `User`)
  * 
  * Use this type alias to avoid conflicts with model names:
@@ -144,6 +123,27 @@ export type UserModel = mongoose.Model<UserDocument, UserQueries> & UserStatics
  * ```
  */
 export type UserSchema = mongoose.Schema<UserDocument, UserModel>
+
+/**
+ * Mongoose Embedded Document type
+ * 
+ * Type of `UserDocument["friends"]` element.
+ */
+export type UserFriendDocument = mongoose.Types.EmbeddedDocument & {
+uid: UserDocument["_id"] | UserDocument;
+nickname?: string;
+_id: mongoose.Types.ObjectId;
+}
+
+/**
+ * Mongoose Embedded Document type
+ * 
+ * Type of `UserDocument["city.subdocWithoutDefault"]` element.
+ */
+export type UserCitySubdocWithoutDefaultDocument = mongoose.Types.EmbeddedDocument & {
+a?: string;
+_id: mongoose.Types.ObjectId;
+}
 
 /**
  * Mongoose Document type

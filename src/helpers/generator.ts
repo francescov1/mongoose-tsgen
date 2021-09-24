@@ -143,6 +143,37 @@ export const createSourceFile = (genPath: string) => {
   return sourceFile;
 };
 
+export const getSchemaTypes = ({ schema, modelName }: { schema: any; modelName: string }) => {
+  let schemaTypes = "";
+
+  // add type alias to modelName so that it can be imported without clashing with the mongoose model
+  schemaTypes += templates.getObjectDocs(modelName);
+  schemaTypes += `\nexport type ${modelName}Object = ${modelName}\n\n`;
+
+  schemaTypes += templates.getQueryDocs(modelName);
+  schemaTypes += `\nexport type ${modelName}Queries = {\n`;
+  schemaTypes += parser.parseFunctions(schema.query ?? {}, modelName, "query");
+  schemaTypes += "}\n";
+
+  schemaTypes += `\nexport type ${modelName}Methods = {\n`;
+  schemaTypes += parser.parseFunctions(schema.methods, modelName, "methods");
+  schemaTypes += "}\n";
+
+  schemaTypes += `\nexport type ${modelName}Statics = {\n`;
+  schemaTypes += parser.parseFunctions(schema.statics, modelName, "statics");
+  schemaTypes += "}\n\n";
+
+  const modelExtend = `mongoose.Model<${modelName}Document, ${modelName}Queries>`;
+
+  schemaTypes += templates.getModelDocs(modelName);
+  schemaTypes += `\nexport type ${modelName}Model = ${modelExtend} & ${modelName}Statics\n\n`;
+
+  schemaTypes += templates.getSchemaDocs(modelName);
+  schemaTypes += `\nexport type ${modelName}Schema = mongoose.Schema<${modelName}Document, ${modelName}Model>\n\n`;
+
+  return schemaTypes;
+};
+
 export const generateTypes = ({
   sourceFile,
   schemas,
@@ -177,7 +208,6 @@ export const generateTypes = ({
       const leanInterfaceStr = parser.parseSchema({
         schema,
         modelName,
-        addModel: true,
         isDocument: false,
         header: templates.getLeanDocs(modelName) + `\nexport type ${modelName} = {\n`,
         footer: "}",
@@ -199,10 +229,11 @@ export const generateTypes = ({
 
       const mongooseDocExtend = `mongoose.Document<${_idType ?? "never"}, ${modelName}Queries>`;
 
-      const documentInterfaceStr = parser.parseSchema({
+      let documentInterfaceStr = "";
+      documentInterfaceStr += getSchemaTypes({ schema, modelName });
+      documentInterfaceStr += parser.parseSchema({
         schema,
         modelName,
-        addModel: true,
         isDocument: true,
         header:
           templates.getDocumentDocs(modelName) +

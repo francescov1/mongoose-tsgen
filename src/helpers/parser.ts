@@ -72,7 +72,8 @@ const getSubDocName = (path: string, modelName = "") => {
   return subDocName;
 };
 
-const parseFunctions = (
+// TODO: this could be moved to the generator too, not really relevant to parsing
+export const parseFunctions = (
   funcs: any,
   modelName: string,
   funcType: "methods" | "statics" | "query"
@@ -258,7 +259,6 @@ const parseChildSchemas = ({
 export const parseSchema = ({
   schema: schemaOriginal,
   modelName,
-  addModel = false,
   isDocument,
   header = "",
   footer = "",
@@ -267,7 +267,6 @@ export const parseSchema = ({
 }: {
   schema: any;
   modelName?: string;
-  addModel?: boolean;
   isDocument: boolean;
   header?: string;
   footer?: string;
@@ -279,33 +278,6 @@ export const parseSchema = ({
 
   if (schema.childSchemas?.length > 0 && modelName) {
     template += parseChildSchemas({ schema, isDocument, noMongoose, modelName });
-  }
-
-  if (isDocument && schema.statics && modelName && addModel) {
-    // add type alias to modelName so that it can be imported without clashing with the mongoose model
-    template += templates.getObjectDocs(modelName);
-    template += `\nexport type ${modelName}Object = ${modelName}\n\n`;
-
-    template += templates.getQueryDocs(modelName);
-    template += `\nexport type ${modelName}Queries = {\n`;
-    template += parseFunctions(schema.query ?? {}, modelName, "query");
-    template += "}\n";
-
-    template += `\nexport type ${modelName}Methods = {\n`;
-    template += parseFunctions(schema.methods, modelName, "methods");
-    template += "}\n";
-
-    template += `\nexport type ${modelName}Statics = {\n`;
-    template += parseFunctions(schema.statics, modelName, "statics");
-    template += "}\n\n";
-
-    const modelExtend = `mongoose.Model<${modelName}Document, ${modelName}Queries>`;
-
-    template += templates.getModelDocs(modelName);
-    template += `\nexport type ${modelName}Model = ${modelExtend} & ${modelName}Statics\n\n`;
-
-    template += templates.getSchemaDocs(modelName);
-    template += `\nexport type ${modelName}Schema = mongoose.Schema<${modelName}Document, ${modelName}Model>\n\n`;
   }
 
   template += header;

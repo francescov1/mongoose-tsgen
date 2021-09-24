@@ -112,20 +112,6 @@ home?: DeviceHome;
 }
 
 /**
- * Mongoose Document type
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const Device = mongoose.model<DeviceDocument, DeviceModel>("Device", DeviceSchema);
- * ```
- */
-export type DeviceHomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
-homeId?: string;
-homeName?: string;
-status: any;
-}
-
-/**
  * Lean version of DeviceDocument (type alias of `Device`)
  * 
  * Use this type alias to avoid conflicts with model names:
@@ -185,6 +171,20 @@ export type DeviceSchema = mongoose.Schema<DeviceDocument, DeviceModel>
  * const Device = mongoose.model<DeviceDocument, DeviceModel>("Device", DeviceSchema);
  * ```
  */
+export type DeviceHomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
+homeId?: string;
+homeName?: string;
+status: any;
+}
+
+/**
+ * Mongoose Document type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const Device = mongoose.model<DeviceDocument, DeviceModel>("Device", DeviceSchema);
+ * ```
+ */
 export type DeviceDocument = mongoose.Document<mongoose.Types.ObjectId, DeviceQueries> & DeviceMethods & {
 name?: string;
 _id: mongoose.Types.ObjectId;
@@ -216,20 +216,6 @@ export type Device2 = {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: Device2Home;
-}
-
-/**
- * Mongoose Document type
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const Device2 = mongoose.model<Device2Document, Device2Model>("Device2", Device2Schema);
- * ```
- */
-export type Device2HomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
-homeId?: string;
-homeName?: string;
-status: any;
 }
 
 /**
@@ -292,6 +278,20 @@ export type Device2Schema = mongoose.Schema<Device2Document, Device2Model>
  * const Device2 = mongoose.model<Device2Document, Device2Model>("Device2", Device2Schema);
  * ```
  */
+export type Device2HomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
+homeId?: string;
+homeName?: string;
+status: any;
+}
+
+/**
+ * Mongoose Document type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const Device2 = mongoose.model<Device2Document, Device2Model>("Device2", Device2Schema);
+ * ```
+ */
 export type Device2Document = mongoose.Document<mongoose.Types.ObjectId, Device2Queries> & Device2Methods & {
 name?: string;
 _id: mongoose.Types.ObjectId;
@@ -323,20 +323,6 @@ export type Device3 = {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: Device3Home;
-}
-
-/**
- * Mongoose Document type
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const Device3 = mongoose.model<Device3Document, Device3Model>("Device3", Device3Schema);
- * ```
- */
-export type Device3HomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
-homeId?: string;
-homeName?: string;
-status: any;
 }
 
 /**
@@ -399,6 +385,20 @@ export type Device3Schema = mongoose.Schema<Device3Document, Device3Model>
  * const Device3 = mongoose.model<Device3Document, Device3Model>("Device3", Device3Schema);
  * ```
  */
+export type Device3HomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
+homeId?: string;
+homeName?: string;
+status: any;
+}
+
+/**
+ * Mongoose Document type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const Device3 = mongoose.model<Device3Document, Device3Model>("Device3", Device3Schema);
+ * ```
+ */
 export type Device3Document = mongoose.Document<mongoose.Types.ObjectId, Device3Queries> & Device3Methods & {
 name?: string;
 _id: mongoose.Types.ObjectId;
@@ -430,20 +430,6 @@ export type Device4 = {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: Device4Home;
-}
-
-/**
- * Mongoose Document type
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const Device4 = mongoose.model<Device4Document, Device4Model>("Device4", Device4Schema);
- * ```
- */
-export type Device4HomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
-homeId?: string;
-homeName?: string;
-status: any;
 }
 
 /**
@@ -506,6 +492,20 @@ export type Device4Schema = mongoose.Schema<Device4Document, Device4Model>
  * const Device4 = mongoose.model<Device4Document, Device4Model>("Device4", Device4Schema);
  * ```
  */
+export type Device4HomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
+homeId?: string;
+homeName?: string;
+status: any;
+}
+
+/**
+ * Mongoose Document type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const Device4 = mongoose.model<Device4Document, Device4Model>("Device4", Device4Schema);
+ * ```
+ */
 export type Device4Document = mongoose.Document<mongoose.Types.ObjectId, Device4Queries> & Device4Methods & {
 name?: string;
 _id: mongoose.Types.ObjectId;
@@ -537,20 +537,6 @@ export type DeviceDefault = {
 name?: string;
 _id: mongoose.Types.ObjectId;
 home?: DeviceDefaultHome;
-}
-
-/**
- * Mongoose Document type
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel>("DeviceDefault", DeviceDefaultSchema);
- * ```
- */
-export type DeviceDefaultHomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
-homeId?: string;
-homeName?: string;
-status: any;
 }
 
 /**
@@ -604,6 +590,20 @@ export type DeviceDefaultModel = mongoose.Model<DeviceDefaultDocument, DeviceDef
  * ```
  */
 export type DeviceDefaultSchema = mongoose.Schema<DeviceDefaultDocument, DeviceDefaultModel>
+
+/**
+ * Mongoose Document type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel>("DeviceDefault", DeviceDefaultSchema);
+ * ```
+ */
+export type DeviceDefaultHomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
+homeId?: string;
+homeName?: string;
+status: any;
+}
 
 /**
  * Mongoose Document type

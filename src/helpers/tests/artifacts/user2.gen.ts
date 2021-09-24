@@ -36,18 +36,6 @@ address: User2Address;
 }
 
 /**
- * Mongoose Document type
- * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const User2 = mongoose.model<User2Document, User2Model>("User2", User2Schema);
- * ```
- */
-export type User2AddressDocument = mongoose.Document<number> & {
-city: string;
-}
-
-/**
  * Lean version of User2Document (type alias of `User2`)
  * 
  * Use this type alias to avoid conflicts with model names:
@@ -96,6 +84,18 @@ export type User2Model = mongoose.Model<User2Document, User2Queries> & User2Stat
  * ```
  */
 export type User2Schema = mongoose.Schema<User2Document, User2Model>
+
+/**
+ * Mongoose Document type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const User2 = mongoose.model<User2Document, User2Model>("User2", User2Schema);
+ * ```
+ */
+export type User2AddressDocument = mongoose.Document<number> & {
+city: string;
+}
 
 /**
  * Mongoose Document type
