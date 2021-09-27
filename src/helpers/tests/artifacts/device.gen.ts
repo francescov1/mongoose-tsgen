@@ -632,40 +632,62 @@ export function IsPopulated<T>(doc: T | mongoose.Types.ObjectId): doc is T {
 }
 
 /**
- * Helper types used by `NestedPopulatedDocument`.
- * Returns the parent & child properties respectively, for a string representing a nested property (i.e. `friend.user`)
+ * Helper type used by `PopulatedDocument`. Returns the parent property of a string 
+ * representing a nested property (i.e. `friend.user` -> `friend`)
  */
 type ParentProperty<T> = T extends `${infer P}.${string}` ? P : never;
-type ChildProperty<T> = T extends `${string}.${infer C}` ? C : never;
- 
+
 /**
- * Helper type used by `PopulatedDocument` to populate nested properties (i.e. `friend.user`).
- */
-type NestedPopulatedDocument<
-DocType extends mongoose.Document,
-T
-> = ParentProperty<T> extends keyof DocType 
-  ? ChildProperty<T> extends keyof DocType[ParentProperty<T>]
-    ? Omit<DocType, ParentProperty<T>> &
-      { 
-        [ref in ParentProperty<T>]: Omit<DocType[ParentProperty<T>], ChildProperty<T>> & { 
-          [ref in ChildProperty<T>]: Exclude<DocType[ParentProperty<T>][ChildProperty<T>], mongoose.Types.ObjectId> 
-        } 
-      }
-    : DocType 
-  : DocType;
+* Helper type used by `PopulatedDocument`. Returns the child property of a string 
+* representing a nested property (i.e. `friend.user` -> `user`).
+*/
+type ChildProperty<T> = T extends `${string}.${infer C}` ? C : never;
+
+/**
+* Helper type used by `PopulatedDocument`. Removes the `ObjectId` from the general union type generated 
+* for ref documents (i.e. `mongoose.Types.ObjectId | UserDocument` -> `UserDocument`)
+*/
+type PopulatedProperty<Root, T extends keyof Root> = Omit<Root, T> & { 
+  [ref in T]: Root[T] extends mongoose.Types.Array<infer U> ? 
+    mongoose.Types.Array<Exclude<U, mongoose.Types.ObjectId>> :
+    Exclude<Root[T], mongoose.Types.ObjectId> 
+}
 
 /**
  * Populate properties on a document type:
  * ```
  * import { PopulatedDocument } from "../interfaces/mongoose.gen.ts"
- * 
+ *
  * function example(user: PopulatedDocument<UserDocument, "bestFriend">) {
  *   console.log(user.bestFriend._id) // typescript knows this is populated
  * }
  * ```
  */
-export type PopulatedDocument<DocType extends mongoose.Document, T> = T extends keyof DocType ? Omit<DocType, T> & { [ref in T]: Exclude<DocType[T], mongoose.Types.ObjectId> } : NestedPopulatedDocument<DocType, T>;
+export type PopulatedDocument<
+DocType,
+T
+> = T extends keyof DocType
+? PopulatedProperty<DocType, T> 
+: (
+    ParentProperty<T> extends keyof DocType
+      ? Omit<DocType, ParentProperty<T>> &
+      {
+        [ref in ParentProperty<T>]: (
+          DocType[ParentProperty<T>] extends mongoose.Types.Array<infer U> ? (
+            mongoose.Types.Array<
+              ChildProperty<T> extends keyof U 
+                ? PopulatedProperty<U, ChildProperty<T>> 
+                : PopulatedDocument<U, ChildProperty<T>>
+            >
+          ) : (
+            ChildProperty<T> extends keyof DocType[ParentProperty<T>]
+            ? PopulatedProperty<DocType[ParentProperty<T>], ChildProperty<T>>
+            : PopulatedDocument<DocType[ParentProperty<T>], ChildProperty<T>>
+          )
+        )
+      }
+      : DocType
+  )
 
 /**
  * Helper types used by the populate overloads
