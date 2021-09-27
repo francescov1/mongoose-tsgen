@@ -16,7 +16,7 @@ export const getShouldLeanIncludeVirtuals = (schema: any) => {
   return true;
 };
 
-const makeLine = ({
+const formatKeyEntry = ({
   key,
   val,
   isOptional = false,
@@ -85,11 +85,29 @@ export const parseFunctions = (
 
     const funcSignature = "(...args: any[]) => any";
     const type = convertFuncSignatureToType(funcSignature, funcType, modelName);
-    interfaceString += makeLine({ key, val: type });
+    interfaceString += formatKeyEntry({ key, val: type });
   });
 
   return interfaceString;
 };
+
+const BASE_TYPES = [
+  Object,
+  String,
+  "String",
+  Number,
+  "Number",
+  Boolean,
+  Date,
+  Buffer,
+  "Buffer",
+  mongoose.Types.Buffer,
+  mongoose.Schema.Types.Buffer,
+  mongoose.Schema.Types.ObjectId,
+  mongoose.Types.ObjectId,
+  mongoose.Types.Decimal128,
+  mongoose.Schema.Types.Decimal128
+];
 
 export const convertBaseTypeToTs = (
   key: string,
@@ -97,7 +115,6 @@ export const convertBaseTypeToTs = (
   isDocument: boolean,
   noMongoose = false
 ) => {
-  let valType: string | undefined;
   // NOTE: ideally we check actual type of value to ensure its Schema.Types.Mixed (the same way we do with Schema.Types.ObjectId),
   // but this doesnt seem to work for some reason
   // {} is treated as Mixed
@@ -107,52 +124,39 @@ export const convertBaseTypeToTs = (
     (val.constructor === Object && _.isEmpty(val)) ||
     (val.type?.constructor === Object && _.isEmpty(val.type))
   ) {
-    valType = "any";
-  } else {
-    const mongooseType = val.type === Map ? val.of : val.type;
-    switch (mongooseType) {
-      case String:
-      case "String":
-        if (val.enum?.length > 0) {
-          valType = `"` + val.enum.join(`" | "`) + `"`;
-        } else valType = "string";
-        break;
-      case Number:
-      case "Number":
-        if (key !== "__v") valType = "number";
-        break;
-      case mongoose.Schema.Types.Decimal128:
-      case mongoose.Types.Decimal128:
-        valType = isDocument ? "mongoose.Types.Decimal128" : "number";
-        break;
-      case Boolean:
-        valType = "boolean";
-        break;
-      case Date:
-        valType = "Date";
-        break;
-      case mongoose.Types.Buffer:
-      case mongoose.Schema.Types.Buffer:
-      case Buffer:
-      case "Buffer":
-        valType = "Buffer";
-        break;
-      case mongoose.Schema.Types.ObjectId:
-      case mongoose.Types.ObjectId:
-      case "ObjectId": // _id fields have type set to the string "ObjectId"
-        valType = noMongoose ? "string" : "mongoose.Types.ObjectId";
-        break;
-      case Object:
-        valType = "any";
-        break;
-      default:
-        // this indicates to the parent func that this type is nested and we need to traverse one level deeper
-        valType = "{}";
-        break;
-    }
+    return "any";
   }
 
-  return valType;
+  const mongooseType = val.type === Map ? val.of : val.type;
+  switch (mongooseType) {
+    case String:
+    case "String":
+      return val.enum?.length > 0 ? `"` + val.enum.join(`" | "`) + `"` : "string";
+    case Number:
+    case "Number":
+      return key === "__v" ? undefined : "number";
+    case mongoose.Schema.Types.Decimal128:
+    case mongoose.Types.Decimal128:
+      return isDocument ? "mongoose.Types.Decimal128" : "number";
+    case Boolean:
+      return "boolean";
+    case Date:
+      return "Date";
+    case mongoose.Types.Buffer:
+    case mongoose.Schema.Types.Buffer:
+    case Buffer:
+    case "Buffer":
+      return isDocument ? "mongoose.Types.Buffer" : "Buffer";
+    case mongoose.Schema.Types.ObjectId:
+    case mongoose.Types.ObjectId:
+    case "ObjectId": // _id fields have type set to the string "ObjectId"
+      return noMongoose ? "string" : "mongoose.Types.ObjectId";
+    case Object:
+      return "any";
+    default:
+      // this indicates to the parent func that this type is nested and we need to traverse one level deeper
+      return "{}";
+  }
 };
 
 const parseChildSchemas = ({
@@ -256,48 +260,6 @@ const parseChildSchemas = ({
   return childInterfaces;
 };
 
-export const parseSchema = ({
-  schema: schemaOriginal,
-  modelName,
-  isDocument,
-  header = "",
-  footer = "",
-  noMongoose = false,
-  shouldLeanIncludeVirtuals
-}: {
-  schema: any;
-  modelName?: string;
-  isDocument: boolean;
-  header?: string;
-  footer?: string;
-  noMongoose?: boolean;
-  shouldLeanIncludeVirtuals: boolean;
-}) => {
-  let template = "";
-  const schema = _.cloneDeep(schemaOriginal);
-
-  if (schema.childSchemas?.length > 0 && modelName) {
-    template += parseChildSchemas({ schema, isDocument, noMongoose, modelName });
-  }
-
-  template += header;
-
-  const schemaTree = schema.tree;
-
-  // parseSchema and getParseKeyFn call each other - both are exported consts
-  // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  const parseKey = getParseKeyFn(isDocument, shouldLeanIncludeVirtuals, noMongoose);
-
-  Object.keys(schemaTree).forEach((key: string) => {
-    const val = schemaTree[key];
-    template += parseKey(key, val);
-  });
-
-  template += footer;
-
-  return template;
-};
-
 export const getParseKeyFn = (
   isDocument: boolean,
   shouldLeanIncludeVirtuals: boolean,
@@ -307,7 +269,7 @@ export const getParseKeyFn = (
     // if the value is an object, we need to deepClone it to ensure changes to `val` aren't persisted in parent function
     let val = _.isPlainObject(valOriginal) ? _.cloneDeep(valOriginal) : valOriginal;
 
-    let valType;
+    let valType: string | undefined;
     let isOptional = !val.required;
 
     let isArray = Array.isArray(val);
@@ -366,28 +328,7 @@ export const getParseKeyFn = (
       }
     }
 
-    // TODO: this list should be combined with the convertBaseTypeToTs somehow so that we dont duplicate types
-    // if type is provided directly on property, expand it
-    if (
-      [
-        Object,
-        String,
-        "String",
-        Number,
-        "Number",
-        Boolean,
-        Date,
-        Buffer,
-        "Buffer",
-        mongoose.Types.Buffer,
-        mongoose.Schema.Types.Buffer,
-        mongoose.Schema.Types.ObjectId,
-        mongoose.Types.ObjectId,
-        mongoose.Types.Decimal128,
-        mongoose.Schema.Types.Decimal128
-      ].includes(val)
-    )
-      val = { type: val };
+    if (BASE_TYPES.includes(val)) val = { type: val };
 
     const isMap = val?.type === Map;
 
@@ -446,18 +387,18 @@ export const getParseKeyFn = (
       if (key === "_id") isOptional = false;
       const convertedType = convertBaseTypeToTs(key, val, isDocument, noMongoose);
 
+      // TODO: we should detect nested types from unknown types and handle differently.
+      // Currently, if we get an unknown type (ie not handled) then users run into a "max callstack exceeded error"
       if (convertedType === "{}") {
-        // if we dont find it, go one level deeper
-        // here we pass isNestedObject: true to prevent `export ` from being prepended to the header
-        valType = parseSchema({
-          schema: { tree: val },
-          header: "{\n",
-          isDocument,
-          footer: "}",
-          noMongoose,
-          shouldLeanIncludeVirtuals
+        const nestedSchema = _.cloneDeep(val);
+        valType = "{\n";
+
+        const parseKey = getParseKeyFn(isDocument, shouldLeanIncludeVirtuals, noMongoose);
+        Object.keys(nestedSchema).forEach((key: string) => {
+          valType += parseKey(key, nestedSchema[key]);
         });
 
+        valType += "}";
         isOptional = false;
       } else {
         valType = convertedType;
@@ -468,8 +409,6 @@ export const getParseKeyFn = (
 
     if (isMap && !isMapOfArray)
       valType = isDocument ? `mongoose.Types.Map<${valType}>` : `Map<string, ${valType}>`;
-
-    if (valType === "Buffer" && isDocument) valType = "mongoose.Types.Buffer";
 
     if (isArray) {
       if (isDocument)
@@ -485,8 +424,48 @@ export const getParseKeyFn = (
     if (isMap && isMapOfArray)
       valType = isDocument ? `mongoose.Types.Map<${valType}>` : `Map<string, ${valType}>`;
 
-    return makeLine({ key, val: valType, isOptional });
+    return formatKeyEntry({ key, val: valType, isOptional });
   };
+};
+
+export const parseSchema = ({
+  schema: schemaOriginal,
+  modelName,
+  isDocument,
+  header = "",
+  footer = "",
+  noMongoose = false,
+  shouldLeanIncludeVirtuals
+}: {
+  schema: any;
+  modelName?: string;
+  isDocument: boolean;
+  header?: string;
+  footer?: string;
+  noMongoose?: boolean;
+  shouldLeanIncludeVirtuals: boolean;
+}) => {
+  let template = "";
+  const schema = _.cloneDeep(schemaOriginal);
+
+  if (schema.childSchemas?.length > 0 && modelName) {
+    template += parseChildSchemas({ schema, isDocument, noMongoose, modelName });
+  }
+
+  template += header;
+
+  const schemaTree = schema.tree;
+
+  const parseKey = getParseKeyFn(isDocument, shouldLeanIncludeVirtuals, noMongoose);
+
+  Object.keys(schemaTree).forEach((key: string) => {
+    const val = schemaTree[key];
+    template += parseKey(key, val);
+  });
+
+  template += footer;
+
+  return template;
 };
 
 interface LoadedSchemas {
