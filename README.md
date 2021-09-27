@@ -178,7 +178,7 @@ All CLI options can be provided using a `mtgen.config.json` file. Use the `--con
 
 ## Query Population
 
-Any field with a `ref` property will be typed as `RefDocument["_id"] | RefDocument`. As part of the generated file, mongoose will be augmented with `Query.populate` overloads to narrow return types of populated queries (this can be disabled using the `--no-populate-overload` flag). A helper type `IsPopulated` and a type guard function `PopulatedDocument` will also be generated to help with handling populated documents, see usage below:
+Any field with a `ref` property will be typed as `RefDocument["_id"] | RefDocument`. As part of the generated file, mongoose will be augmented with `Query.populate` overloads to narrow return types of populated queries (this can be disabled using the `--no-populate-overload` flag). A helper type `PopulatedDocument` and a type guard function `IsPopulated` will also be generated to help with handling populated documents, see usage below:
 
 ```typescript
 import { IsPopulated, PopulatedDocument } from "../interfaces/mongoose.gen.ts";
@@ -204,6 +204,8 @@ const user = await User.findById(uid).populate("bestFriend").exec()
 // completely type-safe
 safeType(user)
 ```
+
+Both the mongoose `populate` overload and the `PopulateDocument` type handle nested and array types with ease; you rarely need to worry about enforcing types manually. In the case that the populated type cannot be determined, types will fallback to the generic `RefDocument["_id"] | RefDocument`.
 
 # Example
 
@@ -349,5 +351,5 @@ export type UserDocument = mongoose.Document<mongoose.Types.ObjectId, UserQuerie
 
 ## Development
 
-- [ ] Handle deeper nested populate types (currently only handles single level of nesting)
+- [ ] Consider [population field selection](https://mongoosejs.com/docs/populate.html#field-selection) when typing populates
 - [ ] Remove oclif - it adds a lot of unnecessary dependencies
