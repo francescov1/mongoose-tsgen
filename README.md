@@ -1,6 +1,6 @@
 # mongoose-tsgen
 
-A plug-n-play Typescript interface generator for Mongoose.
+A plug-n-play Typescript generator for Mongoose.
 
 [![Version](https://img.shields.io/npm/v/mongoose-tsgen.svg)](https://npmjs.org/package/mongoose-tsgen)
 [![npm](https://img.shields.io/npm/dt/mongoose-tsgen)](https://www.npmjs.com/package/mongoose-tsgen)
