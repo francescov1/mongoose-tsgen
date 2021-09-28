@@ -78,7 +78,6 @@ import mongoose from "mongoose";
 const UserSchema = new Schema(...);
 
 export const User = mongoose.model("User", UserSchema);
-export default User;
 ```
 
 ### user.ts after:
@@ -90,7 +89,6 @@ import { UserDocument, UserModel, UserSchema } from "../interfaces/mongoose.gen.
 const UserSchema: UserSchema = new Schema(...);
 
 export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
-export default User;
 ```
 
 Then you can import the typings across your application from the Mongoose module and use them for document types:
@@ -276,7 +274,6 @@ UserSchema.query = {
 };
 
 export const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
-export default User;
 ```
 
 ### generate typings
