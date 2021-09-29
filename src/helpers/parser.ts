@@ -202,7 +202,7 @@ const parseChildSchemas = ({
 
       // since we now will process this child by using the schema, we can remove any further nested properties in flatSchemaTree
       for (const key in flatSchemaTree) {
-        if (key.startsWith(path) && key.length > path.length) {
+        if (key.split(".")[0] === path && key.length > path.length) {
           delete flatSchemaTree[key];
         }
       }
