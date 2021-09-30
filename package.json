@@ -29,7 +29,7 @@
     "tslib": "^1.13.0"
   },
   "peerDependencies": {
-    "mongoose": ">= 5.11.19",
+    "mongoose": ">= 6",
     "typescript": ">= 4"
   },
   "devDependencies": {
@@ -47,7 +47,7 @@
     "husky": "^4.3.0",
     "jest": "^26.4.2",
     "lint-staged": "^10.5.1",
-    "mongoose": "^5.12.10",
+    "mongoose": "^6.0.8",
     "rimraf": "^3.0.2",
     "ts-jest": "^26.4.1",
     "typescript": "^4.1.3"

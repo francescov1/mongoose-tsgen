@@ -219,7 +219,7 @@ const parseChildSchemas = ({
       if (isDocument) {
         header += `type ${name}Document = `;
         if (isSubdocArray) {
-          header += "mongoose.Types.EmbeddedDocument";
+          header += "mongoose.Types.Subdocument";
         }
         // not sure why schema doesnt have `tree` property for typings
         else {

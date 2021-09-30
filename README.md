@@ -324,7 +324,7 @@ export type User = {
   _id: mongoose.Types.ObjectId;
 }
 
-export type UserFriendDocument = mongoose.Types.EmbeddedDocument & {
+export type UserFriendDocument = mongoose.Types.Subdocument & {
   uid: UserDocument["_id"] | UserDocument;
   nickname?: string;
   _id: mongoose.Types.ObjectId;

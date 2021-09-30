@@ -14,8 +14,6 @@ function getExpectedString(filename: string) {
 function cleanupModelsInMemory() {
   delete mongoose.models.User;
   delete mongoose.connection.collections.users;
-  // not sure if we need this
-  delete (mongoose as any).modelSchemas.User;
 }
 
 // these tests are more integration tests than unit - should split them out
