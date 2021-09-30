@@ -22,9 +22,9 @@ A plug-n-play Typescript generator for Mongoose.
 
 # Motivation
 
-Using Mongoose with Typescript requires duplicating Mongoose Schemas using Typescript interfaces (see [this post by the Mongoose creator](https://thecodebarbarian.com/working-with-mongoose-in-typescript.html)). To avoid duplication, libraries such as [typegoose](https://github.com/typegoose/typegoose) & [ts-mongoose](https://github.com/lstkz/ts-mongoose) have sprouted up which define a custom schema syntax that is used to generate both the Mongoose Schemas and the Typescript interfaces. Unfortunately, this requires users to completely rewrite their Mongoose Schemas using an unfamiliar and less-supported syntax than Mongoose itself.
+Using Mongoose with Typescript requires duplicating Mongoose Schemas using Typescript interfaces. To avoid duplication, libraries like [typegoose](https://github.com/typegoose/typegoose) define a custom schema syntax that is used to generate both the Mongoose Schemas and the Typescript interfaces. Unfortunately, this requires users to completely rewrite their Mongoose Schemas into an unfamiliar syntax and does not support the entire Mongoose feature set.
 
-This library aims to remove these drawbacks by instead parsing your already-written Mongoose Schemas and generating associated Typescript interfaces. This removes the need to learn a whole new library and makes this library extremely simple to integrate into an existing Mongoose project.
+This library aims to remove these drawbacks by instead parsing your already-written Mongoose Schemas and generating associated Typescript interfaces. This removes the need to learn new syntax and makes this library extremely simple to integrate into an existing Mongoose project.
 
 # Features
 
