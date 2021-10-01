@@ -125,22 +125,22 @@ export type UserModel = mongoose.Model<UserDocument, UserQueries> & UserStatics
 export type UserSchema = mongoose.Schema<UserDocument, UserModel>
 
 /**
- * Mongoose Embedded Document type
+ * Mongoose Subdocument type
  * 
  * Type of `UserDocument["friends"]` element.
  */
-export type UserFriendDocument = mongoose.Types.EmbeddedDocument & {
+export type UserFriendDocument = mongoose.Types.Subdocument & {
 uid: UserDocument["_id"] | UserDocument;
 nickname?: string;
 _id: mongoose.Types.ObjectId;
 }
 
 /**
- * Mongoose Embedded Document type
+ * Mongoose Subdocument type
  * 
  * Type of `UserDocument["city.subdocWithoutDefault"]` element.
  */
-export type UserCitySubdocWithoutDefaultDocument = mongoose.Types.EmbeddedDocument & {
+export type UserCitySubdocWithoutDefaultDocument = mongoose.Types.Subdocument & {
 a?: string;
 _id: mongoose.Types.ObjectId;
 }

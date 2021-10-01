@@ -45,11 +45,9 @@ This library aims to remove these drawbacks by instead parsing your already-writ
 
 Find your Mongoose version below and install the associated mongoose-tsgen version. Ensure to refer to each version's respective README for documentation (hyperlinked in table).
 
-> Note: Mongoose 6 is supported by using the `next` tag, see [Installation](#installation) for example.
-
 | mongoose       | mongoose-tsgen |
 | -------------- | -------------- |
-| 5.11.19-5.13.9 | latest         |
+| 5.11.19+       | latest         |
 | 5.11.0-5.11.18 | [7.1.3](https://github.com/francescov1/mongoose-tsgen/blob/85ccc70b13e875b0de135a171563292fa58e5472/README.md)          |
 | <5.11.0        | [6.0.10](https://github.com/francescov1/mongoose-tsgen/blob/12d2f693957f61776d5b6addf23a8b051c99294c/README.md)         |
 
@@ -63,9 +61,6 @@ npm install -D mongoose-tsgen
 
 # install mongoose-tsgen v7.1.3 for mongoose v5.10.19 (see table above for compatibility)
 npm install -D mongoose-tsgen@7.1.3
-
-# install mongoose-tsgen@next for mongoose v6+
-npm install -D mongoose-tsgen@next
 
 # install with yarn
 yarn add -D mongoose-tsgen
@@ -329,7 +324,7 @@ export type User = {
   _id: mongoose.Types.ObjectId;
 }
 
-export type UserFriendDocument = mongoose.Types.EmbeddedDocument & {
+export type UserFriendDocument = mongoose.Types.Subdocument & {
   uid: UserDocument["_id"] | UserDocument;
   nickname?: string;
   _id: mongoose.Types.ObjectId;

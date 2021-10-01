@@ -161,7 +161,7 @@ export const getLeanDocs = (modelName: string, fullName?: string) => `/**
  */`;
 
 export const getSubdocumentDocs = (modelName: string, path: string) => `/**
- * Mongoose Embedded Document type
+ * Mongoose Subdocument type
  * 
  * Type of \`${modelName}Document["${path}"]\` element.
  */`;
