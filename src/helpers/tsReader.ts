@@ -5,18 +5,94 @@ import {
   MethodDeclaration,
   SourceFile,
   VariableDeclaration,
-  ExportAssignment
+  ExportAssignment,
+  ObjectLiteralExpression
 } from "ts-morph";
 import glob from "glob";
 import path from "path";
 import * as fs from "fs";
 import stripJsonComments from "strip-json-comments";
+import { ModelTypes } from "../types";
 
 function getNameAndType(funcDeclaration: MethodDeclaration) {
   const name = funcDeclaration.getName();
   const typeNode = funcDeclaration.getType();
   const type = typeNode.getText(funcDeclaration);
   return { name, type };
+}
+
+function findCommentsInFile(
+  sourceFile: SourceFile,
+  modelTypes: ModelTypes,
+  maxCommentDepth: number
+) {
+  // TODO: this is reused from findTypesInFile, should abstract out instead
+  const schemaModelMapping: {
+    [schemaVariableName: string]: string;
+  } = {};
+
+  Object.keys(modelTypes).forEach((modelName: string) => {
+    const { schemaVariableName } = modelTypes[modelName];
+    if (schemaVariableName) schemaModelMapping[schemaVariableName] = modelName;
+  });
+
+  for (const statement of sourceFile.getStatements()) {
+    if (!Node.isVariableStatement(statement)) continue;
+    const varDeclarationList = statement.getChildAtIndexIfKind(
+      0,
+      SyntaxKind.VariableDeclarationList
+    );
+    if (!varDeclarationList) continue;
+    const varDeclaration = varDeclarationList.getFirstChildByKind(SyntaxKind.VariableDeclaration);
+    if (!varDeclaration) continue;
+
+    const schemaName = varDeclaration.getFirstChildByKind(SyntaxKind.Identifier)?.getText();
+    if (!schemaName) continue;
+
+    const modelName = schemaModelMapping[schemaName];
+
+    const newExpression = varDeclaration.getFirstChildByKind(SyntaxKind.NewExpression);
+    if (!newExpression) continue;
+    const objLiteralExp = newExpression.getFirstChildByKind(SyntaxKind.ObjectLiteralExpression);
+    if (!objLiteralExp) continue;
+
+    const extractComments = (objLiteralExp: ObjectLiteralExpression, rootPath: string) => {
+      const propAssignments = objLiteralExp.getChildrenOfKind(SyntaxKind.PropertyAssignment);
+
+      propAssignments.forEach(propAssignment => {
+        const propName = propAssignment.getFirstChildByKind(SyntaxKind.Identifier)?.getText();
+        if (!propName) return;
+
+        const path = rootPath ? `${rootPath}.${propName}` : propName;
+        propAssignment.getLeadingCommentRanges().forEach(commentRange => {
+          const commentText = commentRange.getText();
+
+          // skip comments that are not jsdocs
+          if (!commentText.startsWith("/**")) return;
+
+          modelTypes[modelName].comments.push({
+            path,
+            comment: commentText
+          });
+        });
+
+        if (rootPath.split(".").length < maxCommentDepth) {
+          const nestedObjLiteralExp = propAssignment.getFirstChildByKind(
+            SyntaxKind.ObjectLiteralExpression
+          );
+          if (nestedObjLiteralExp) {
+            extractComments(nestedObjLiteralExp, path);
+          }
+        }
+      });
+    };
+
+    extractComments(objLiteralExp, "");
+  }
+
+  // TODO: get virtual comments
+
+  return modelTypes;
 }
 
 function findTypesInFile(sourceFile: SourceFile, modelTypes: ModelTypes) {
@@ -173,18 +249,6 @@ function findTypesInFile(sourceFile: SourceFile, modelTypes: ModelTypes) {
   return modelTypes;
 }
 
-type ModelTypes = {
-  [modelName: string]: {
-    methods: { [funcName: string]: string };
-    statics: { [funcName: string]: string };
-    query: { [funcName: string]: string };
-    virtuals: { [virtualName: string]: string };
-    schemaVariableName?: string;
-    modelVariableName?: string;
-    filePath: string;
-  };
-};
-
 const parseModelInitializer = (
   d: VariableDeclaration | ExportAssignment,
   isModelNamedImport: boolean
@@ -233,7 +297,8 @@ function initModelTypes(sourceFile: SourceFile, filePath: string) {
       methods: {},
       statics: {},
       query: {},
-      virtuals: {}
+      virtuals: {},
+      comments: []
     };
   });
 
@@ -247,7 +312,8 @@ function initModelTypes(sourceFile: SourceFile, filePath: string) {
         methods: {},
         statics: {},
         query: {},
-        virtuals: {}
+        virtuals: {},
+        comments: []
       };
     }
   }
@@ -264,7 +330,7 @@ function initModelTypes(sourceFile: SourceFile, filePath: string) {
   return modelTypes;
 }
 
-export const getModelTypes = (modelsPaths: string[]): ModelTypes => {
+export const getModelTypes = (modelsPaths: string[], maxCommentDepth = 2): ModelTypes => {
   const project = new Project({});
   project.addSourceFilesAtPaths(modelsPaths);
 
@@ -277,6 +343,8 @@ export const getModelTypes = (modelsPaths: string[]): ModelTypes => {
     let modelTypes = initModelTypes(sourceFile, modelPath);
 
     modelTypes = findTypesInFile(sourceFile, modelTypes);
+    modelTypes = findCommentsInFile(sourceFile, modelTypes, maxCommentDepth);
+
     allModelTypes = {
       ...allModelTypes,
       ...modelTypes
