@@ -45,9 +45,17 @@ _id: mongoose.Types.ObjectId;
 export type User = {
 email: string;
 firstName: string;
+/** inline jsdoc */
 lastName: string;
+/**
+ * single line jsdoc
+ */
 metadata?: any;
 bestFriend?: User["_id"] | User;
+/**
+ * multiline
+ * jsdoc
+ */
 friends: UserFriend[];
 city: {
 coordinates: number[];
@@ -156,9 +164,17 @@ _id: mongoose.Types.ObjectId;
 export type UserDocument = mongoose.Document<mongoose.Types.ObjectId, UserQueries> & UserMethods & {
 email: string;
 firstName: string;
+/** inline jsdoc */
 lastName: string;
+/**
+ * single line jsdoc
+ */
 metadata?: any;
 bestFriend?: UserDocument["_id"] | UserDocument;
+/**
+ * multiline
+ * jsdoc
+ */
 friends: mongoose.Types.DocumentArray<UserFriendDocument>;
 city: {
 coordinates: mongoose.Types.Array<number>;

@@ -4,6 +4,14 @@ import * as parser from "./parser";
 import * as templates from "./templates";
 import { ModelTypes } from "../types";
 
+// this strips comments of special tokens since ts-morph generates jsdoc tokens automatically
+const cleanComment = (comment: string) => {
+  return comment
+    .replace(/^\/\*\*[^\S\r\n]?/, "")
+    .replace(/[^\S\r\n]+\*\s/g, "")
+    .replace(/(\n)?[^\S\r\n]+\*\/$/, "");
+};
+
 export const replaceModelTypes = (
   sourceFile: SourceFile,
   modelTypes: ModelTypes,
@@ -115,14 +123,6 @@ export const replaceModelTypes = (
         });
       }
     }
-
-    // this strips comments of special tokens since ts-morph generates jsdoc tokens automatically
-    const cleanComment = (comment: string) => {
-      return comment
-        .replace(/^\/\*\*[^\S\r\n]?/, "")
-        .replace(/[^\S\r\n]+\*\s/g, "")
-        .replace(/(\n)?[^\S\r\n]+\*\/$/, "");
-    };
 
     // TODO: this section is almost identical to the virtual property section above, refactor
     if (comments.length > 0) {
