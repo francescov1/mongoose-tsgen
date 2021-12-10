@@ -2,17 +2,14 @@ import { Project, SourceFile, SyntaxKind, PropertySignature } from "ts-morph";
 import mongoose from "mongoose";
 import * as parser from "./parser";
 import * as templates from "./templates";
+import { ModelTypes } from "../types";
 
-type ModelTypes = {
-  [modelName: string]: {
-    methods: { [funcName: string]: string };
-    statics: { [funcName: string]: string };
-    query: { [funcName: string]: string };
-    virtuals: { [virtualName: string]: string };
-    schemaVariableName?: string;
-    modelVariableName?: string;
-    filePath: string;
-  };
+// this strips comments of special tokens since ts-morph generates jsdoc tokens automatically
+const cleanComment = (comment: string) => {
+  return comment
+    .replace(/^\/\*\*[^\S\r\n]?/, "")
+    .replace(/[^\S\r\n]+\*\s/g, "")
+    .replace(/(\n)?[^\S\r\n]+\*\/$/, "");
 };
 
 export const replaceModelTypes = (
@@ -23,7 +20,7 @@ export const replaceModelTypes = (
   }
 ) => {
   Object.entries(modelTypes).forEach(([modelName, types]) => {
-    const { methods, statics, query, virtuals } = types;
+    const { methods, statics, query, virtuals, comments } = types;
 
     // methods
     if (Object.keys(methods).length > 0) {
@@ -125,6 +122,60 @@ export const replaceModelTypes = (
           });
         });
       }
+    }
+
+    // TODO: this section is almost identical to the virtual property section above, refactor
+    if (comments.length > 0) {
+      const documentProperties = sourceFile
+        ?.getTypeAlias(`${modelName}Document`)
+        ?.getFirstChildByKind(SyntaxKind.IntersectionType)
+        ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
+        ?.getChildrenOfKind(SyntaxKind.PropertySignature);
+
+      const leanProperties = sourceFile
+        ?.getTypeAlias(`${modelName}`)
+        ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
+        ?.getChildrenOfKind(SyntaxKind.PropertySignature);
+
+      comments.forEach(({ path, comment }) => {
+        const pathComponents = path.split(".");
+        let nestedDocProps: PropertySignature[] | undefined;
+        let nestedLeanProps: PropertySignature[] | undefined;
+
+        pathComponents.forEach((nameComponent, i) => {
+          if (i === pathComponents.length - 1) {
+            if (documentProperties) {
+              const docPropMatch = (nestedDocProps ?? documentProperties).find(
+                prop => prop.getName() === nameComponent
+              );
+
+              docPropMatch?.addJsDoc(cleanComment(comment));
+            }
+            if (leanProperties) {
+              const leanPropMatch = (nestedLeanProps ?? leanProperties).find(
+                prop => prop.getName() === nameComponent
+              );
+
+              leanPropMatch?.addJsDoc(cleanComment(comment));
+            }
+
+            return;
+          }
+
+          if (documentProperties) {
+            nestedDocProps = (nestedDocProps ?? documentProperties)
+              .find(prop => prop.getName() === nameComponent)
+              ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
+              ?.getChildrenOfKind(SyntaxKind.PropertySignature);
+          }
+          if (leanProperties) {
+            nestedLeanProps = (nestedLeanProps ?? leanProperties)
+              .find(prop => prop.getName() === nameComponent)
+              ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
+              ?.getChildrenOfKind(SyntaxKind.PropertySignature);
+          }
+        });
+      });
     }
   });
 };

@@ -11,15 +11,23 @@ const UserSchema: UserSchema = new Schema({
     type: String,
     required: true
   },
+  /** inline jsdoc */
   lastName: {
     type: String,
     required: true
   },
+  /**
+   * single line jsdoc
+   */
   metadata: Schema.Types.Mixed,
   bestFriend: {
     type: Schema.Types.ObjectId,
     ref: "User"
   },
+  /**
+   * multiline
+   * jsdoc
+   */
   friends: [
     {
       uid: {
