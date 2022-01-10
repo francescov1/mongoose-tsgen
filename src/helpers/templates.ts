@@ -111,10 +111,10 @@ export const getObjectDocs = (modelName: string) => `/**
  */`;
 
 export const getQueryDocs = () => `/**
-* Mongoose Query type
-* 
-* This type is returned from query functions. For most use cases, you should not need to use this type explicitly.
-*/`;
+ * Mongoose Query type
+ * 
+ * This type is returned from query functions. For most use cases, you should not need to use this type explicitly.
+ */`;
 
 export const getQueryHelpersDocs = (modelName: string) => `/**
  * Mongoose Query helper types
