@@ -49,12 +49,16 @@ address: User2Address;
 export type User2Object = User2
 
 /**
- * Mongoose Query types
+ * Mongoose Query type
  * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const User2 = mongoose.model<User2Document, User2Model>("User2", User2Schema);
- * ```
+ * This type is returned from query functions. For most use cases, you should not need to use this type explicitly.
+ */
+export type User2Query = mongoose.Query<any, User2Document, User2Queries> & User2Queries
+
+/**
+ * Mongoose Query helper types
+ * 
+ * This type represents `User2Schema.query`. For most use cases, you should not need to use this type explicitly.
  */
 export type User2Queries = {
 }
@@ -73,7 +77,7 @@ export type User2Statics = {
  * const User2 = mongoose.model<User2Document, User2Model>("User2", User2Schema);
  * ```
  */
-export type User2Model = mongoose.Model<User2Document, User2Queries> & User2Statics
+export type User2Model = mongoose.Model<User2Document, User2Queries, User2Methods> & User2Statics
 
 /**
  * Mongoose Schema type
@@ -83,7 +87,7 @@ export type User2Model = mongoose.Model<User2Document, User2Queries> & User2Stat
  * const User2Schema: User2Schema = new mongoose.Schema({ ... })
  * ```
  */
-export type User2Schema = mongoose.Schema<User2Document, User2Model>
+export type User2Schema = mongoose.Schema<User2Document, User2Model, User2Methods, User2Queries>
 
 /**
  * Mongoose Document type

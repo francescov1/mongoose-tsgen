@@ -93,15 +93,19 @@ name: string;
 export type UserObject = User
 
 /**
- * Mongoose Query types
+ * Mongoose Query type
  * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
- * ```
+ * This type is returned from query functions. For most use cases, you should not need to use this type explicitly.
+ */
+export type UserQuery = mongoose.Query<any, UserDocument, UserQueries> & UserQueries
+
+/**
+ * Mongoose Query helper types
+ * 
+ * This type represents `UserSchema.query`. For most use cases, you should not need to use this type explicitly.
  */
 export type UserQueries = {
-populateFriends: () => mongoose.Query<any, UserDocument, UserQueries> & UserQueries;
+populateFriends: (this: UserQuery) => UserQuery;
 }
 
 export type UserMethods = {
@@ -120,7 +124,7 @@ getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<User
  * const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
  * ```
  */
-export type UserModel = mongoose.Model<UserDocument, UserQueries> & UserStatics
+export type UserModel = mongoose.Model<UserDocument, UserQueries, UserMethods> & UserStatics
 
 /**
  * Mongoose Schema type
@@ -130,7 +134,7 @@ export type UserModel = mongoose.Model<UserDocument, UserQueries> & UserStatics
  * const UserSchema: UserSchema = new mongoose.Schema({ ... })
  * ```
  */
-export type UserSchema = mongoose.Schema<UserDocument, UserModel>
+export type UserSchema = mongoose.Schema<UserDocument, UserModel, UserMethods, UserQueries>
 
 /**
  * Mongoose Subdocument type

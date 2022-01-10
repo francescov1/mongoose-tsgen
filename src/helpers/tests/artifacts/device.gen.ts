@@ -34,12 +34,16 @@ homeName?: string;
 export type HomeObject = Home
 
 /**
- * Mongoose Query types
+ * Mongoose Query type
  * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const Home = mongoose.model<HomeDocument, HomeModel>("Home", HomeSchema);
- * ```
+ * This type is returned from query functions. For most use cases, you should not need to use this type explicitly.
+ */
+export type HomeQuery = mongoose.Query<any, HomeDocument, HomeQueries> & HomeQueries
+
+/**
+ * Mongoose Query helper types
+ * 
+ * This type represents `HomeSchema.query`. For most use cases, you should not need to use this type explicitly.
  */
 export type HomeQueries = {
 }
@@ -58,7 +62,7 @@ export type HomeStatics = {
  * const Home = mongoose.model<HomeDocument, HomeModel>("Home", HomeSchema);
  * ```
  */
-export type HomeModel = mongoose.Model<HomeDocument, HomeQueries> & HomeStatics
+export type HomeModel = mongoose.Model<HomeDocument, HomeQueries, HomeMethods> & HomeStatics
 
 /**
  * Mongoose Schema type
@@ -68,7 +72,7 @@ export type HomeModel = mongoose.Model<HomeDocument, HomeQueries> & HomeStatics
  * const HomeSchema: HomeSchema = new mongoose.Schema({ ... })
  * ```
  */
-export type HomeSchema = mongoose.Schema<HomeDocument, HomeModel>
+export type HomeSchema = mongoose.Schema<HomeDocument, HomeModel, HomeMethods, HomeQueries>
 
 /**
  * Mongoose Document type
@@ -125,12 +129,16 @@ home?: DeviceHome;
 export type DeviceObject = Device
 
 /**
- * Mongoose Query types
+ * Mongoose Query type
  * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const Device = mongoose.model<DeviceDocument, DeviceModel>("Device", DeviceSchema);
- * ```
+ * This type is returned from query functions. For most use cases, you should not need to use this type explicitly.
+ */
+export type DeviceQuery = mongoose.Query<any, DeviceDocument, DeviceQueries> & DeviceQueries
+
+/**
+ * Mongoose Query helper types
+ * 
+ * This type represents `DeviceSchema.query`. For most use cases, you should not need to use this type explicitly.
  */
 export type DeviceQueries = {
 }
@@ -151,7 +159,7 @@ test: (this: DeviceModel, ...args: any[]) => any;
  * const Device = mongoose.model<DeviceDocument, DeviceModel>("Device", DeviceSchema);
  * ```
  */
-export type DeviceModel = mongoose.Model<DeviceDocument, DeviceQueries> & DeviceStatics
+export type DeviceModel = mongoose.Model<DeviceDocument, DeviceQueries, DeviceMethods> & DeviceStatics
 
 /**
  * Mongoose Schema type
@@ -161,7 +169,7 @@ export type DeviceModel = mongoose.Model<DeviceDocument, DeviceQueries> & Device
  * const DeviceSchema: DeviceSchema = new mongoose.Schema({ ... })
  * ```
  */
-export type DeviceSchema = mongoose.Schema<DeviceDocument, DeviceModel>
+export type DeviceSchema = mongoose.Schema<DeviceDocument, DeviceModel, DeviceMethods, DeviceQueries>
 
 /**
  * Mongoose Document type
@@ -232,12 +240,16 @@ home?: Device2Home;
 export type Device2Object = Device2
 
 /**
- * Mongoose Query types
+ * Mongoose Query type
  * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const Device2 = mongoose.model<Device2Document, Device2Model>("Device2", Device2Schema);
- * ```
+ * This type is returned from query functions. For most use cases, you should not need to use this type explicitly.
+ */
+export type Device2Query = mongoose.Query<any, Device2Document, Device2Queries> & Device2Queries
+
+/**
+ * Mongoose Query helper types
+ * 
+ * This type represents `Device2Schema.query`. For most use cases, you should not need to use this type explicitly.
  */
 export type Device2Queries = {
 }
@@ -258,7 +270,7 @@ test: (this: Device2Model, ...args: any[]) => any;
  * const Device2 = mongoose.model<Device2Document, Device2Model>("Device2", Device2Schema);
  * ```
  */
-export type Device2Model = mongoose.Model<Device2Document, Device2Queries> & Device2Statics
+export type Device2Model = mongoose.Model<Device2Document, Device2Queries, Device2Methods> & Device2Statics
 
 /**
  * Mongoose Schema type
@@ -268,7 +280,7 @@ export type Device2Model = mongoose.Model<Device2Document, Device2Queries> & Dev
  * const Device2Schema: Device2Schema = new mongoose.Schema({ ... })
  * ```
  */
-export type Device2Schema = mongoose.Schema<Device2Document, Device2Model>
+export type Device2Schema = mongoose.Schema<Device2Document, Device2Model, Device2Methods, Device2Queries>
 
 /**
  * Mongoose Document type
@@ -339,12 +351,16 @@ home?: Device3Home;
 export type Device3Object = Device3
 
 /**
- * Mongoose Query types
+ * Mongoose Query type
  * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const Device3 = mongoose.model<Device3Document, Device3Model>("Device3", Device3Schema);
- * ```
+ * This type is returned from query functions. For most use cases, you should not need to use this type explicitly.
+ */
+export type Device3Query = mongoose.Query<any, Device3Document, Device3Queries> & Device3Queries
+
+/**
+ * Mongoose Query helper types
+ * 
+ * This type represents `Device3Schema.query`. For most use cases, you should not need to use this type explicitly.
  */
 export type Device3Queries = {
 }
@@ -365,7 +381,7 @@ test: (this: Device3Model, ...args: any[]) => any;
  * const Device3 = mongoose.model<Device3Document, Device3Model>("Device3", Device3Schema);
  * ```
  */
-export type Device3Model = mongoose.Model<Device3Document, Device3Queries> & Device3Statics
+export type Device3Model = mongoose.Model<Device3Document, Device3Queries, Device3Methods> & Device3Statics
 
 /**
  * Mongoose Schema type
@@ -375,7 +391,7 @@ export type Device3Model = mongoose.Model<Device3Document, Device3Queries> & Dev
  * const Device3Schema: Device3Schema = new mongoose.Schema({ ... })
  * ```
  */
-export type Device3Schema = mongoose.Schema<Device3Document, Device3Model>
+export type Device3Schema = mongoose.Schema<Device3Document, Device3Model, Device3Methods, Device3Queries>
 
 /**
  * Mongoose Document type
@@ -446,12 +462,16 @@ home?: Device4Home;
 export type Device4Object = Device4
 
 /**
- * Mongoose Query types
+ * Mongoose Query type
  * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const Device4 = mongoose.model<Device4Document, Device4Model>("Device4", Device4Schema);
- * ```
+ * This type is returned from query functions. For most use cases, you should not need to use this type explicitly.
+ */
+export type Device4Query = mongoose.Query<any, Device4Document, Device4Queries> & Device4Queries
+
+/**
+ * Mongoose Query helper types
+ * 
+ * This type represents `Device4Schema.query`. For most use cases, you should not need to use this type explicitly.
  */
 export type Device4Queries = {
 }
@@ -472,7 +492,7 @@ test: (this: Device4Model, ...args: any[]) => any;
  * const Device4 = mongoose.model<Device4Document, Device4Model>("Device4", Device4Schema);
  * ```
  */
-export type Device4Model = mongoose.Model<Device4Document, Device4Queries> & Device4Statics
+export type Device4Model = mongoose.Model<Device4Document, Device4Queries, Device4Methods> & Device4Statics
 
 /**
  * Mongoose Schema type
@@ -482,7 +502,7 @@ export type Device4Model = mongoose.Model<Device4Document, Device4Queries> & Dev
  * const Device4Schema: Device4Schema = new mongoose.Schema({ ... })
  * ```
  */
-export type Device4Schema = mongoose.Schema<Device4Document, Device4Model>
+export type Device4Schema = mongoose.Schema<Device4Document, Device4Model, Device4Methods, Device4Queries>
 
 /**
  * Mongoose Document type
@@ -553,12 +573,16 @@ home?: DeviceDefaultHome;
 export type DeviceDefaultObject = DeviceDefault
 
 /**
- * Mongoose Query types
+ * Mongoose Query type
  * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel>("DeviceDefault", DeviceDefaultSchema);
- * ```
+ * This type is returned from query functions. For most use cases, you should not need to use this type explicitly.
+ */
+export type DeviceDefaultQuery = mongoose.Query<any, DeviceDefaultDocument, DeviceDefaultQueries> & DeviceDefaultQueries
+
+/**
+ * Mongoose Query helper types
+ * 
+ * This type represents `DeviceDefaultSchema.query`. For most use cases, you should not need to use this type explicitly.
  */
 export type DeviceDefaultQueries = {
 }
@@ -579,7 +603,7 @@ test: (this: DeviceDefaultModel) => string;
  * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel>("DeviceDefault", DeviceDefaultSchema);
  * ```
  */
-export type DeviceDefaultModel = mongoose.Model<DeviceDefaultDocument, DeviceDefaultQueries> & DeviceDefaultStatics
+export type DeviceDefaultModel = mongoose.Model<DeviceDefaultDocument, DeviceDefaultQueries, DeviceDefaultMethods> & DeviceDefaultStatics
 
 /**
  * Mongoose Schema type
@@ -589,7 +613,7 @@ export type DeviceDefaultModel = mongoose.Model<DeviceDefaultDocument, DeviceDef
  * const DeviceDefaultSchema: DeviceDefaultSchema = new mongoose.Schema({ ... })
  * ```
  */
-export type DeviceDefaultSchema = mongoose.Schema<DeviceDefaultDocument, DeviceDefaultModel>
+export type DeviceDefaultSchema = mongoose.Schema<DeviceDefaultDocument, DeviceDefaultModel, DeviceDefaultMethods, DeviceDefaultQueries>
 
 /**
  * Mongoose Document type
