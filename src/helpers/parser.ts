@@ -47,7 +47,9 @@ export const convertFuncSignatureToType = (
   const [, params, returnType] = funcSignature.match(/\((?:this: \w*(?:, )?)?(.*)\) => (.*)/) ?? [];
   let type;
   if (funcType === "query") {
-    type = `(${params}) => mongoose.Query<any, ${modelName}Document, ${modelName}Queries> & ${modelName}Queries`;
+    type = `(this: ${modelName}Query${
+      params?.length > 0 ? ", " + params : ""
+    }) => ${modelName}Query`;
   } else if (funcType === "methods") {
     type = `(this: ${modelName}Document${params?.length > 0 ? ", " + params : ""}) => ${
       returnType ?? "any"

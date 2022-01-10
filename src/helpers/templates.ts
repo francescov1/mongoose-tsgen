@@ -110,13 +110,16 @@ export const getObjectDocs = (modelName: string) => `/**
  * \`\`\`
  */`;
 
-export const getQueryDocs = (modelName: string) => `/**
- * Mongoose Query types
+export const getQueryDocs = () => `/**
+* Mongoose Query type
+* 
+* This type is returned from query functions. For most use cases, you should not need to use this type explicitly.
+*/`;
+
+export const getQueryHelpersDocs = (modelName: string) => `/**
+ * Mongoose Query helper types
  * 
- * Pass this type to the Mongoose Model constructor:
- * \`\`\`
- * const ${modelName} = mongoose.model<${modelName}Document, ${modelName}Model>("${modelName}", ${modelName}Schema);
- * \`\`\`
+ * This type represents \`${modelName}Schema.query\`. For most use cases, you should not need to use this type explicitly.
  */`;
 
 export const getModelDocs = (modelName: string) => `/**
