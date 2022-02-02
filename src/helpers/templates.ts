@@ -83,7 +83,7 @@ type Modify<T, R> = Omit<T, keyof R> & R;
  * Augment mongoose with Query.populate overloads
  */
 declare module "mongoose" {
-  interface Query<ResultType, DocType extends Document, THelpers = {}> {
+  interface Query<ResultType, DocType, THelpers = {}> {
     populate<T extends string>(path: T, select?: string | any, model?: string | Model<any, THelpers>, match?: any): Query<
       ResultType extends Array<DocType> ? Array<PopulatedDocument<Unarray<ResultType>, T>> : (ResultType extends DocType ? PopulatedDocument<Unarray<ResultType>, T> : ResultType),
       DocType,

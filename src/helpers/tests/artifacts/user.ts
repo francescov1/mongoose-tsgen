@@ -116,6 +116,6 @@ UserSchema.query = {
   }
 };
 
-export const User: UserModel = mongoose.model<UserDocument, UserModel, UserQueries>("User", UserSchema);
+export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
 
 export default User;
