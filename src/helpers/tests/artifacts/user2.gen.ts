@@ -77,7 +77,7 @@ export type User2Statics = {
  * const User2 = mongoose.model<User2Document, User2Model>("User2", User2Schema);
  * ```
  */
-export type User2Model = mongoose.Model<User2Document, User2Queries, User2Methods> & User2Statics
+export type User2Model = mongoose.Model<User2Document, User2Queries> & User2Statics
 
 /**
  * Mongoose Schema type
@@ -87,7 +87,7 @@ export type User2Model = mongoose.Model<User2Document, User2Queries, User2Method
  * const User2Schema: User2Schema = new mongoose.Schema({ ... })
  * ```
  */
-export type User2Schema = mongoose.Schema<User2Document, User2Model, User2Methods, User2Queries>
+export type User2Schema = mongoose.Schema<User2Document, User2Model>
 
 /**
  * Mongoose Document type
@@ -197,7 +197,7 @@ type Modify<T, R> = Omit<T, keyof R> & R;
  * Augment mongoose with Query.populate overloads
  */
 declare module "mongoose" {
-  interface Query<ResultType, DocType extends Document, THelpers = {}> {
+  interface Query<ResultType, DocType, THelpers = {}> {
     populate<T extends string>(path: T, select?: string | any, model?: string | Model<any, THelpers>, match?: any): Query<
       ResultType extends Array<DocType> ? Array<PopulatedDocument<Unarray<ResultType>, T>> : (ResultType extends DocType ? PopulatedDocument<Unarray<ResultType>, T> : ResultType),
       DocType,

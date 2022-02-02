@@ -62,7 +62,7 @@ export type HomeStatics = {
  * const Home = mongoose.model<HomeDocument, HomeModel>("Home", HomeSchema);
  * ```
  */
-export type HomeModel = mongoose.Model<HomeDocument, HomeQueries, HomeMethods> & HomeStatics
+export type HomeModel = mongoose.Model<HomeDocument, HomeQueries> & HomeStatics
 
 /**
  * Mongoose Schema type
@@ -72,7 +72,7 @@ export type HomeModel = mongoose.Model<HomeDocument, HomeQueries, HomeMethods> &
  * const HomeSchema: HomeSchema = new mongoose.Schema({ ... })
  * ```
  */
-export type HomeSchema = mongoose.Schema<HomeDocument, HomeModel, HomeMethods, HomeQueries>
+export type HomeSchema = mongoose.Schema<HomeDocument, HomeModel>
 
 /**
  * Mongoose Document type
@@ -159,7 +159,7 @@ test: (this: DeviceModel, ...args: any[]) => any;
  * const Device = mongoose.model<DeviceDocument, DeviceModel>("Device", DeviceSchema);
  * ```
  */
-export type DeviceModel = mongoose.Model<DeviceDocument, DeviceQueries, DeviceMethods> & DeviceStatics
+export type DeviceModel = mongoose.Model<DeviceDocument, DeviceQueries> & DeviceStatics
 
 /**
  * Mongoose Schema type
@@ -169,7 +169,7 @@ export type DeviceModel = mongoose.Model<DeviceDocument, DeviceQueries, DeviceMe
  * const DeviceSchema: DeviceSchema = new mongoose.Schema({ ... })
  * ```
  */
-export type DeviceSchema = mongoose.Schema<DeviceDocument, DeviceModel, DeviceMethods, DeviceQueries>
+export type DeviceSchema = mongoose.Schema<DeviceDocument, DeviceModel>
 
 /**
  * Mongoose Document type
@@ -270,7 +270,7 @@ test: (this: Device2Model, ...args: any[]) => any;
  * const Device2 = mongoose.model<Device2Document, Device2Model>("Device2", Device2Schema);
  * ```
  */
-export type Device2Model = mongoose.Model<Device2Document, Device2Queries, Device2Methods> & Device2Statics
+export type Device2Model = mongoose.Model<Device2Document, Device2Queries> & Device2Statics
 
 /**
  * Mongoose Schema type
@@ -280,7 +280,7 @@ export type Device2Model = mongoose.Model<Device2Document, Device2Queries, Devic
  * const Device2Schema: Device2Schema = new mongoose.Schema({ ... })
  * ```
  */
-export type Device2Schema = mongoose.Schema<Device2Document, Device2Model, Device2Methods, Device2Queries>
+export type Device2Schema = mongoose.Schema<Device2Document, Device2Model>
 
 /**
  * Mongoose Document type
@@ -381,7 +381,7 @@ test: (this: Device3Model, ...args: any[]) => any;
  * const Device3 = mongoose.model<Device3Document, Device3Model>("Device3", Device3Schema);
  * ```
  */
-export type Device3Model = mongoose.Model<Device3Document, Device3Queries, Device3Methods> & Device3Statics
+export type Device3Model = mongoose.Model<Device3Document, Device3Queries> & Device3Statics
 
 /**
  * Mongoose Schema type
@@ -391,7 +391,7 @@ export type Device3Model = mongoose.Model<Device3Document, Device3Queries, Devic
  * const Device3Schema: Device3Schema = new mongoose.Schema({ ... })
  * ```
  */
-export type Device3Schema = mongoose.Schema<Device3Document, Device3Model, Device3Methods, Device3Queries>
+export type Device3Schema = mongoose.Schema<Device3Document, Device3Model>
 
 /**
  * Mongoose Document type
@@ -492,7 +492,7 @@ test: (this: Device4Model, ...args: any[]) => any;
  * const Device4 = mongoose.model<Device4Document, Device4Model>("Device4", Device4Schema);
  * ```
  */
-export type Device4Model = mongoose.Model<Device4Document, Device4Queries, Device4Methods> & Device4Statics
+export type Device4Model = mongoose.Model<Device4Document, Device4Queries> & Device4Statics
 
 /**
  * Mongoose Schema type
@@ -502,7 +502,7 @@ export type Device4Model = mongoose.Model<Device4Document, Device4Queries, Devic
  * const Device4Schema: Device4Schema = new mongoose.Schema({ ... })
  * ```
  */
-export type Device4Schema = mongoose.Schema<Device4Document, Device4Model, Device4Methods, Device4Queries>
+export type Device4Schema = mongoose.Schema<Device4Document, Device4Model>
 
 /**
  * Mongoose Document type
@@ -603,7 +603,7 @@ test: (this: DeviceDefaultModel) => string;
  * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel>("DeviceDefault", DeviceDefaultSchema);
  * ```
  */
-export type DeviceDefaultModel = mongoose.Model<DeviceDefaultDocument, DeviceDefaultQueries, DeviceDefaultMethods> & DeviceDefaultStatics
+export type DeviceDefaultModel = mongoose.Model<DeviceDefaultDocument, DeviceDefaultQueries> & DeviceDefaultStatics
 
 /**
  * Mongoose Schema type
@@ -613,7 +613,7 @@ export type DeviceDefaultModel = mongoose.Model<DeviceDefaultDocument, DeviceDef
  * const DeviceDefaultSchema: DeviceDefaultSchema = new mongoose.Schema({ ... })
  * ```
  */
-export type DeviceDefaultSchema = mongoose.Schema<DeviceDefaultDocument, DeviceDefaultModel, DeviceDefaultMethods, DeviceDefaultQueries>
+export type DeviceDefaultSchema = mongoose.Schema<DeviceDefaultDocument, DeviceDefaultModel>
 
 /**
  * Mongoose Document type
@@ -723,7 +723,7 @@ type Modify<T, R> = Omit<T, keyof R> & R;
  * Augment mongoose with Query.populate overloads
  */
 declare module "mongoose" {
-  interface Query<ResultType, DocType extends Document, THelpers = {}> {
+  interface Query<ResultType, DocType, THelpers = {}> {
     populate<T extends string>(path: T, select?: string | any, model?: string | Model<any, THelpers>, match?: any): Query<
       ResultType extends Array<DocType> ? Array<PopulatedDocument<Unarray<ResultType>, T>> : (ResultType extends DocType ? PopulatedDocument<Unarray<ResultType>, T> : ResultType),
       DocType,

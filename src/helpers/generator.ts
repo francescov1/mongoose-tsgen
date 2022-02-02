@@ -217,14 +217,13 @@ export const getSchemaTypes = ({ schema, modelName }: { schema: any; modelName: 
   schemaTypes += parser.parseFunctions(schema.statics, modelName, "statics");
   schemaTypes += "}\n\n";
 
-  // TODO: add virtuals as param here instead
-  const modelExtend = `mongoose.Model<${modelName}Document, ${modelName}Queries, ${modelName}Methods>`;
+  const modelExtend = `mongoose.Model<${modelName}Document, ${modelName}Queries>`;
 
   schemaTypes += templates.getModelDocs(modelName);
   schemaTypes += `\nexport type ${modelName}Model = ${modelExtend} & ${modelName}Statics\n\n`;
 
   schemaTypes += templates.getSchemaDocs(modelName);
-  schemaTypes += `\nexport type ${modelName}Schema = mongoose.Schema<${modelName}Document, ${modelName}Model, ${modelName}Methods, ${modelName}Queries>\n\n`;
+  schemaTypes += `\nexport type ${modelName}Schema = mongoose.Schema<${modelName}Document, ${modelName}Model>\n\n`;
 
   return schemaTypes;
 };

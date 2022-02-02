@@ -124,7 +124,7 @@ getFriends: (this: UserModel, friendUids: UserDocument["_id"][]) => Promise<User
  * const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
  * ```
  */
-export type UserModel = mongoose.Model<UserDocument, UserQueries, UserMethods> & UserStatics
+export type UserModel = mongoose.Model<UserDocument, UserQueries> & UserStatics
 
 /**
  * Mongoose Schema type
@@ -134,7 +134,7 @@ export type UserModel = mongoose.Model<UserDocument, UserQueries, UserMethods> &
  * const UserSchema: UserSchema = new mongoose.Schema({ ... })
  * ```
  */
-export type UserSchema = mongoose.Schema<UserDocument, UserModel, UserMethods, UserQueries>
+export type UserSchema = mongoose.Schema<UserDocument, UserModel>
 
 /**
  * Mongoose Subdocument type
@@ -282,7 +282,7 @@ type Modify<T, R> = Omit<T, keyof R> & R;
  * Augment mongoose with Query.populate overloads
  */
 declare module "mongoose" {
-  interface Query<ResultType, DocType extends Document, THelpers = {}> {
+  interface Query<ResultType, DocType, THelpers = {}> {
     populate<T extends string>(path: T, select?: string | any, model?: string | Model<any, THelpers>, match?: any): Query<
       ResultType extends Array<DocType> ? Array<PopulatedDocument<Unarray<ResultType>, T>> : (ResultType extends DocType ? PopulatedDocument<Unarray<ResultType>, T> : ResultType),
       DocType,
