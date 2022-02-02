@@ -47,3 +47,19 @@ describe("getParseKeyFn", () => {
     expect(parseKey("test2a", { type: [Number] })).toBe("test2a: number[];\n");
   });
 });
+
+describe("convertToSingular", () => {
+  it("should properly convert words ending in sses", () => {
+    expect(parser.convertToSingular("glasses")).toBe("glass");
+    expect(parser.convertToSingular("classes")).toBe("class");
+  });
+
+  it("should properly convert plural words", () => {
+    expect(parser.convertToSingular("houses")).toBe("house");
+    expect(parser.convertToSingular("users")).toBe("user");
+  });
+
+  it("should not convert words ending in ss", () => {
+    expect(parser.convertToSingular("grass")).toBe("grass");
+  });
+});
