@@ -223,7 +223,7 @@ export const getSchemaTypes = ({ schema, modelName }: { schema: any; modelName: 
   schemaTypes += `\nexport type ${modelName}Model = ${modelExtend} & ${modelName}Statics\n\n`;
 
   schemaTypes += templates.getSchemaDocs(modelName);
-  schemaTypes += `\nexport type ${modelName}Schema = mongoose.Schema<${modelName}Document, ${modelName}Model>\n\n`;
+  schemaTypes += `\nexport type ${modelName}Schema = mongoose.Schema<${modelName}Document, ${modelName}Model, ${modelName}Methods>\n\n`;
 
   return schemaTypes;
 };
