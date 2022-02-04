@@ -62,16 +62,27 @@ export const convertFuncSignatureToType = (
   return type;
 };
 
+export const convertToSingular = (str: string) => {
+  if (str.endsWith("sses")) {
+    // https://github.com/francescov1/mongoose-tsgen/issues/79
+    return str.slice(0, -2);
+  }
+
+  if (str.endsWith("s") && !str.endsWith("ss")) {
+    return str.slice(0, -1);
+  }
+  return str;
+};
+
 const getSubDocName = (path: string, modelName = "") => {
-  let subDocName =
+  const subDocName =
     modelName +
     path
       .split(".")
       .map((p: string) => p[0].toUpperCase() + p.slice(1))
       .join("");
 
-  if (subDocName.endsWith("s") && !subDocName.endsWith("ss")) subDocName = subDocName.slice(0, -1);
-  return subDocName;
+  return convertToSingular(subDocName);
 };
 
 // TODO: this could be moved to the generator too, not really relevant to parsing
