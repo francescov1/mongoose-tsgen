@@ -350,4 +350,4 @@ export type UserDocument = mongoose.Document<mongoose.Types.ObjectId, UserQuerie
 ## Development
 
 - [ ] Consider [population field selection](https://mongoosejs.com/docs/populate.html#field-selection) when typing populates
-- [ ] Remove oclif - it adds a lot of unnecessary dependencies
+- [ ] Slim down dependencies: `oclif` is unnecessarily large, `prettier` should be handled by users if desired.
