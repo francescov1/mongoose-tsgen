@@ -372,7 +372,11 @@ export const registerUserTs = (basePath: string): (() => void) | null => {
 
   // handle path aliases
   const tsConfigString = fs.readFileSync(foundPath, "utf8");
-  const tsConfig = JSON.parse(stripJsonComments(tsConfigString));
+
+  const tsConfig = stripJsonComments(tsConfigString) as unknown as { [key: string]: any };
+
+  // const tsConfig = JSON.parse(stripJsonComments(tsConfigString));
+
   if (tsConfig?.compilerOptions?.paths) {
     const cleanup = require("tsconfig-paths").register({
       baseUrl: process.cwd(),

@@ -57,30 +57,34 @@ class MongooseTsgen extends Command {
   static args = [{ name: "model_path" }];
 
   private getConfig() {
-    const { flags: cliFlags, args } = this.parse(MongooseTsgen);
+    try {
+      const { flags: cliFlags, args } = this.parse(MongooseTsgen);
 
-    type FlagConfig = Omit<typeof cliFlags, "config" | "output" | "project"> & {
-      output: string;
-      project: string;
-    };
+      type FlagConfig = Omit<typeof cliFlags, "config" | "output" | "project"> & {
+        output: string;
+        project: string;
+      };
 
-    const configFileFlags: Partial<FlagConfig> = paths.getConfigFromFile(cliFlags.config);
+      const configFileFlags: Partial<FlagConfig> = paths.getConfigFromFile(cliFlags.config);
 
-    // remove "config" since its only used to grab the config file
-    delete cliFlags.config;
+      // remove "config" since its only used to grab the config file
+      delete cliFlags.config;
 
-    // we cant set flags as `default` using the official oclif method since the defaults would overwrite flags provided in the config file.
-    // instead, well just set "output" and "project" as default manually if theyre still missing after merge with configFile.
-    configFileFlags.output = configFileFlags.output ?? "./src/interfaces";
-    configFileFlags.project = configFileFlags.project ?? "./";
+      // we cant set flags as `default` using the official oclif method since the defaults would overwrite flags provided in the config file.
+      // instead, well just set "output" and "project" as default manually if theyre still missing after merge with configFile.
+      configFileFlags.output = configFileFlags?.output ?? "./src/interfaces";
+      configFileFlags.project = configFileFlags?.project ?? "./";
 
-    return {
-      flags: {
-        ...configFileFlags,
-        ...cliFlags
-      } as FlagConfig,
-      args
-    };
+      return {
+        flags: {
+          ...configFileFlags,
+          ...cliFlags
+        } as FlagConfig,
+        args
+      };
+    } catch (error: any) {
+      throw new Error(error.message);
+    }
   }
 
   async run() {
@@ -136,12 +140,15 @@ class MongooseTsgen extends Command {
         this.log(`Writing interfaces to ${genFilePath}`);
 
         generator.saveFile({ genFilePath, sourceFile });
+
         if (!flags["no-format"]) await formatter.format([genFilePath]);
         this.log("Writing complete 🐒");
         process.exit();
       }
     } catch (error) {
-      this.error(error as Error);
+      const err = error as Error;
+      this.log(`❌ - ${err.stack}`);
+      this.error(err, { exit: 0 });
     }
   }
 }
