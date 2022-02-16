@@ -372,15 +372,20 @@ export const registerUserTs = (basePath: string): (() => void) | null => {
 
   // handle path aliases
   const tsConfigString = fs.readFileSync(foundPath, "utf8");
-  const tsConfig = JSON.parse(stripJsonComments(tsConfigString));
-  if (tsConfig?.compilerOptions?.paths) {
-    const cleanup = require("tsconfig-paths").register({
-      baseUrl: process.cwd(),
-      paths: tsConfig.compilerOptions.paths
-    });
 
-    return cleanup;
+  try {
+    const tsConfig = JSON.parse(stripJsonComments(tsConfigString));
+    if (tsConfig?.compilerOptions?.paths) {
+      const cleanup = require("tsconfig-paths").register({
+        baseUrl: process.cwd(),
+        paths: tsConfig.compilerOptions.paths
+      });
+
+      return cleanup;
+    }
+
+    return null;
+  } catch {
+    throw new Error("Error parsing your tsconfig.json file, please ensure the format is valid");
   }
-
-  return null;
 };
