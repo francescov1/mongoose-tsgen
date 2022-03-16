@@ -75,6 +75,8 @@ numberString?: number;
 stringString?: string;
 otherNumberString: number;
 otherStringString: string;
+enumWithNull?: "a" | "b" | "c" | null;
+enumWithoutNull?: "a" | "b" | "c";
 _id: mongoose.Types.ObjectId;
 name: string;
 }
@@ -198,6 +200,8 @@ numberString?: number;
 stringString?: string;
 otherNumberString: number;
 otherStringString: string;
+enumWithNull?: "a" | "b" | "c" | null;
+enumWithoutNull?: "a" | "b" | "c";
 _id: mongoose.Types.ObjectId;
 name: string;
 }

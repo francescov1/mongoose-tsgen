@@ -86,6 +86,14 @@ const UserSchema: UserSchema = new Schema({
     type: "String",
     required: true
   },
+  enumWithNull: {
+    type: String,
+    enum: ["a", "b", "c", null]
+  },
+  enumWithoutNull: {
+    type: String,
+    enum: ["a", "b", "c"]
+  }
 }, {
   toObject: {
     virtuals: true,
