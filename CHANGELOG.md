@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## 9.0.2 / 2021-03-16
+
+* Handle null enums
+
+## 9.0.0 / 2021-02-03
+
+* Better naming for pluralized words
+
+## 8.4.8 / 2022-01-10
+
+* Mongoose 6 support
+
+## 8.4.7 / 2021-12-10
+
+* Parse JSDocs from Mongoose Schemas and copy into generated files.
+
+## 8.4.0 / 2021-09-27
+
+* Handle nested query population
+
+## 8.3.3 / 2021-05-21
+
+* Typesafe query population
+
+## 8.3.0 / 2021-05-21
+
+* Fix plural naming
+
 ## 8.2.0 / 2021-05-19
 
 * Added `mongoose.Query.populate` overload to narrow query typings & `--no-populate-overload` flag to disable the behaviour
