@@ -292,7 +292,9 @@ export const getParseKeyFn = (
     let val = _.isPlainObject(valOriginal) ? _.cloneDeep(valOriginal) : valOriginal;
 
     let valType: string | undefined;
-    let isOptional = !val.required;
+
+    const requiredValue = Array.isArray(val.required) ? val.required[0] : val.required;
+    let isOptional = requiredValue !== true;
 
     let isArray = Array.isArray(val);
     let isUntypedArray = false;
