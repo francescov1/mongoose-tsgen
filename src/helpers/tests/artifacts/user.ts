@@ -65,6 +65,13 @@ const UserSchema: UserSchema = new Schema({
     type: Map,
     of: [Number]
   },
+  requiredIsFunction: {
+    type: Number,
+    required: function (this: UserDocument) {
+      // This is irrelevant, we're just testing that setting `required: function() {...}` leaves the field "optional" in the generated typescript.
+      return !!this.alternateObjectId
+    }
+  },
   buffer: {
     type: Buffer,
     required: true
