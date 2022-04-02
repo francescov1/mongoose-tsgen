@@ -50,6 +50,9 @@ function findCommentsInFile(
     if (!schemaName) continue;
 
     const modelName = schemaModelMapping[schemaName];
+    if (!modelName) {
+      continue;
+    }
 
     const newExpression = varDeclaration.getFirstChildByKind(SyntaxKind.NewExpression);
     if (!newExpression) continue;
@@ -260,12 +263,19 @@ const parseModelInitializer = (
 
   // if model is a named import, we can match this without `mongoose.` prefix
   const pattern = isModelNamedImport ?
-    /model(?:<\w+,\w+(?:,\w+)?>)?\(["'`](\w+)["'`],(\w+)\)/ :
-    /mongoose\.model(?:<\w+,\w+(?:,\w+)?>)?\(["'`](\w+)["'`],(\w+)\)/;
+    /model(?:<\w+,\w+(?:,\w+)?>)?\(["'`](\w+)["'`],(\w+),?\)/ :
+    /mongoose\.model(?:<\w+,\w+(?:,\w+)?>)?\(["'`](\w+)["'`],(\w+),?\)/;
   const modelInitMatch = callExprStr.match(pattern);
 
   // TODO: should warn users if no match is found at all
-  if (!modelInitMatch) return undefined;
+  if (!modelInitMatch) {
+    if (process.env.DEBUG) {
+      console.warn(
+        `tsreader: Could not find model name in Mongoose model initialization: ${callExprStr}`
+      );
+    }
+    return undefined;
+  }
 
   const [, modelName, schemaVariableName] = modelInitMatch;
   return { modelName, schemaVariableName };
