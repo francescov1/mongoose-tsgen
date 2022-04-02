@@ -266,8 +266,6 @@ const parseModelInitializer = (
     /model(?:<\w+,\w+(?:,\w+)?>)?\(["'`](\w+)["'`],(\w+),?\)/ :
     /mongoose\.model(?:<\w+,\w+(?:,\w+)?>)?\(["'`](\w+)["'`],(\w+),?\)/;
   const modelInitMatch = callExprStr.match(pattern);
-
-  // TODO: should warn users if no match is found at all
   if (!modelInitMatch) {
     if (process.env.DEBUG) {
       console.warn(
