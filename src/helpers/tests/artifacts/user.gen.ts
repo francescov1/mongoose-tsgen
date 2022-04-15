@@ -137,7 +137,7 @@ export type UserModel = mongoose.Model<UserDocument, UserQueries> & UserStatics
  * const UserSchema: UserSchema = new mongoose.Schema({ ... })
  * ```
  */
-export type UserSchema = mongoose.Schema<UserDocument, UserModel, UserMethods>
+export type UserSchema = mongoose.Schema<UserDocument, UserModel, UserMethods, UserQueries>
 
 /**
  * Mongoose Subdocument type

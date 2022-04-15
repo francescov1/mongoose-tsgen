@@ -311,7 +311,7 @@ export type UserStatics = {
 
 export type UserModel = mongoose.Model<UserDocument, UserQueries> & UserStatics
 
-export type UserSchema = mongoose.Schema<UserDocument, UserModel, UserMethods>
+export type UserSchema = mongoose.Schema<UserDocument, UserModel, UserMethods, UserQueries>
 
 export type User = {
   email: string;
