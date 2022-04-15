@@ -87,7 +87,7 @@ export type User2Model = mongoose.Model<User2Document, User2Queries> & User2Stat
  * const User2Schema: User2Schema = new mongoose.Schema({ ... })
  * ```
  */
-export type User2Schema = mongoose.Schema<User2Document, User2Model, User2Methods>
+export type User2Schema = mongoose.Schema<User2Document, User2Model, User2Methods, User2Queries>
 
 /**
  * Mongoose Document type

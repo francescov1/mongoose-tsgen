@@ -72,7 +72,7 @@ export type HomeModel = mongoose.Model<HomeDocument, HomeQueries> & HomeStatics
  * const HomeSchema: HomeSchema = new mongoose.Schema({ ... })
  * ```
  */
-export type HomeSchema = mongoose.Schema<HomeDocument, HomeModel, HomeMethods>
+export type HomeSchema = mongoose.Schema<HomeDocument, HomeModel, HomeMethods, HomeQueries>
 
 /**
  * Mongoose Document type
@@ -169,7 +169,7 @@ export type DeviceModel = mongoose.Model<DeviceDocument, DeviceQueries> & Device
  * const DeviceSchema: DeviceSchema = new mongoose.Schema({ ... })
  * ```
  */
-export type DeviceSchema = mongoose.Schema<DeviceDocument, DeviceModel, DeviceMethods>
+export type DeviceSchema = mongoose.Schema<DeviceDocument, DeviceModel, DeviceMethods, DeviceQueries>
 
 /**
  * Mongoose Document type
@@ -280,7 +280,7 @@ export type Device2Model = mongoose.Model<Device2Document, Device2Queries> & Dev
  * const Device2Schema: Device2Schema = new mongoose.Schema({ ... })
  * ```
  */
-export type Device2Schema = mongoose.Schema<Device2Document, Device2Model, Device2Methods>
+export type Device2Schema = mongoose.Schema<Device2Document, Device2Model, Device2Methods, Device2Queries>
 
 /**
  * Mongoose Document type
@@ -391,7 +391,7 @@ export type Device3Model = mongoose.Model<Device3Document, Device3Queries> & Dev
  * const Device3Schema: Device3Schema = new mongoose.Schema({ ... })
  * ```
  */
-export type Device3Schema = mongoose.Schema<Device3Document, Device3Model, Device3Methods>
+export type Device3Schema = mongoose.Schema<Device3Document, Device3Model, Device3Methods, Device3Queries>
 
 /**
  * Mongoose Document type
@@ -502,7 +502,7 @@ export type Device4Model = mongoose.Model<Device4Document, Device4Queries> & Dev
  * const Device4Schema: Device4Schema = new mongoose.Schema({ ... })
  * ```
  */
-export type Device4Schema = mongoose.Schema<Device4Document, Device4Model, Device4Methods>
+export type Device4Schema = mongoose.Schema<Device4Document, Device4Model, Device4Methods, Device4Queries>
 
 /**
  * Mongoose Document type
@@ -613,7 +613,7 @@ export type DeviceDefaultModel = mongoose.Model<DeviceDefaultDocument, DeviceDef
  * const DeviceDefaultSchema: DeviceDefaultSchema = new mongoose.Schema({ ... })
  * ```
  */
-export type DeviceDefaultSchema = mongoose.Schema<DeviceDefaultDocument, DeviceDefaultModel, DeviceDefaultMethods>
+export type DeviceDefaultSchema = mongoose.Schema<DeviceDefaultDocument, DeviceDefaultModel, DeviceDefaultMethods, DeviceDefaultQueries>
 
 /**
  * Mongoose Document type
