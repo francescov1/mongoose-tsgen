@@ -30,7 +30,7 @@ const formatKeyEntry = ({
   let line = "";
 
   if (key) {
-    line += key;
+    line += JSON.stringify(key);
     if (isOptional) line += "?";
     line += ": ";
   }
