@@ -85,6 +85,8 @@ const UserSchema: UserSchema = new Schema({
   otherDecimal128: mongoose.Types.Decimal128,
   numberString: "Number",
   stringString: "String",
+  booleanString: "Boolean",
+  dateString: "Date",
   otherNumberString: {
     type: "Number",
     required: true
