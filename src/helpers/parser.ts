@@ -111,7 +111,9 @@ const BASE_TYPES = [
   Number,
   "Number",
   Boolean,
+  "Boolean",
   Date,
+  "Date",
   Buffer,
   "Buffer",
   mongoose.Types.Buffer,
@@ -161,8 +163,10 @@ export const convertBaseTypeToTs = (
     case mongoose.Types.Decimal128:
       return isDocument ? "mongoose.Types.Decimal128" : "number";
     case Boolean:
+    case "Boolean":
       return "boolean";
     case Date:
+    case "Date":
       return "Date";
     case mongoose.Types.Buffer:
     case mongoose.Schema.Types.Buffer:
