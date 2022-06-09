@@ -17,6 +17,7 @@ A plug-n-play Typescript generator for Mongoose.
 - [The Gist](#the-gist)
 - [Usage](#usage)
 - [Example](#example)
+- [Known Issues](#known-issues)
 - [Development](#Development)
 <!-- tocstop -->
 
@@ -346,6 +347,20 @@ export type UserDocument = mongoose.Document<mongoose.Types.ObjectId, UserQuerie
     _id: mongoose.Types.ObjectId;
   };
 ```
+
+## Known Issues
+
+### Type instantiation is excessively deep and possibly infinite
+
+This issue occurs as of Mongoose v6.3.2 due to a conflict in types. We do not plan to fix this as the next minor Mongoose version (v6.4.0) will be adding type inference and rendering this package obsolete.
+
+In the meantime, you can get around this using one of the following options:
+- Fix your Mongoose version to v6.3.1 or below.
+- Use `--no-populate-overload` flag with this package.
+
+References:
+- https://github.com/Automattic/mongoose/issues/11787
+- https://github.com/francescov1/mongoose-tsgen/issues/95
 
 ## Development
 
