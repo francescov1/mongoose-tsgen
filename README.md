@@ -53,6 +53,8 @@ Find your Mongoose version below and install the associated mongoose-tsgen versi
 | 5.11.0-5.11.18 | [7.1.3](https://github.com/francescov1/mongoose-tsgen/blob/85ccc70b13e875b0de135a171563292fa58e5472/README.md)          |
 | <5.11.0        | [6.0.10](https://github.com/francescov1/mongoose-tsgen/blob/12d2f693957f61776d5b6addf23a8b051c99294c/README.md)         |
 
+> Note: For Mongoose >= v6.3.2, see [Known Issues](#known-issues) first.
+
 # Installation
 
 mongoose-tsgen can be installed globally or locally as a dev dependency. Refer to the table above to ensure you are using the correct version.
