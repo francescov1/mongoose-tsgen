@@ -354,7 +354,7 @@ export type UserDocument = mongoose.Document<mongoose.Types.ObjectId, UserQuerie
 
 ### Type instantiation is excessively deep and possibly infinite
 
-This issue occurs as of Mongoose v6.3.2 due to a conflict in types. We do not plan to fix this as the next minor Mongoose version (v6.4.0) will be adding type inference and rendering this package obsolete.
+This issue occurs as of Mongoose v6.3.2 due to a conflict in types.
 
 In the meantime, you can get around this using one of the following options:
 - Fix your Mongoose version to v6.3.1 or below.
