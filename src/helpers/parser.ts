@@ -30,7 +30,7 @@ const formatKeyEntry = ({
   let line = "";
 
   if (key) {
-    line += key;
+    line += String.raw`${key}`;
     if (isOptional) line += "?";
     line += ": ";
   }
