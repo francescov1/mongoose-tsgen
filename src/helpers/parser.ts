@@ -30,7 +30,9 @@ const formatKeyEntry = ({
   let line = "";
 
   if (key) {
-    line += key;
+    // If the key contains any special characters, we need to wrap it in quotes
+    line += /^\w*$/.test(key) ? key : JSON.stringify(key);
+
     if (isOptional) line += "?";
     line += ": ";
   }
