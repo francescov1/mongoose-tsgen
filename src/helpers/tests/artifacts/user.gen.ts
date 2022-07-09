@@ -80,6 +80,7 @@ otherNumberString: number;
 otherStringString: string;
 enumWithNull?: "a" | "b" | "c" | null;
 enumWithoutNull?: "a" | "b" | "c";
+"special-character"?: string;
 _id: mongoose.Types.ObjectId;
 name: string;
 }
@@ -208,6 +209,7 @@ otherNumberString: number;
 otherStringString: string;
 enumWithNull?: "a" | "b" | "c" | null;
 enumWithoutNull?: "a" | "b" | "c";
+"special-character"?: string;
 _id: mongoose.Types.ObjectId;
 name: string;
 }

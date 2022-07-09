@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { UserDocument, UserModel, UserSchema, UserQueries, UserObject } from "./user.gen";
+import { UserDocument, UserModel, UserSchema, UserObject } from "./user.gen";
 
 // UserSchema type
 const UserSchema: UserSchema = new Schema({
@@ -102,6 +102,9 @@ const UserSchema: UserSchema = new Schema({
   enumWithoutNull: {
     type: String,
     enum: ["a", "b", "c"]
+  },
+  "special-character": {
+    type: String
   }
 }, {
   toObject: {
