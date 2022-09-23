@@ -21,3 +21,11 @@ export type ModelTypes = {
     }[];
   };
 };
+
+type UndefinedKeys<T> = {
+  [K in keyof T]: undefined extends T[K] ? K : never;
+}[keyof T];
+type MarkOptional<T, K extends keyof T = UndefinedKeys<T>> =
+  Omit<T, K> & Partial<Pick<T, K>>;
+type Resolve<T> = { [K in keyof T]: T[K] } & {};
+export type Normalize<T> = Resolve<MarkOptional<T>>;

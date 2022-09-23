@@ -1,4 +1,4 @@
-import { Args, Command, Flags, ux } from "@oclif/core";
+import { Args, Command, Interfaces, Flags, ux } from "@oclif/core";
 
 import * as parser from "./helpers/parser";
 import * as tsReader from "./helpers/tsReader";
@@ -6,6 +6,24 @@ import * as paths from "./helpers/paths";
 import * as formatter from "./helpers/formatter";
 import * as generator from "./helpers/generator";
 import * as cli from "./helpers/cli";
+import * as types from "./types";
+
+declare namespace MongooseTsgen {
+  export type CliFlagConfig = Interfaces.InferredFlags<typeof MongooseTsgen["flags"]>;
+  export type FlagConfig = types.Normalize<
+    Omit<CliFlagConfig, "config" | "help" | "json" | "output" | "project"> & {
+      output: string;
+      project: string;
+    }
+  >;
+
+  export type ArgConfig = Interfaces.InferredArgs<typeof MongooseTsgen["args"]>;
+
+  export interface Config {
+    flags: FlagConfig;
+    args: ArgConfig;
+  }
+}
 
 class MongooseTsgen extends Command {
   static id = ".";
@@ -65,12 +83,9 @@ class MongooseTsgen extends Command {
   private async getConfig() {
     const { flags: cliFlags, args } = await this.parse(MongooseTsgen);
 
-    type FlagConfig = Omit<typeof cliFlags, "config"> & {
-      output: string;
-      project: string;
-    };
-
-    const configFileFlags: Partial<FlagConfig> = paths.getConfigFromFile(cliFlags.config);
+    const configFileFlags: Partial<MongooseTsgen.FlagConfig> = paths.getConfigFromFile(
+      cliFlags.config
+    );
 
     // remove "config" since its only used to grab the config file
     delete cliFlags.config;
@@ -84,7 +99,7 @@ class MongooseTsgen extends Command {
       flags: {
         ...configFileFlags,
         ...cliFlags
-      } as FlagConfig,
+      } as MongooseTsgen.FlagConfig,
       args
     };
   }
