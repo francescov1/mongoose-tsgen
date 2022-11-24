@@ -393,7 +393,7 @@ export const registerUserTs = (basePath: string): (() => void) | null => {
     }
 
     return null;
-  } catch {
-    throw new Error("Error parsing your tsconfig.json file, please ensure the format is valid");
+  } catch (err) {
+    throw new Error(`Error parsing your tsconfig.json file: ${(err as Error).message}`);
   }
 };
