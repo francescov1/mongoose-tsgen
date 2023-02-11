@@ -12,4 +12,5 @@
 // require(`../${dev ? 'src' : 'lib'}`).run()
 
 require(`../lib`).run()
-.catch(require('@oclif/errors/handle'))
+.then(require("@oclif/core/flush"))
+.catch(require("@oclif/core/handle"));
