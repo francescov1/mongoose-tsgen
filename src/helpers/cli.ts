@@ -1,7 +1,8 @@
 import { Command, Interfaces, Flags, Help } from "@oclif/core";
 
 export const helpFlag = (opts: Partial<Interfaces.BooleanFlag<boolean>> = {}) => {
-  return Flags.help({
+  return Flags.boolean({
+    description: "Show CLI help.",
     ...opts,
     parse: async (_, cmd) => {
       new Help(cmd.config).showCommandHelp(cmd.constructor as Command.Class);
