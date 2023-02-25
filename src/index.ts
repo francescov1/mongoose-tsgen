@@ -59,7 +59,7 @@ class MongooseTsgen extends Command {
 
   // path of mongoose models folder
   static args = {
-    model_path: Args.string({ required: true })
+    model_path: Args.string()
   };
 
   private async getConfig() {
