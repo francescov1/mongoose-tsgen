@@ -178,6 +178,31 @@ All CLI options can be provided using a `mtgen.config.json` file. Use the `--con
 }
 ```
 
+## Use as a module
+
+`mongoose-tsgen` can also be imported or required and used programmatically. Below is an example:
+
+```typescript
+import MongooseTsgen from "mongoose-tsgen";
+
+const tsgen = new MongooseTsgen([]);
+const result = await tsgen.generateDefinitions({
+  flags: {
+    "dry-run": false,
+    "no-format": false,
+    "no-mongoose": false,
+    "no-populate-overload": false,
+    debug: false,
+    output: "./src/interfaces",
+    project: "./"
+  },
+  args: {}
+});
+await result.sourceFile.save();
+```
+
+Note that this will not load the config file.
+
 ## Query Population
 
 Any field with a `ref` property will be typed as `RefDocument["_id"] | RefDocument`. As part of the generated file, mongoose will be augmented with `Query.populate` overloads to narrow return types of populated queries (this can be disabled using the `--no-populate-overload` flag). A helper type `PopulatedDocument` and a type guard function `IsPopulated` will also be generated to help with handling populated documents, see usage below:

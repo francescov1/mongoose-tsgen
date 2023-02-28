@@ -1,4 +1,4 @@
-import { Args, Command, Interfaces, Flags, ux } from "@oclif/core";
+import { Args, Command, Config, Interfaces, Flags, ux } from "@oclif/core";
 
 import * as parser from "./helpers/parser";
 import * as tsReader from "./helpers/tsReader";
@@ -17,7 +17,7 @@ declare namespace MongooseTsgen {
     }
   >;
 
-  export type ArgConfig = Interfaces.InferredArgs<typeof MongooseTsgen["args"]>;
+  export type ArgConfig = types.Normalize<Interfaces.InferredArgs<typeof MongooseTsgen["args"]>>;
 
   export interface Config {
     flags: FlagConfig;
@@ -79,6 +79,10 @@ class MongooseTsgen extends Command {
   static args = {
     model_path: Args.string()
   };
+
+  constructor(argv: string[], config = new Config({ root: __dirname })) {
+    super(argv, config);
+  }
 
   private async getConfig() {
     const { flags: cliFlags, args } = await this.parse(MongooseTsgen);
