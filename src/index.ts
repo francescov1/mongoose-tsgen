@@ -1,4 +1,4 @@
-import { Args, Command, Flags, ux } from "@oclif/core";
+import { Args, Command, Config, Interfaces, Flags, ux } from "@oclif/core";
 
 import * as parser from "./helpers/parser";
 import * as tsReader from "./helpers/tsReader";
@@ -6,6 +6,24 @@ import * as paths from "./helpers/paths";
 import * as formatter from "./helpers/formatter";
 import * as generator from "./helpers/generator";
 import * as cli from "./helpers/cli";
+import * as types from "./types";
+
+declare namespace MongooseTsgen {
+  export type CliFlagConfig = Interfaces.InferredFlags<typeof MongooseTsgen["flags"]>;
+  export type FlagConfig = types.Normalize<
+    Omit<CliFlagConfig, "config" | "help" | "json" | "output" | "project"> & {
+      output: string;
+      project: string;
+    }
+  >;
+
+  export type ArgConfig = types.Normalize<Interfaces.InferredArgs<typeof MongooseTsgen["args"]>>;
+
+  export interface Config {
+    flags: FlagConfig;
+    args: ArgConfig;
+  }
+}
 
 class MongooseTsgen extends Command {
   static id = ".";
@@ -62,15 +80,16 @@ class MongooseTsgen extends Command {
     model_path: Args.string()
   };
 
+  constructor(argv: string[], config = new Config({ root: __dirname })) {
+    super(argv, config);
+  }
+
   private async getConfig() {
     const { flags: cliFlags, args } = await this.parse(MongooseTsgen);
 
-    type FlagConfig = Omit<typeof cliFlags, "config"> & {
-      output: string;
-      project: string;
-    };
-
-    const configFileFlags: Partial<FlagConfig> = paths.getConfigFromFile(cliFlags.config);
+    const configFileFlags: Partial<MongooseTsgen.FlagConfig> = paths.getConfigFromFile(
+      cliFlags.config
+    );
 
     // remove "config" since its only used to grab the config file
     delete cliFlags.config;
@@ -84,13 +103,14 @@ class MongooseTsgen extends Command {
       flags: {
         ...configFileFlags,
         ...cliFlags
-      } as FlagConfig,
+      } as MongooseTsgen.FlagConfig,
       args
     };
   }
 
   async run() {
-    const { flags, args } = await this.getConfig();
+    const config = await this.getConfig();
+    const { flags } = config;
 
     if (flags.debug) {
       this.log("Debug mode enabled");
@@ -100,40 +120,7 @@ class MongooseTsgen extends Command {
     ux.action.start("Generating mongoose typescript definitions");
 
     try {
-      const modelsPaths = paths.getModelsPaths(args.model_path);
-
-      const cleanupTs = tsReader.registerUserTs(flags.project);
-
-      const schemas = parser.loadSchemas(modelsPaths);
-
-      const genFilePath = paths.cleanOutputPath(flags.output);
-      let sourceFile = generator.createSourceFile(genFilePath);
-
-      const noMongoose = flags["no-mongoose"];
-      sourceFile = generator.generateTypes({
-        schemas,
-        sourceFile,
-        imports: flags.imports,
-        noMongoose
-      });
-
-      // only get model types (methods, statics, queries & virtuals) if user does not specify `noMongoose`,
-      if (noMongoose) {
-        this.log("Skipping TS model parsing and sourceFile model type replacement");
-      } else {
-        const modelTypes = tsReader.getModelTypes(modelsPaths);
-        generator.replaceModelTypes(sourceFile, modelTypes, schemas);
-
-        // add populate helpers
-        await generator.addPopulateHelpers(sourceFile);
-        // add mongoose.Query.populate overloads
-        if (!flags["no-populate-overload"]) {
-          await generator.overloadQueryPopulate(sourceFile);
-        }
-      }
-
-      cleanupTs?.();
-
+      const { genFilePath, sourceFile } = await this.generateDefinitions(config);
       ux.action.stop();
       if (flags["dry-run"]) {
         this.log("Dry run detected, generated interfaces will be printed to console:\n");
@@ -150,6 +137,44 @@ class MongooseTsgen extends Command {
     } catch (error) {
       this.error(error as Error, { exit: 1 });
     }
+  }
+
+  async generateDefinitions(config: MongooseTsgen.Config) {
+    const { flags, args } = config;
+    const modelsPaths = paths.getModelsPaths(args.model_path);
+
+    const cleanupTs = tsReader.registerUserTs(flags.project);
+
+    const schemas = parser.loadSchemas(modelsPaths);
+
+    const genFilePath = paths.cleanOutputPath(flags.output);
+    let sourceFile = generator.createSourceFile(genFilePath);
+
+    const noMongoose = flags["no-mongoose"];
+    sourceFile = generator.generateTypes({
+      schemas,
+      sourceFile,
+      imports: flags.imports,
+      noMongoose
+    });
+
+    // only get model types (methods, statics, queries & virtuals) if user does not specify `noMongoose`,
+    if (noMongoose) {
+      this.log("Skipping TS model parsing and sourceFile model type replacement");
+    } else {
+      const modelTypes = tsReader.getModelTypes(modelsPaths);
+      generator.replaceModelTypes(sourceFile, modelTypes, schemas);
+
+      // add populate helpers
+      await generator.addPopulateHelpers(sourceFile);
+      // add mongoose.Query.populate overloads
+      if (!flags["no-populate-overload"]) {
+        await generator.overloadQueryPopulate(sourceFile);
+      }
+    }
+
+    cleanupTs?.();
+    return { genFilePath, sourceFile };
   }
 }
 
