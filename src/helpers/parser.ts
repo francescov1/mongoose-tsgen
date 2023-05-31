@@ -181,6 +181,7 @@ export const convertBaseTypeToTs = (
       return noMongoose ? "string" : "mongoose.Types.ObjectId";
     case Object:
       return "any";
+    // TODO: See if we can detect nested type vs unknown type, and throw a specific error which mentions the key name
     default:
       // this indicates to the parent func that this type is nested and we need to traverse one level deeper
       return "{}";
@@ -201,15 +202,34 @@ const parseChildSchemas = ({
   const flatSchemaTree: any = flatten(schema.tree, { safe: true });
   let childInterfaces = "";
 
+  // NOTE: This is a hack for Schema maps. For some reason, when a map of a schema exists, the schema is not included
+  // in childSchemas. So we add it manually and add a few extra properties to ensure the processChild works correctly.
+  for (const [path, type] of Object.entries(schema.paths)) {
+    // This check tells us that this is a map of a separate schema
+    if ((type as any)?.$isSchemaMap && (type as any)?.$__schemaType.schema) {
+      const childSchema = (type as any).$__schemaType;
+      childSchema.model = {
+        path: path,
+        $isArraySubdocument:
+          childSchema.Constructor?.$isArraySubdocument ??
+          childSchema.$isMongooseDocumentArray ??
+          false,
+        $isSchemaMap: true
+      };
+      schema.childSchemas.push(childSchema);
+    }
+  }
+
   const processChild = (rootPath: string) => {
     return (child: any) => {
       const path = child.model.path;
       const isSubdocArray = child.model.$isArraySubdocument;
+      const isSchemaMap = child.model.$isSchemaMap ?? false;
       const name = getSubDocName(path, rootPath);
-
       child.schema._isReplacedWithSchema = true;
       child.schema._inferredInterfaceName = name;
       child.schema._isSubdocArray = isSubdocArray;
+      child.schema._isSchemaMap = isSchemaMap;
 
       const requiredValuePath = `${path}.required`;
       if (requiredValuePath in flatSchemaTree && flatSchemaTree[requiredValuePath] === true) {
@@ -226,7 +246,14 @@ const parseChildSchemas = ({
           child.schema._isDefaultSetToUndefined = true;
         }
       }
-      flatSchemaTree[path] = isSubdocArray ? [child.schema] : child.schema;
+
+      if (isSchemaMap) {
+        flatSchemaTree[path] = { type: Map, of: isSubdocArray ? [child.schema] : child.schema };
+      } else if (isSubdocArray) {
+        flatSchemaTree[path] = [child.schema];
+      } else {
+        flatSchemaTree[path] = child.schema;
+      }
 
       // since we now will process this child by using the schema, we can remove any further nested properties in flatSchemaTree
       for (const key in flatSchemaTree) {
@@ -376,6 +403,9 @@ export const getParseKeyFn = (
       isOptional = isArrayOuterDefaultSetToUndefined ?? false;
     } else if (val._inferredInterfaceName) {
       valType = val._inferredInterfaceName + (isDocument ? "Document" : "");
+    } else if (isMap && val.of._inferredInterfaceName) {
+      valType = val.of._inferredInterfaceName + (isDocument ? "Document" : "");
+      isOptional = val.of.required !== true;
     } else if (val.path && val.path && val.setters && val.getters) {
       // check for virtual properties
       // skip id property
@@ -478,7 +508,7 @@ export const parseSchema = ({
   let template = "";
   const schema = _.cloneDeep(schemaOriginal);
 
-  if (schema.childSchemas?.length > 0 && modelName) {
+  if (schema.childSchemas && modelName) {
     template += parseChildSchemas({ schema, isDocument, noMongoose, modelName });
   }
 
