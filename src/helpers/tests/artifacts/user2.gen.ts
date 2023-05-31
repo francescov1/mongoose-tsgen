@@ -20,6 +20,36 @@ city: string;
 }
 
 /**
+ * Lean version of User2AMapOfSchemaDocument
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from `User2Document.toObject()`.
+ * ```
+ * const user2Object = user2.toObject();
+ * ```
+ */
+export type User2AMapOfSchema = {
+info: string;
+creator?: string;
+time?: number;
+_id: mongoose.Types.ObjectId;
+}
+
+/**
+ * Lean version of User2AMapOfSchemaArrayDocument
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from `User2Document.toObject()`.
+ * ```
+ * const user2Object = user2.toObject();
+ * ```
+ */
+export type User2AMapOfSchemaArray = {
+info: string;
+creator?: string;
+time?: number;
+_id: mongoose.Types.ObjectId;
+}
+
+/**
  * Lean version of User2Document
  * 
  * This has all Mongoose getters & functions removed. This type will be returned from `User2Document.toObject()`. To avoid conflicts with model names, use the type alias `User2Object`.
@@ -30,9 +60,12 @@ city: string;
 export type User2 = {
 _id: number;
 lastOnlineAt?: Date;
+anArrayOfSchemaMaps: (Map<string, User2AMapOfSchemaArray>)[];
 updatedAt?: Date;
 createdAt?: Date;
 address: User2Address;
+aMapOfSchemas: Map<string, User2AMapOfSchemaArray>;
+aMapOfSchemaArrays: Map<string, User2AMapOfSchemaArray[]>;
 }
 
 /**
@@ -109,12 +142,42 @@ city: string;
  * const User2 = mongoose.model<User2Document, User2Model>("User2", User2Schema);
  * ```
  */
+export type User2AMapOfSchemaDocument = mongoose.Document<number> & {
+info: string;
+creator?: string;
+time?: number;
+_id: mongoose.Types.ObjectId;
+}
+
+/**
+ * Mongoose Subdocument type
+ * 
+ * Type of `User2Document["aMapOfSchemaArrays"]` element.
+ */
+export type User2AMapOfSchemaArrayDocument = mongoose.Types.Subdocument & {
+info: string;
+creator?: string;
+time?: number;
+_id: mongoose.Types.ObjectId;
+}
+
+/**
+ * Mongoose Document type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
+ * const User2 = mongoose.model<User2Document, User2Model>("User2", User2Schema);
+ * ```
+ */
 export type User2Document = mongoose.Document<number, User2Queries> & User2Methods & {
 _id: number;
 lastOnlineAt?: Date;
+anArrayOfSchemaMaps: mongoose.Types.Array<mongoose.Types.Map<User2AMapOfSchemaArrayDocument>>;
 updatedAt?: Date;
 createdAt?: Date;
 address: User2AddressDocument;
+aMapOfSchemas: mongoose.Types.Map<User2AMapOfSchemaArrayDocument>;
+aMapOfSchemaArrays: mongoose.Types.Map<mongoose.Types.Array<User2AMapOfSchemaArrayDocument>>;
 }
 
 /**

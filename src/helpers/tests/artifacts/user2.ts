@@ -11,6 +11,18 @@ const addressSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const anotherSchema = new mongoose.Schema(
+  {
+    info: {
+      type: String,
+      required: true,
+    },
+    creator: String,
+    time: Number
+  }
+);
+
+
 const User2Schema: User2Schema = new mongoose.Schema(
   {
     _id: {
@@ -23,6 +35,23 @@ const User2Schema: User2Schema = new mongoose.Schema(
       required: true,
     },
     lastOnlineAt: Date,
+    
+    // Testing schema maps
+    aMapOfSchemas: {
+      type: Map,
+      of: anotherSchema,
+      required: true
+    },
+    aMapOfSchemaArrays: {
+      type: Map,
+      of: [anotherSchema]
+    },
+    anArrayOfSchemaMaps: [
+      {
+        type: Map,
+        of: anotherSchema
+      }
+    ]
   },
   {
     timestamps: true,
