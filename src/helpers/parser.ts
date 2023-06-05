@@ -4,6 +4,8 @@ import _ from "lodash";
 
 import * as templates from "./templates";
 
+// TODO: Handle user adding Schema.Types.Map and other alternatives to Mongoose schemas
+
 export const getShouldLeanIncludeVirtuals = (schema: any) => {
   // Check the toObject options to determine if virtual property should be included.
   // See https://mongoosejs.com/docs/api.html#document_Document-toObject for toObject option documentation.
@@ -181,9 +183,16 @@ export const convertBaseTypeToTs = (
       return noMongoose ? "string" : "mongoose.Types.ObjectId";
     case Object:
       return "any";
-    // TODO: See if we can detect nested type vs unknown type, and throw a specific error which mentions the key name
     default:
-      // this indicates to the parent func that this type is nested and we need to traverse one level deeper
+      // TODO: See if we can detect nested type vs unknown type, and throw a specific error which mentions the key name
+      // For a nested type, we should simply see an object with additional fields nested
+      // if (_.isPlainObject(val) && Object.keys(val).length > 0) {
+      //   // This indicates to the parent func that this type is nested and we need to traverse one level deeper
+      //   return "{}"
+      // }
+
+      // console.log(`Unknown type, key ${key} val: `, val)
+      // process.exit()
       return "{}";
   }
 };
@@ -422,6 +431,7 @@ export const getParseKeyFn = (
         "get",
         "set",
         "schemaName",
+        // "_defaultCaster", // TODO: New field found in these objects
         "defaultOptions",
         "_checkRequired",
         "_cast",
