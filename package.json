@@ -20,7 +20,7 @@
     "mkdirp": "^1.0.4",
     "prettier": "^2.5.1",
     "strip-json-comments": "^3.1.1",
-    "ts-morph": "^9.1.0",
+    "ts-morph": "^18.0.0",
     "ts-node": "^9.1.1",
     "tsconfig-paths": "^3.9.0",
     "tslib": "^1.13.0"
@@ -30,7 +30,6 @@
     "typescript": ">= 4"
   },
   "devDependencies": {
-    "oclif": "^3.6.3",
     "@types/eslint": "^7.2.4",
     "@types/flat": "^5.0.1",
     "@types/jest": "^26.0.14",
@@ -45,6 +44,7 @@
     "jest": "^26.4.2",
     "lint-staged": "^10.5.1",
     "mongoose": "^6.1.6",
+    "oclif": "^3.6.3",
     "rimraf": "^3.0.2",
     "ts-jest": "^26.4.1",
     "typescript": "^4.1.3"
