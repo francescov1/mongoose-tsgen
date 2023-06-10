@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
-import flatten, { unflatten } from "flat";
+import { unflatten, flatten } from "flat";
 import _ from "lodash";
-
 import * as templates from "./templates";
 
 // TODO: Handle user adding Schema.Types.Map and other alternatives to Mongoose schemas
@@ -185,6 +184,7 @@ export const convertBaseTypeToTs = (
     case Object:
       return "any";
     default:
+      console.log("Unknown type, key: ", key, " val: ", val);
       // TODO: See if we can detect nested type vs unknown type, and throw a specific error which mentions the key name
       // For a nested type, we should simply see an object with additional fields nested
       // if (_.isPlainObject(val) && Object.keys(val).length > 0) {
@@ -209,7 +209,9 @@ const parseChildSchemas = ({
   noMongoose: boolean;
   modelName: string;
 }) => {
+  console.log("Flattining schema tree for model ", modelName);
   const flatSchemaTree: any = flatten(schema.tree, { safe: true });
+  console.log("Done flattining schema tree for model ", modelName);
   let childInterfaces = "";
 
   // NOTE: This is a hack for Schema maps. For some reason, when a map of a schema exists, the schema is not included
@@ -304,6 +306,7 @@ const parseChildSchemas = ({
       } else header += `type ${name} = {\n`;
 
       // TODO: this should not circularly call parseSchema
+      console.log("Calling parseSchema for child schema ", name);
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       childInterfaces += parseSchema({
         schema: child.schema,
@@ -314,12 +317,17 @@ const parseChildSchemas = ({
         noMongoose,
         shouldLeanIncludeVirtuals: getShouldLeanIncludeVirtuals(child.schema)
       });
+      console.log("Done calling parseSchema for child schema ", name);
     };
   };
 
+  console.log("Calling processChild for model ", modelName);
   schema.childSchemas.forEach(processChild(modelName));
+  console.log("Done processChild for model ", modelName);
 
+  console.log("Unflattining schema tree for model ", modelName);
   const schemaTree = unflatten(flatSchemaTree);
+  console.log("Done unflattening schema tree for model ", modelName);
   schema.tree = schemaTree;
 
   return childInterfaces;
@@ -456,6 +464,7 @@ export const getParseKeyFn = (
     } else {
       // _ids are always required
       if (key === "_id") isOptional = false;
+
       const convertedType = convertBaseTypeToTs(key, val, isDocument, noMongoose);
 
       // TODO: we should detect nested types from unknown types and handle differently.
@@ -495,6 +504,7 @@ export const getParseKeyFn = (
     if (isMap && isMapOfArray)
       valType = isDocument ? `mongoose.Types.Map<${valType}>` : `Map<string, ${valType}>`;
 
+    console.log("Key: ", key, " ValType: ", valType); // , " Val: ", val)
     return formatKeyEntry({ key, val: valType, isOptional });
   };
 };
@@ -516,22 +526,27 @@ export const parseSchema = ({
   noMongoose?: boolean;
   shouldLeanIncludeVirtuals: boolean;
 }) => {
+  console.log("Start parseSchema for model ", modelName);
   let template = "";
   const schema = _.cloneDeep(schemaOriginal);
 
   if (schema.childSchemas && modelName) {
+    console.log(`Parsing child schema of model ${modelName}: `, schema.childSchemas);
     template += parseChildSchemas({ schema, isDocument, noMongoose, modelName });
+    console.log("Done pars child schemas for model ", modelName);
   }
 
   template += header;
 
   const schemaTree = schema.tree;
-
+  console.log("Getting parse key fn for model ", modelName);
   const parseKey = getParseKeyFn(isDocument, shouldLeanIncludeVirtuals, noMongoose);
 
   Object.keys(schemaTree).forEach((key: string) => {
+    console.log("Processing key: ", key, " with parseKey for model ", modelName);
     const val = schemaTree[key];
     template += parseKey(key, val);
+    console.log("Done parseKey of key: ", key, " for model ", modelName);
   });
 
   template += footer;
