@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import _ from "lodash";
 import * as templates from "./templates";
 
-// TODO: Handle user adding Schema.Types.Map and other alternatives to Mongoose schemas
 // TODO: Switch to using HydratedDocument, https://mongoosejs.com/docs/migrating_to_7.html. Also update query helpers https://mongoosejs.com/docs/typescript/query-helpers.html
 
 export const getShouldLeanIncludeVirtuals = (schema: any) => {
