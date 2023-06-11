@@ -2,8 +2,6 @@ import mongoose from "mongoose";
 import _ from "lodash";
 import * as templates from "./templates";
 
-// TODO: New tests for problematic nested schema arrays
-
 // TODO: Handle user adding Schema.Types.Map and other alternatives to Mongoose schemas
 // TODO: Switch to using HydratedDocument, https://mongoosejs.com/docs/migrating_to_7.html. Also update query helpers https://mongoosejs.com/docs/typescript/query-helpers.html
 
@@ -241,7 +239,6 @@ const parseChildSchemas = ({
       child.schema._isSchemaMap = isSchemaMap;
 
       const requiredValuePath = `${path}.required`;
-      // if (requiredValuePath in flatSchemaTree && flatSchemaTree[requiredValuePath] === true) {
       if (_.get(schema.tree, requiredValuePath) === true) {
         child.schema.required = true;
       }
