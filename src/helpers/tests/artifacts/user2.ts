@@ -7,6 +7,7 @@ const addressSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    coordinates: [{ lat: Number, long: Number }]
   },
   { _id: false }
 );
@@ -35,6 +36,9 @@ const User2Schema: User2Schema = new mongoose.Schema(
       required: true,
     },
     lastOnlineAt: Date,
+
+    // Testing https://github.com/francescov1/mongoose-tsgen/issues/114
+    anArrayOfSchemasWithArrayDocuments: [addressSchema],
     
     // Testing schema maps
     aMapOfSchemas: {

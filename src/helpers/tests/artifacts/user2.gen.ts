@@ -8,6 +8,19 @@
 import mongoose from "mongoose";
 
 /**
+ * Lean version of User2AddressCoordinateDocument
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from `User2AddressDocument.toObject()`.
+ * ```
+ * const user2addressObject = user2address.toObject();
+ * ```
+ */
+export type User2AddressCoordinate = {
+lat?: number;
+long?: number;
+}
+
+/**
  * Lean version of User2AddressDocument
  * 
  * This has all Mongoose getters & functions removed. This type will be returned from `User2Document.toObject()`.
@@ -17,6 +30,33 @@ import mongoose from "mongoose";
  */
 export type User2Address = {
 city: string;
+coordinates: User2AddressCoordinate[];
+}
+
+/**
+ * Lean version of User2AnArrayOfSchemasWithArrayDocumentCoordinateDocument
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from `User2AnArrayOfSchemasWithArrayDocumentDocument.toObject()`.
+ * ```
+ * const user2anarrayofschemaswitharraydocumentObject = user2anarrayofschemaswitharraydocument.toObject();
+ * ```
+ */
+export type User2AnArrayOfSchemasWithArrayDocumentCoordinate = {
+lat?: number;
+long?: number;
+}
+
+/**
+ * Lean version of User2AnArrayOfSchemasWithArrayDocumentDocument
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from `User2Document.toObject()`.
+ * ```
+ * const user2Object = user2.toObject();
+ * ```
+ */
+export type User2AnArrayOfSchemasWithArrayDocument = {
+city: string;
+coordinates: User2AnArrayOfSchemasWithArrayDocumentCoordinate[];
 }
 
 /**
@@ -59,8 +99,9 @@ _id: mongoose.Types.ObjectId;
  */
 export type User2 = {
 _id: number;
-address: User2Address;
+address: User2AnArrayOfSchemasWithArrayDocument;
 lastOnlineAt?: Date;
+anArrayOfSchemasWithArrayDocuments: User2AnArrayOfSchemasWithArrayDocument[];
 aMapOfSchemas: Map<string, User2AMapOfSchemaArray>;
 aMapOfSchemaArrays: Map<string, User2AMapOfSchemaArray[]>;
 anArrayOfSchemaMaps: (Map<string, User2AMapOfSchemaArray>)[];
@@ -123,6 +164,16 @@ export type User2Model = mongoose.Model<User2Document, User2Queries> & User2Stat
 export type User2Schema = mongoose.Schema<User2Document, User2Model, User2Methods, User2Queries>
 
 /**
+ * Mongoose Subdocument type
+ * 
+ * Type of `User2AddressDocument["coordinates"]` element.
+ */
+export type User2AddressCoordinateDocument = mongoose.Types.Subdocument & {
+lat?: number;
+long?: number;
+}
+
+/**
  * Mongoose Document type
  * 
  * Pass this type to the Mongoose Model constructor:
@@ -132,6 +183,27 @@ export type User2Schema = mongoose.Schema<User2Document, User2Model, User2Method
  */
 export type User2AddressDocument = mongoose.Document<number> & {
 city: string;
+coordinates: mongoose.Types.DocumentArray<User2AddressCoordinateDocument>;
+}
+
+/**
+ * Mongoose Subdocument type
+ * 
+ * Type of `User2AnArrayOfSchemasWithArrayDocumentDocument["coordinates"]` element.
+ */
+export type User2AnArrayOfSchemasWithArrayDocumentCoordinateDocument = mongoose.Types.Subdocument & {
+lat?: number;
+long?: number;
+}
+
+/**
+ * Mongoose Subdocument type
+ * 
+ * Type of `User2Document["anArrayOfSchemasWithArrayDocuments"]` element.
+ */
+export type User2AnArrayOfSchemasWithArrayDocumentDocument = mongoose.Types.Subdocument & {
+city: string;
+coordinates: mongoose.Types.DocumentArray<User2AnArrayOfSchemasWithArrayDocumentCoordinateDocument>;
 }
 
 /**
@@ -171,8 +243,9 @@ _id: mongoose.Types.ObjectId;
  */
 export type User2Document = mongoose.Document<number, User2Queries> & User2Methods & {
 _id: number;
-address: User2AddressDocument;
+address: User2AnArrayOfSchemasWithArrayDocumentDocument;
 lastOnlineAt?: Date;
+anArrayOfSchemasWithArrayDocuments: mongoose.Types.DocumentArray<User2AnArrayOfSchemasWithArrayDocumentDocument>;
 aMapOfSchemas: mongoose.Types.Map<User2AMapOfSchemaArrayDocument>;
 aMapOfSchemaArrays: mongoose.Types.Map<mongoose.Types.Array<User2AMapOfSchemaArrayDocument>>;
 anArrayOfSchemaMaps: mongoose.Types.Array<mongoose.Types.Map<User2AMapOfSchemaArrayDocument>>;
