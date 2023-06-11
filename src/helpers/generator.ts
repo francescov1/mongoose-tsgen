@@ -260,7 +260,6 @@ export const generateTypes = ({
       const shouldLeanIncludeVirtuals = parser.getShouldLeanIncludeVirtuals(schema);
       // passing modelName causes childSchemas to be processed
 
-      console.log("Calling parseSchema for lean interface");
       const leanInterfaceStr = parser.parseSchema({
         schema,
         modelName,
@@ -270,7 +269,6 @@ export const generateTypes = ({
         noMongoose,
         shouldLeanIncludeVirtuals
       });
-      console.log("Done parseSchema for lean interface");
 
       writer.write(leanInterfaceStr).blankLine();
 
@@ -288,7 +286,6 @@ export const generateTypes = ({
 
       let documentInterfaceStr = "";
       documentInterfaceStr += getSchemaTypes({ schema, modelName });
-      console.log("Calling parseSchema for full interface");
       documentInterfaceStr += parser.parseSchema({
         schema,
         modelName,
@@ -299,7 +296,6 @@ export const generateTypes = ({
         footer: "}",
         shouldLeanIncludeVirtuals
       });
-      console.log("Done parseSchema for full interface");
 
       writer.write(documentInterfaceStr).blankLine();
     });

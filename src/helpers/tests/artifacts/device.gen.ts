@@ -111,8 +111,8 @@ homeName?: string;
  */
 export type Device = {
 name?: string;
-_id: mongoose.Types.ObjectId;
 home?: DeviceHome;
+_id: mongoose.Types.ObjectId;
 }
 
 /**
@@ -195,8 +195,8 @@ status: any;
  */
 export type DeviceDocument = mongoose.Document<mongoose.Types.ObjectId, DeviceQueries> & DeviceMethods & {
 name?: string;
-_id: mongoose.Types.ObjectId;
 home?: DeviceHomeDocument;
+_id: mongoose.Types.ObjectId;
 }
 
 /**
@@ -222,8 +222,8 @@ homeName?: string;
  */
 export type Device2 = {
 name?: string;
-_id: mongoose.Types.ObjectId;
 home?: Device2Home;
+_id: mongoose.Types.ObjectId;
 }
 
 /**
@@ -306,8 +306,8 @@ status: any;
  */
 export type Device2Document = mongoose.Document<mongoose.Types.ObjectId, Device2Queries> & Device2Methods & {
 name?: string;
-_id: mongoose.Types.ObjectId;
 home?: Device2HomeDocument;
+_id: mongoose.Types.ObjectId;
 }
 
 /**
@@ -333,8 +333,8 @@ homeName?: string;
  */
 export type Device3 = {
 name?: string;
-_id: mongoose.Types.ObjectId;
 home?: Device3Home;
+_id: mongoose.Types.ObjectId;
 }
 
 /**
@@ -417,8 +417,8 @@ status: any;
  */
 export type Device3Document = mongoose.Document<mongoose.Types.ObjectId, Device3Queries> & Device3Methods & {
 name?: string;
-_id: mongoose.Types.ObjectId;
 home?: Device3HomeDocument;
+_id: mongoose.Types.ObjectId;
 }
 
 /**
@@ -444,8 +444,8 @@ homeName?: string;
  */
 export type Device4 = {
 name?: string;
-_id: mongoose.Types.ObjectId;
 home?: Device4Home;
+_id: mongoose.Types.ObjectId;
 }
 
 /**
@@ -528,8 +528,8 @@ status: any;
  */
 export type Device4Document = mongoose.Document<mongoose.Types.ObjectId, Device4Queries> & Device4Methods & {
 name?: string;
-_id: mongoose.Types.ObjectId;
 home?: Device4HomeDocument;
+_id: mongoose.Types.ObjectId;
 }
 
 /**
@@ -555,8 +555,8 @@ homeName?: string;
  */
 export type DeviceDefault = {
 name?: string;
-_id: mongoose.Types.ObjectId;
 home?: DeviceDefaultHome;
+_id: mongoose.Types.ObjectId;
 }
 
 /**
@@ -639,8 +639,8 @@ status: any;
  */
 export type DeviceDefaultDocument = mongoose.Document<mongoose.Types.ObjectId, DeviceDefaultQueries> & DeviceDefaultMethods & {
 name?: string;
-_id: mongoose.Types.ObjectId;
 home?: DeviceDefaultHomeDocument;
+_id: mongoose.Types.ObjectId;
 }
 
 /**

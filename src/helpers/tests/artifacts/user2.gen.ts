@@ -59,13 +59,13 @@ _id: mongoose.Types.ObjectId;
  */
 export type User2 = {
 _id: number;
+address: User2Address;
 lastOnlineAt?: Date;
+aMapOfSchemas: Map<string, User2AMapOfSchemaArray>;
+aMapOfSchemaArrays: Map<string, User2AMapOfSchemaArray[]>;
 anArrayOfSchemaMaps: (Map<string, User2AMapOfSchemaArray>)[];
 updatedAt?: Date;
 createdAt?: Date;
-address: User2Address;
-aMapOfSchemas: Map<string, User2AMapOfSchemaArray>;
-aMapOfSchemaArrays: Map<string, User2AMapOfSchemaArray[]>;
 }
 
 /**
@@ -171,13 +171,13 @@ _id: mongoose.Types.ObjectId;
  */
 export type User2Document = mongoose.Document<number, User2Queries> & User2Methods & {
 _id: number;
+address: User2AddressDocument;
 lastOnlineAt?: Date;
+aMapOfSchemas: mongoose.Types.Map<User2AMapOfSchemaArrayDocument>;
+aMapOfSchemaArrays: mongoose.Types.Map<mongoose.Types.Array<User2AMapOfSchemaArrayDocument>>;
 anArrayOfSchemaMaps: mongoose.Types.Array<mongoose.Types.Map<User2AMapOfSchemaArrayDocument>>;
 updatedAt?: Date;
 createdAt?: Date;
-address: User2AddressDocument;
-aMapOfSchemas: mongoose.Types.Map<User2AMapOfSchemaArrayDocument>;
-aMapOfSchemaArrays: mongoose.Types.Map<mongoose.Types.Array<User2AMapOfSchemaArrayDocument>>;
 }
 
 /**

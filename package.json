@@ -14,7 +14,6 @@
   "bugs": "https://github.com/francescov1/mongoose-tsgen/issues",
   "dependencies": {
     "@oclif/core": "^2.1.4",
-    "flat": "^5.0.2",
     "glob": "^7.1.6",
     "lodash": "^4.17.20",
     "mkdirp": "^1.0.4",
@@ -30,7 +29,6 @@
     "typescript": ">= 4"
   },
   "devDependencies": {
-    "oclif": "^3.6.3",
     "@types/eslint": "^7.2.4",
     "@types/flat": "^5.0.1",
     "@types/jest": "^26.0.14",
@@ -45,6 +43,7 @@
     "jest": "^26.4.2",
     "lint-staged": "^10.5.1",
     "mongoose": "^6.1.6",
+    "oclif": "^3.6.3",
     "rimraf": "^3.0.2",
     "ts-jest": "^26.4.1",
     "typescript": "^4.1.3"
