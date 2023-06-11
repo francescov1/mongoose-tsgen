@@ -119,6 +119,7 @@ const BASE_TYPES = [
   "Date",
   Buffer,
   "Buffer",
+  Map,
   mongoose.Types.Buffer,
   mongoose.Schema.Types.Buffer,
   mongoose.Schema.Types.ObjectId,
@@ -145,7 +146,14 @@ export const convertBaseTypeToTs = (
     return "any";
   }
 
-  const mongooseType = val.type === Map ? val.of : val.type;
+  const isMap = val.type === Map;
+  const mongooseType = isMap ? val.of : val.type;
+
+  // If the user specifies a map with no type, we set to any
+  if (isMap && !mongooseType) {
+    return "any";
+  }
+
   switch (mongooseType) {
     case String:
     case "String":
@@ -185,6 +193,8 @@ export const convertBaseTypeToTs = (
     default:
       // TODO: See if we can detect nested type vs unknown type, and throw a specific error which mentions the key name
       // For a nested type, we should simply see an object with additional fields nested
+      // TODO: We should at least be able to check for an undefined value and retun "any" in that case
+
       // if (_.isPlainObject(val) && Object.keys(val).length > 0) {
       //   // This indicates to the parent func that this type is nested and we need to traverse one level deeper
       //   return "{}"
@@ -402,7 +412,7 @@ export const getParseKeyFn = (
       isOptional = isArrayOuterDefaultSetToUndefined ?? false;
     } else if (val._inferredInterfaceName) {
       valType = val._inferredInterfaceName + (isDocument ? "Document" : "");
-    } else if (isMap && val.of._inferredInterfaceName) {
+    } else if (isMap && val.of?._inferredInterfaceName) {
       valType = val.of._inferredInterfaceName + (isDocument ? "Document" : "");
       isOptional = val.of.required !== true;
     } else if (val.path && val.path && val.setters && val.getters) {

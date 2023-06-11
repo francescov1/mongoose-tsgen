@@ -65,6 +65,11 @@ const UserSchema: UserSchema = new Schema({
     type: Map,
     of: [Number]
   },
+  untypedMap: Map,
+  untypedRequiredMap: {
+    type: Map,
+    required: true
+  },
   requiredIsFunction: {
     type: Number,
     required: function (this: UserDocument) {
