@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
-import flatten, { unflatten } from "flat";
 import _ from "lodash";
-
 import * as templates from "./templates";
 
 // TODO: Handle user adding Schema.Types.Map and other alternatives to Mongoose schemas
@@ -209,7 +207,6 @@ const parseChildSchemas = ({
   noMongoose: boolean;
   modelName: string;
 }) => {
-  const flatSchemaTree: any = flatten(schema.tree, { safe: true });
   let childInterfaces = "";
 
   // NOTE: This is a hack for Schema maps. For some reason, when a map of a schema exists, the schema is not included
@@ -242,7 +239,7 @@ const parseChildSchemas = ({
       child.schema._isSchemaMap = isSchemaMap;
 
       const requiredValuePath = `${path}.required`;
-      if (requiredValuePath in flatSchemaTree && flatSchemaTree[requiredValuePath] === true) {
+      if (_.get(schema.tree, requiredValuePath) === true) {
         child.schema.required = true;
       }
 
@@ -252,24 +249,20 @@ const parseChildSchemas = ({
        */
       if (isSubdocArray) {
         const defaultValuePath = `${path}.default`;
-        if (defaultValuePath in flatSchemaTree && flatSchemaTree[defaultValuePath] === undefined) {
+        if (
+          _.has(schema.tree, defaultValuePath) &&
+          _.get(schema.tree, defaultValuePath) === undefined
+        ) {
           child.schema._isDefaultSetToUndefined = true;
         }
       }
 
       if (isSchemaMap) {
-        flatSchemaTree[path] = { type: Map, of: isSubdocArray ? [child.schema] : child.schema };
+        _.set(schema.tree, path, { type: Map, of: isSubdocArray ? [child.schema] : child.schema });
       } else if (isSubdocArray) {
-        flatSchemaTree[path] = [child.schema];
+        _.set(schema.tree, path, [child.schema]);
       } else {
-        flatSchemaTree[path] = child.schema;
-      }
-
-      // since we now will process this child by using the schema, we can remove any further nested properties in flatSchemaTree
-      for (const key in flatSchemaTree) {
-        if (key.startsWith(path) && key.length > path.length && key[path.length] === ".") {
-          delete flatSchemaTree[key];
-        }
+        _.set(schema.tree, path, child.schema);
       }
 
       let header = "";
@@ -318,10 +311,6 @@ const parseChildSchemas = ({
   };
 
   schema.childSchemas.forEach(processChild(modelName));
-
-  const schemaTree = unflatten(flatSchemaTree);
-  schema.tree = schemaTree;
-
   return childInterfaces;
 };
 
@@ -456,6 +445,7 @@ export const getParseKeyFn = (
     } else {
       // _ids are always required
       if (key === "_id") isOptional = false;
+
       const convertedType = convertBaseTypeToTs(key, val, isDocument, noMongoose);
 
       // TODO: we should detect nested types from unknown types and handle differently.
@@ -526,7 +516,6 @@ export const parseSchema = ({
   template += header;
 
   const schemaTree = schema.tree;
-
   const parseKey = getParseKeyFn(isDocument, shouldLeanIncludeVirtuals, noMongoose);
 
   Object.keys(schemaTree).forEach((key: string) => {

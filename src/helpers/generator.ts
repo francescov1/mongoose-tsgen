@@ -259,6 +259,7 @@ export const generateTypes = ({
 
       const shouldLeanIncludeVirtuals = parser.getShouldLeanIncludeVirtuals(schema);
       // passing modelName causes childSchemas to be processed
+
       const leanInterfaceStr = parser.parseSchema({
         schema,
         modelName,
