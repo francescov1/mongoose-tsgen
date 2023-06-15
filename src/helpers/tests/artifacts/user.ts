@@ -55,6 +55,10 @@ const UserSchema: UserSchema = new Schema({
     type: Map,
     of: String
   },
+  mapWithSchemaType: {
+    type: mongoose.Schema.Types.Map,
+    of: Number
+  },
   arrayOfMaps: [
     {
       type: Map,
@@ -66,6 +70,7 @@ const UserSchema: UserSchema = new Schema({
     of: [Number]
   },
   untypedMap: Map,
+  untypedSchemaMap: mongoose.Schema.Types.Map,
   untypedRequiredMap: {
     type: Map,
     required: true

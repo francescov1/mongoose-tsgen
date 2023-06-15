@@ -108,6 +108,10 @@ export const parseFunctions = (
   return interfaceString;
 };
 
+const isMapType = (val: any): boolean => {
+  return val === Map || val === mongoose.Schema.Types.Map;
+};
+
 const BASE_TYPES = [
   Object,
   String,
@@ -121,6 +125,7 @@ const BASE_TYPES = [
   Buffer,
   "Buffer",
   Map,
+  mongoose.Schema.Types.Map,
   mongoose.Types.Buffer,
   mongoose.Schema.Types.Buffer,
   mongoose.Schema.Types.ObjectId,
@@ -147,7 +152,7 @@ export const convertBaseTypeToTs = (
     return "any";
   }
 
-  const isMap = val.type === Map;
+  const isMap = isMapType(val.type);
   const mongooseType = isMap ? val.of : val.type;
 
   // If the user specifies a map with no type, we set to any
@@ -197,11 +202,9 @@ export const convertBaseTypeToTs = (
         return "{}";
       }
 
-      if (process.env.DEBUG) {
-        console.warn(
-          `parser: Unknown type detected for field "${key}", using type "any". Please create an issue in the mongoose-tsgen GitHub repo to have this case handled.`
-        );
-      }
+      console.warn(
+        `parser: Unknown type detected for field "${key}", using type "any". Please create an issue in the mongoose-tsgen GitHub repo to have this case handled.`
+      );
 
       return "any";
   }
@@ -397,7 +400,7 @@ export const getParseKeyFn = (
 
     if (BASE_TYPES.includes(val)) val = { type: val };
 
-    const isMap = val?.type === Map;
+    const isMap = isMapType(val?.type);
 
     // // handles maps of arrays as per https://github.com/francescov1/mongoose-tsgen/issues/63
     if (isMap && Array.isArray(val.of)) {
