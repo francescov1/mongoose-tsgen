@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import _ from "lodash";
 import * as templates from "./templates";
 
+// TODO: See if populate doc issue is still present in mongoose 7
+
 // TODO: Switch to using HydratedDocument, https://mongoosejs.com/docs/migrating_to_7.html. Also update query helpers https://mongoosejs.com/docs/typescript/query-helpers.html
 
 export const getShouldLeanIncludeVirtuals = (schema: any) => {
@@ -190,18 +192,18 @@ export const convertBaseTypeToTs = (
     case Object:
       return "any";
     default:
-      // TODO: See if we can detect nested type vs unknown type, and throw a specific error which mentions the key name
-      // For a nested type, we should simply see an object with additional fields nested
-      // TODO: We should at least be able to check for an undefined value and retun "any" in that case
+      if (_.isPlainObject(val)) {
+        // This indicates to the parent func that this type is nested and we need to traverse one level deeper
+        return "{}";
+      }
 
-      // if (_.isPlainObject(val) && Object.keys(val).length > 0) {
-      //   // This indicates to the parent func that this type is nested and we need to traverse one level deeper
-      //   return "{}"
-      // }
+      if (process.env.DEBUG) {
+        console.warn(
+          `parser: Unknown type detected for field "${key}", using type "any". Please create an issue in the mongoose-tsgen GitHub repo to have this case handled.`
+        );
+      }
 
-      // console.log(`Unknown type, key ${key} val: `, val)
-      // process.exit()
-      return "{}";
+      return "any";
   }
 };
 
@@ -430,7 +432,7 @@ export const getParseKeyFn = (
         "get",
         "set",
         "schemaName",
-        // "_defaultCaster", // TODO: New field found in these objects
+        "_defaultCaster",
         "defaultOptions",
         "_checkRequired",
         "_cast",
