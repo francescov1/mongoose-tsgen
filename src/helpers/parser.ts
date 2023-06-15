@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import _ from "lodash";
 import * as templates from "./templates";
 
-// TODO: See if populate doc issue is still present in mongoose 7
+// TODO: Handle statics method issue
 
 // TODO: Switch to using HydratedDocument, https://mongoosejs.com/docs/migrating_to_7.html. Also update query helpers https://mongoosejs.com/docs/typescript/query-helpers.html
 

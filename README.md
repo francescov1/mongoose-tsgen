@@ -53,7 +53,7 @@ Find your Mongoose version below and install the associated mongoose-tsgen versi
 | 5.11.0-5.11.18 | [7.1.3](https://github.com/francescov1/mongoose-tsgen/blob/85ccc70b13e875b0de135a171563292fa58e5472/README.md)          |
 | <5.11.0        | [6.0.10](https://github.com/francescov1/mongoose-tsgen/blob/12d2f693957f61776d5b6addf23a8b051c99294c/README.md)         |
 
-> Note: For Mongoose >= v6.3.2, see [Known Issues](#known-issues) first.
+> Note: For Mongoose `v6.3.2 - v6.4.0`, see [Known Issues](#known-issues) first.
 
 # Installation
 
@@ -379,11 +379,11 @@ export type UserDocument = mongoose.Document<mongoose.Types.ObjectId, UserQuerie
 
 ### Type instantiation is excessively deep and possibly infinite
 
-This issue occurs as of Mongoose v6.3.2 due to a conflict in types.
+This issue is present when using **Mongoose v6.3.2 - v6.4.0** due to a conflict in types.
 
-In the meantime, you can get around this using one of the following options:
-- Fix your Mongoose version to v6.3.1 or below.
-- Use `--no-populate-overload` flag with this package.
+Workarounds:
+- Fix your Mongoose version to `<6.3.2` or `>6.4.0`.
+- Use the `--no-populate-overload` flag.
 
 References:
 - https://github.com/Automattic/mongoose/issues/11787
