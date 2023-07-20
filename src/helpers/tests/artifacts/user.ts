@@ -115,6 +115,10 @@ const UserSchema: UserSchema = new Schema({
   },
   "special-character": {
     type: String
+  },
+  typeWithAnAlias: {
+    type: Number,
+    alias: "alias.field"
   }
 }, {
   toObject: {

@@ -38,6 +38,7 @@ const formatKeyEntry = ({
     if (isOptional) line += "?";
     line += ": ";
   }
+
   line += val + ";";
   if (newline) line += "\n";
   return line;
@@ -63,6 +64,7 @@ export const convertFuncSignatureToType = (
       returnType ?? "any"
     }`;
   }
+
   return type;
 };
 
@@ -75,6 +77,7 @@ export const convertToSingular = (str: string) => {
   if (str.endsWith("s") && !str.endsWith("ss")) {
     return str.slice(0, -1);
   }
+
   return str;
 };
 
@@ -112,7 +115,7 @@ const isMapType = (val: any): boolean => {
   return val === Map || val === mongoose.Schema.Types.Map;
 };
 
-const BASE_TYPES = [
+const BASE_TYPES = new Set([
   Object,
   String,
   "String",
@@ -132,7 +135,7 @@ const BASE_TYPES = [
   mongoose.Types.ObjectId,
   mongoose.Types.Decimal128,
   mongoose.Schema.Types.Decimal128
-];
+]);
 
 export const convertBaseTypeToTs = (
   key: string,
@@ -208,6 +211,12 @@ export const convertBaseTypeToTs = (
 
       return "any";
   }
+};
+
+const addAliaseTypesToTree = ({ schema }: { schema: any }) => {
+  Object.entries(schema.aliases).forEach(([alias, path]: [string, any]) => {
+    _.set(schema.tree, `${alias}._aliasRootField`, _.get(schema.tree, path));
+  });
 };
 
 const parseChildSchemas = ({
@@ -398,7 +407,7 @@ export const getParseKeyFn = (
       }
     }
 
-    if (BASE_TYPES.includes(val)) val = { type: val };
+    if (BASE_TYPES.has(val)) val = { type: val };
 
     const isMap = isMapType(val?.type);
 
@@ -426,6 +435,13 @@ export const getParseKeyFn = (
 
       // if not lean doc and lean docs shouldnt include virtuals, ignore entry
       if (!isDocument && !shouldLeanIncludeVirtuals) return "";
+
+      // If the val has the _aliasRootField property, it means this field is an alias for another field, and _aliasRootField contains the other field's type.
+      // So we can re-call this function using _aliasRootField.
+      if (val._aliasRootField) {
+        const parseKey = getParseKeyFn(isDocument, shouldLeanIncludeVirtuals, noMongoose);
+        return parseKey(key, val._aliasRootField);
+      }
 
       valType = "any";
       isOptional = false;
@@ -527,6 +543,10 @@ export const parseSchema = ({
     template += parseChildSchemas({ schema, isDocument, noMongoose, modelName });
   }
 
+  if (!_.isEmpty(schema.aliases) && modelName) {
+    addAliaseTypesToTree({ schema });
+  }
+
   template += header;
 
   const schemaTree = schema.tree;
@@ -560,9 +580,8 @@ export const loadSchemas = (modelsPaths: string[]) => {
     try {
       exportedData = require(singleModelPath);
     } catch (err) {
-      if ((err as Error).message?.includes(`Cannot find module '${singleModelPath}'`))
-        throw new Error(`Could not find a module at path ${singleModelPath}.`);
-      else throw err;
+      const error = (err as Error).message?.includes(`Cannot find module '${singleModelPath}'`) ? new Error(`Could not find a module at path ${singleModelPath}.`) : err;
+      throw error;
     }
 
     const prevSchemaCount = Object.keys(schemas).length;
