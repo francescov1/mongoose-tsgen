@@ -2,7 +2,7 @@ import glob from "glob";
 import path from "path";
 import * as fs from "fs";
 
-export const getConfigFromFile = (configPath?: string): object => {
+export const getConfigFromFile = (configPath?: string): Record<string, unknown> => {
   // if no path provided, check root path for mtgen.config.json file. If doesnt exist, return empty object.
   if (!configPath) {
     const defaultPath = path.join(process.cwd(), "mtgen.config.json");

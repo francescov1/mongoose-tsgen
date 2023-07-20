@@ -85,6 +85,10 @@ otherStringString: string;
 enumWithNull?: "a" | "b" | "c" | null;
 enumWithoutNull?: "a" | "b" | "c";
 "special-character"?: string;
+typeWithAnAlias?: number;
+alias: {
+field?: number;
+};
 _id: mongoose.Types.ObjectId;
 name: string;
 }
@@ -218,6 +222,10 @@ otherStringString: string;
 enumWithNull?: "a" | "b" | "c" | null;
 enumWithoutNull?: "a" | "b" | "c";
 "special-character"?: string;
+typeWithAnAlias?: number;
+alias: {
+field?: number;
+};
 _id: mongoose.Types.ObjectId;
 name: string;
 }

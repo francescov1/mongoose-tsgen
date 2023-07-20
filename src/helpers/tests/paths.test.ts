@@ -14,7 +14,7 @@ describe("getModelsPaths", () => {
     // here the returned value should be an array containing paths of each individual schema
     const expected = [path.join(__dirname, "dist/models/user.ts")];
 
-    let modelsPath = await paths.getModelsPaths(undefined);
+    let modelsPath = await paths.getModelsPaths();
     expect(modelsPath).toEqual(expected);
 
     // empty string path
@@ -30,7 +30,7 @@ describe("getModelsPaths", () => {
     // here the returned value should be an array containing paths of each individual schema
     const expected = [path.join(__dirname, "models/user.ts")];
 
-    let modelsPath = await paths.getModelsPaths(undefined);
+    let modelsPath = await paths.getModelsPaths();
     expect(modelsPath).toEqual(expected);
 
     modelsPath = await paths.getModelsPaths("");
