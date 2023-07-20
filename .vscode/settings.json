@@ -1,0 +1,9 @@
+{
+  "eslint.validate": [
+    "typescript",
+    "javascript"
+  ],
+  "eslint.options": {
+    "configFile": ".eslintrc"
+  }
+}
