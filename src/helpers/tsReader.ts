@@ -363,10 +363,9 @@ export const getModelTypes = (modelsPaths: string[], maxCommentDepth = 2): Model
 };
 
 export const registerUserTs = (basePath: string): (() => void) | null => {
-  let pathToSearch: string;
-  if (basePath.endsWith(".json")) pathToSearch = basePath;
-  else pathToSearch = path.join(basePath, "**/tsconfig.json");
-
+  const pathToSearch = basePath.endsWith(".json") ?
+    basePath :
+    path.join(basePath, "**/tsconfig.json");
   const files = glob.sync(pathToSearch, { ignore: "**/node_modules/**" });
 
   if (files.length === 0) throw new Error(`No tsconfig.json file found at path "${basePath}"`);

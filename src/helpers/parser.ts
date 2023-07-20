@@ -320,7 +320,6 @@ const parseChildSchemas = ({
       } else header += `type ${name} = {\n`;
 
       // TODO: this should not circularly call parseSchema
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       childInterfaces += parseSchema({
         schema: child.schema,
         modelName: name,
@@ -580,7 +579,9 @@ export const loadSchemas = (modelsPaths: string[]) => {
     try {
       exportedData = require(singleModelPath);
     } catch (err) {
-      const error = (err as Error).message?.includes(`Cannot find module '${singleModelPath}'`) ? new Error(`Could not find a module at path ${singleModelPath}.`) : err;
+      const error = (err as Error).message?.includes(`Cannot find module '${singleModelPath}'`) ?
+        new Error(`Could not find a module at path ${singleModelPath}.`) :
+        err;
       throw error;
     }
 
