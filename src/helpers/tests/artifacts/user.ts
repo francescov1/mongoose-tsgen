@@ -119,6 +119,10 @@ const UserSchema: UserSchema = new Schema({
   typeWithAnAlias: {
     type: Number,
     alias: "alias.field"
+  },
+  optionalBaseTypeArray: {
+    type: [String],
+    default: undefined
   }
 }, {
   toObject: {

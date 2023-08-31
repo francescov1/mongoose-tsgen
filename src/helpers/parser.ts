@@ -344,7 +344,6 @@ export const getParseKeyFn = (
   return (key: string, valOriginal: any): string => {
     // if the value is an object, we need to deepClone it to ensure changes to `val` aren't persisted in parent function
     let val = _.isPlainObject(valOriginal) ? _.cloneDeep(valOriginal) : valOriginal;
-
     let valType: string | undefined;
 
     const requiredValue = Array.isArray(val.required) ? val.required[0] : val.required;
@@ -400,9 +399,14 @@ export const getParseKeyFn = (
         if (val.type.ref) val.ref = val.type.ref;
         val.type = val.type.type;
         isOptional = false;
-      } else {
+      } else if (val.index === "2dsphere") {
         // 2dsphere index is a special edge case which does not have an inherent default value of []
-        isOptional = val.index === "2dsphere" ? true : isArrayOuterDefaultSetToUndefined;
+        isOptional = true;
+      } else if ("default" in val && val.default === undefined) {
+        // If default: undefined, it means the field should not default with an empty array.
+        isOptional = true;
+      } else {
+        isOptional = isArrayOuterDefaultSetToUndefined;
       }
     }
 

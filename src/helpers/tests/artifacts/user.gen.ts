@@ -86,6 +86,7 @@ enumWithNull?: "a" | "b" | "c" | null;
 enumWithoutNull?: "a" | "b" | "c";
 "special-character"?: string;
 typeWithAnAlias?: number;
+optionalBaseTypeArray?: string[];
 alias: {
 field?: number;
 };
@@ -223,6 +224,7 @@ enumWithNull?: "a" | "b" | "c" | null;
 enumWithoutNull?: "a" | "b" | "c";
 "special-character"?: string;
 typeWithAnAlias?: number;
+optionalBaseTypeArray?: mongoose.Types.Array<string>;
 alias: {
 field?: number;
 };
