@@ -30,7 +30,7 @@ export const getModelsPaths = (basePath?: string): string[] => {
     const { ext } = path.parse(basePath);
 
     // if path points to a folder, search for ts files in folder.
-    const modelsFolderPath = ext === "" ? path.join(basePath, "*.ts") : basePath;
+    const modelsFolderPath = ext === "" ? path.join(basePath, "**/*.ts") : basePath;
 
     modelsPaths = glob.sync(modelsFolderPath, {
       ignore: "**/node_modules/**"
