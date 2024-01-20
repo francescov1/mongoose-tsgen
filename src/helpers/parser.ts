@@ -255,14 +255,13 @@ const parseChildSchemas = ({
       const path = child.model.path;
       const isSubdocArray = child.model.$isArraySubdocument;
       const isSchemaMap = child.model.$isSchemaMap ?? false;
-      const name = getSubDocName(path, rootPath);
+      let name = getSubDocName(path, rootPath);
 
-      // TODO: Implement this
       // // If a user names a field "model", it will conflict with the model name, so we need to rename it.
       // // https://github.com/francescov1/mongoose-tsgen/issues/128
-      // if (name === `${modelName}Model`) {
-      //   name += "Field";
-      // }
+      if (name === `${modelName}Model`) {
+        name += "Field";
+      }
 
       child.schema._isReplacedWithSchema = true;
       child.schema._inferredInterfaceName = name;
