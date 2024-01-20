@@ -82,6 +82,17 @@ const UserSchema: UserSchema = new Schema({
       return !!this.alternateObjectId
     }
   },
+  // Next two fields: https://github.com/francescov1/mongoose-tsgen/issues/124
+  arrayExplicitelyRequiredFalse: {
+    type: [String],
+    required: false,
+    default: []
+  },
+  requiredArrayWithDefaultUndefined: {
+    type: [String],
+    required: true,
+    default: undefined
+  },
   buffer: {
     type: Buffer,
     required: true

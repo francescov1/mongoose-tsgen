@@ -256,6 +256,14 @@ const parseChildSchemas = ({
       const isSubdocArray = child.model.$isArraySubdocument;
       const isSchemaMap = child.model.$isSchemaMap ?? false;
       const name = getSubDocName(path, rootPath);
+
+      // TODO: Implement this
+      // // If a user names a field "model", it will conflict with the model name, so we need to rename it.
+      // // https://github.com/francescov1/mongoose-tsgen/issues/128
+      // if (name === `${modelName}Model`) {
+      //   name += "Field";
+      // }
+
       child.schema._isReplacedWithSchema = true;
       child.schema._inferredInterfaceName = name;
       child.schema._isSubdocArray = isSubdocArray;
@@ -368,6 +376,12 @@ export const getParseKeyFn = (
       } else {
         isOptional = val._isDefaultSetToUndefined ?? false;
       }
+
+      // Array optionality is a bit overcomplicated, see https://github.com/francescov1/mongoose-tsgen/issues/124.
+      // If user explicitely sets required: false, we override our logic and assume they know best.
+      if (requiredValue === false) {
+        isOptional = true;
+      }
     } else if (Array.isArray(val.type)) {
       val.type = val.type[0];
       isArray = true;
@@ -402,11 +416,17 @@ export const getParseKeyFn = (
       } else if (val.index === "2dsphere") {
         // 2dsphere index is a special edge case which does not have an inherent default value of []
         isOptional = true;
-      } else if ("default" in val && val.default === undefined) {
+      } else if ("default" in val && val.default === undefined && requiredValue !== true) {
         // If default: undefined, it means the field should not default with an empty array.
         isOptional = true;
       } else {
         isOptional = isArrayOuterDefaultSetToUndefined;
+      }
+
+      // Array optionality is a bit overcomplicated, see https://github.com/francescov1/mongoose-tsgen/issues/124.
+      // If user explicitely sets required: false, we override our logic and assume they know best.
+      if (requiredValue === false) {
+        isOptional = true;
       }
     }
 
@@ -426,6 +446,12 @@ export const getParseKeyFn = (
       isArray = true;
       valType = "any";
       isOptional = isArrayOuterDefaultSetToUndefined ?? false;
+
+      // Array optionality is a bit overcomplicated, see https://github.com/francescov1/mongoose-tsgen/issues/124.
+      // If user explicitely sets required: false, we override our logic and assume they know best.
+      if (requiredValue === false) {
+        isOptional = true;
+      }
     } else if (val._inferredInterfaceName) {
       valType = val._inferredInterfaceName + (isDocument ? "Document" : "");
     } else if (isMap && val.of?._inferredInterfaceName) {
