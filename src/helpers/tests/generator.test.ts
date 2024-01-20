@@ -82,4 +82,22 @@ describe("generateTypes", () => {
     cleanupTs?.();
     expect(sourceFile.getFullText().trim()).toBe(getExpectedString("user2.gen.ts").trim());
   });
+
+  test("generate model with subdocument field named models", async () => {
+    const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/landingPage.ts");
+    const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
+
+    const schemas = parser.loadSchemas(modelsPaths);
+
+    let sourceFile = generator.createSourceFile(genFilePath);
+    sourceFile = await generator.generateTypes({ schemas, sourceFile });
+
+    const modelTypes = tsReader.getModelTypes(modelsPaths);
+    generator.replaceModelTypes(sourceFile, modelTypes, schemas);
+    generator.addPopulateHelpers(sourceFile);
+    generator.overloadQueryPopulate(sourceFile);
+
+    cleanupTs?.();
+    expect(sourceFile.getFullText().trim()).toBe(getExpectedString("landingPage.gen.ts").trim());
+  });
 });
