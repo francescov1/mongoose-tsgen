@@ -46,6 +46,15 @@ describe("getParseKeyFn", () => {
     // should be required, as usual
     expect(parseKey("test2a", { type: [Number] })).toBe("test2a: number[];\n");
   });
+
+  test("handles Schematypes", () => {
+    const parseKey = parser.getParseKeyFn(false, false, false);
+
+    expect(parseKey("test1a", { type: mongoose.Schema.Types.String })).toBe("test1a?: string;\n");
+    expect(parseKey("test1a", { type: mongoose.Schema.Types.Number })).toBe("test1a?: number;\n");
+    expect(parseKey("test1a", { type: mongoose.Schema.Types.Date })).toBe("test1a?: Date;\n");
+    expect(parseKey("test1a", { type: mongoose.Schema.Types.Boolean })).toBe("test1a?: boolean;\n");
+  });
 });
 
 describe("convertToSingular", () => {

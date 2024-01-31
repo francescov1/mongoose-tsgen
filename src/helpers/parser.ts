@@ -164,6 +164,7 @@ export const convertBaseTypeToTs = (
   }
 
   switch (mongooseType) {
+    case mongoose.Schema.Types.String:
     case String:
     case "String":
       if (val.enum?.length > 0) {
@@ -176,15 +177,18 @@ export const convertBaseTypeToTs = (
       }
 
       return "string";
+    case mongoose.Schema.Types.Number:
     case Number:
     case "Number":
       return key === "__v" ? undefined : "number";
     case mongoose.Schema.Types.Decimal128:
     case mongoose.Types.Decimal128:
       return isDocument ? "mongoose.Types.Decimal128" : "number";
+    case mongoose.Schema.Types.Boolean:
     case Boolean:
     case "Boolean":
       return "boolean";
+    case mongoose.Schema.Types.Date:
     case Date:
     case "Date":
       return "Date";
