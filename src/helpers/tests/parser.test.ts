@@ -51,9 +51,14 @@ describe("getParseKeyFn", () => {
     const parseKey = parser.getParseKeyFn(false, false, false);
 
     expect(parseKey("test1a", { type: mongoose.Schema.Types.String })).toBe("test1a?: string;\n");
-    expect(parseKey("test1a", { type: mongoose.Schema.Types.Number })).toBe("test1a?: number;\n");
-    expect(parseKey("test1a", { type: mongoose.Schema.Types.Date })).toBe("test1a?: Date;\n");
-    expect(parseKey("test1a", { type: mongoose.Schema.Types.Boolean })).toBe("test1a?: boolean;\n");
+    expect(parseKey("test1b", { type: mongoose.Schema.Types.Number })).toBe("test1b?: number;\n");
+    expect(parseKey("test1c", { type: mongoose.Schema.Types.Date })).toBe("test1c?: Date;\n");
+    expect(parseKey("test1d", { type: mongoose.Schema.Types.Boolean })).toBe("test1d?: boolean;\n");
+
+    expect(parseKey("test2a", mongoose.Schema.Types.String)).toBe("test2a?: string;\n");
+    expect(parseKey("test2b", mongoose.Schema.Types.Number)).toBe("test2b?: number;\n");
+    expect(parseKey("test2c", mongoose.Schema.Types.Date)).toBe("test2c?: Date;\n");
+    expect(parseKey("test2d", mongoose.Schema.Types.Boolean)).toBe("test2d?: boolean;\n");
   });
 });
 
