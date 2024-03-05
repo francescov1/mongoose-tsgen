@@ -505,9 +505,10 @@ export const getParseKeyFn = (
         docRef = getSubDocName(docRef);
       }
 
-      valType = isDocument ?
-        `${docRef}Document["_id"] | ${docRef}Document` :
-        `${docRef}["_id"] | ${docRef}`;
+      const populatedType = isDocument ? `${docRef}Document` : docRef;
+      valType = val.autopopulate ? // support for mongoose-autopopulate
+        populatedType :
+        `${populatedType}["_id"] | ${populatedType}`;
     } else {
       // _ids are always required
       if (key === "_id") isOptional = false;
