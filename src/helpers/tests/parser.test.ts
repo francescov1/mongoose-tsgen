@@ -60,6 +60,28 @@ describe("getParseKeyFn", () => {
     expect(parseKey("test2c", mongoose.Schema.Types.Date)).toBe("test2c?: Date;\n");
     expect(parseKey("test2d", mongoose.Schema.Types.Boolean)).toBe("test2d?: boolean;\n");
   });
+
+  test("handles references and mongoose-autopopulate", () => {
+    const parseKey = parser.getParseKeyFn(false, false, false);
+
+    expect(parseKey("test1a", { type: mongoose.Schema.Types.ObjectId, ref: "RefTest" })).toBe(
+      'test1a?: RefTest["_id"] | RefTest;\n'
+    );
+    expect(
+      parseKey("test1b", {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "RefTest",
+        autopopulate: false
+      })
+    ).toBe('test1b?: RefTest["_id"] | RefTest;\n');
+    expect(
+      parseKey("test1c", {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "RefTest",
+        autopopulate: true
+      })
+    ).toBe("test1c?: RefTest;\n");
+  });
 });
 
 describe("convertToSingular", () => {
