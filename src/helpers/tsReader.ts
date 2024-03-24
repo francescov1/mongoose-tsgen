@@ -130,7 +130,6 @@ function findTypesInFile(sourceFile: SourceFile, modelTypes: ModelTypes) {
       let modelName: string;
       const hasSchemaIdentifier = leftChildren.some(child => {
         if (child.getKind() !== SyntaxKind.Identifier) return false;
-
         modelName = schemaModelMapping[child.getText()];
         if (!modelName) return false;
 
@@ -138,7 +137,6 @@ function findTypesInFile(sourceFile: SourceFile, modelTypes: ModelTypes) {
       });
 
       const hasDotToken = leftChildren.some(child => child.getKind() === SyntaxKind.DotToken);
-
       if (!hasSchemaIdentifier || !hasDotToken) continue;
 
       const hasMethodsIdentifier = leftChildren.some(
@@ -291,8 +289,6 @@ function initModelTypes(sourceFile: SourceFile, filePath: string) {
   });
 
   sourceFile.getVariableDeclarations().forEach(d => {
-    if (!d.hasExportKeyword()) return;
-
     const { modelName, schemaVariableName } = parseModelInitializer(d, isModelNamedImport) ?? {};
     if (!modelName || !schemaVariableName) return;
 
