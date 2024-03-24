@@ -165,6 +165,8 @@ UserSchema.query = {
   }
 };
 
-export const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
+const someRandomVar = 2;
+
+const User: UserModel = mongoose.model<UserDocument, UserModel>("User", UserSchema);
 
 export default User;
