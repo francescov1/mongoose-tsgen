@@ -388,8 +388,16 @@ export const registerUserTs = (basePath: string): (() => void) | null => {
   try {
     const tsConfig = JSON.parse(stripJsonComments(tsConfigString));
     if (tsConfig?.compilerOptions?.paths) {
+      const baseUrl = process.cwd();
+      if (process.env.DEBUG) {
+        console.log(
+          "tsreader: Found paths field in tsconfig.json, registering project with tsconfig-paths using baseUrl " +
+            baseUrl
+        );
+      }
+
       const cleanup = require("tsconfig-paths").register({
-        baseUrl: process.cwd(),
+        baseUrl,
         paths: tsConfig.compilerOptions.paths
       });
 
