@@ -371,7 +371,16 @@ export const registerUserTs = (basePath: string): (() => void) | null => {
     );
 
   const foundPath = path.join(process.cwd(), files[0]);
-  require("ts-node").register({ transpileOnly: true, project: foundPath });
+  if (process.env.DEBUG) {
+    console.log("tsreader: Registering tsconfig.json with ts-node at path: " + foundPath);
+  }
+  require("ts-node").register({
+    transpileOnly: true,
+    project: foundPath,
+    compilerOptions: {
+      module: "commonjs"
+    }
+  });
 
   // handle path aliases
   const tsConfigString = fs.readFileSync(foundPath, "utf8");
@@ -379,8 +388,16 @@ export const registerUserTs = (basePath: string): (() => void) | null => {
   try {
     const tsConfig = JSON.parse(stripJsonComments(tsConfigString));
     if (tsConfig?.compilerOptions?.paths) {
+      const baseUrl = process.cwd();
+      if (process.env.DEBUG) {
+        console.log(
+          "tsreader: Found paths field in tsconfig.json, registering project with tsconfig-paths using baseUrl " +
+            baseUrl
+        );
+      }
+
       const cleanup = require("tsconfig-paths").register({
-        baseUrl: process.cwd(),
+        baseUrl,
         paths: tsConfig.compilerOptions.paths
       });
 
