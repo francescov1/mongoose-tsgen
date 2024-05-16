@@ -261,8 +261,8 @@ const parseModelInitializer = (
 
   // if model is a named import, we can match this without `mongoose.` prefix
   const pattern = isModelNamedImport ?
-    /model(?:<\w+,\w+(?:,\w+)?>)?\(["'`](\w+)["'`],(\w+),?\)/ :
-    /mongoose\.model(?:<\w+,\w+(?:,\w+)?>)?\(["'`](\w+)["'`],(\w+),?\)/;
+    /model(?:<.+?>)?\(["'`](\w+)["'`],(\w+),?\)/ :
+    /mongoose\.model(?:<.+?>)?\(["'`](\w+)["'`],(\w+),?\)/;
   const modelInitMatch = callExprStr.match(pattern);
   if (!modelInitMatch) {
     if (process.env.DEBUG) {
