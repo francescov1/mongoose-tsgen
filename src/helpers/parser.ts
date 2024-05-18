@@ -501,17 +501,29 @@ export const getParseKeyFn = (
     ) {
       return "";
     } else if (val.ref) {
-      let docRef: string;
+      let docRef = val.ref.replace?.(`'`, "");
 
-      docRef = val.ref.replace(`'`, "");
-      if (docRef.includes(".")) {
-        docRef = getSubDocName(docRef);
+      if (typeof val.ref === "function") {
+        // If we get a function, we cant determine the document that we would populate, so just assume it's an ObjectId
+        valType = "mongoose.Types.ObjectId";
+
+        // If generating the document version, we can also provide document as an option to reflect the populated case. But for
+        // lean docs we can't do this cause we don't have a base type to extend from (since we can't determine it when parsing only JS).
+        // Later the tsReader can implement a function typechecker to subtitute the type with the more exact one.
+        if (isDocument) {
+          valType += " | mongoose.Document";
+        }
+      } else if (docRef) {
+        // If val.ref is an invalid type (not a string) then this gets skipped.
+        if (docRef.includes(".")) {
+          docRef = getSubDocName(docRef);
+        }
+
+        const populatedType = isDocument ? `${docRef}Document` : docRef;
+        valType = val.autopopulate ? // support for mongoose-autopopulate
+          populatedType :
+          `${populatedType}["_id"] | ${populatedType}`;
       }
-
-      const populatedType = isDocument ? `${docRef}Document` : docRef;
-      valType = val.autopopulate ? // support for mongoose-autopopulate
-        populatedType :
-        `${populatedType}["_id"] | ${populatedType}`;
     } else {
       // _ids are always required
       if (key === "_id") isOptional = false;

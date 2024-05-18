@@ -52,6 +52,7 @@ lastName: string;
  */
 metadata?: any;
 bestFriend?: User["_id"] | User;
+refFunction?: mongoose.Types.ObjectId;
 /**
  * multiline
  * jsdoc
@@ -194,6 +195,7 @@ lastName: string;
  */
 metadata?: any;
 bestFriend?: UserDocument["_id"] | UserDocument;
+refFunction?: mongoose.Types.ObjectId | mongoose.Document;
 /**
  * multiline
  * jsdoc
