@@ -29,6 +29,12 @@ const UserSchema: UserSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "User"
   },
+  refFunction: {
+    type: Schema.Types.ObjectId,
+    ref: function () {
+      return "User";
+    }
+  },
   /**
    * multiline
    * jsdoc
