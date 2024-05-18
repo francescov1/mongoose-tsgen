@@ -171,13 +171,16 @@ export const convertBaseTypeToTs = (
     case mongoose.Schema.Types.String:
     case String:
     case "String":
-      if (val.enum?.length > 0) {
-        const includesNull = val.enum.includes(null);
-        const enumValues = val.enum.filter((str: string) => str !== null);
-        let enumString = `"` + enumValues.join(`" | "`) + `"`;
-        if (includesNull) enumString += ` | null`;
+      // NOTE: This handles the `enum` field being both an array of values and being a TS enum (so that we can support this feature: https://github.com/Automattic/mongoose/issues/9546)
+      if (val.enum && Object.values(val.enum)?.length > 0) {
+        // User passed a typescript enum to the enum property of the String field config.
+        const enumValues = Object.values(val.enum);
 
-        return enumString;
+        const includesNull = enumValues.includes(null);
+        const enumValuesWithoutNull = enumValues.filter(str => str !== null);
+        let enumTypscriptType = `"` + enumValuesWithoutNull.join(`" | "`) + `"`;
+        if (includesNull) enumTypscriptType += ` | null`;
+        return enumTypscriptType;
       }
 
       return "string";

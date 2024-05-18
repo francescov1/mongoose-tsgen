@@ -1,6 +1,11 @@
 import mongoose, { Schema } from 'mongoose';
 import { UserDocument, UserModel, UserSchema, UserObject } from "./user.gen";
 
+enum AnEnum {
+  key1 = 'value1',
+  key2 = 'value2',
+}
+
 // UserSchema type
 const UserSchema: UserSchema = new Schema({
   email: {
@@ -123,6 +128,10 @@ const UserSchema: UserSchema = new Schema({
   enumWithoutNull: {
     type: String,
     enum: ["a", "b", "c"]
+  },
+  baseEnumClass: {
+    type: String,
+    enum: AnEnum
   },
   "special-character": {
     type: String
