@@ -103,7 +103,7 @@ const UserSchema: UserSchema = new Schema({
     required: true
   },
   bufferString: 'Buffer',
-  bufferSchemaType: {
+  bufferSchemaTypeWithDefaultNull: {
     type: Schema.Types.Buffer,
     default: null
   },
@@ -120,6 +120,11 @@ const UserSchema: UserSchema = new Schema({
   otherStringString: {
     type: "String",
     required: true
+  },
+  defaultNullString: {
+    type: String,
+    required: true,
+    default: null
   },
   enumWithNull: {
     type: String,

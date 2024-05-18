@@ -555,6 +555,9 @@ export const getParseKeyFn = (
     if (isMap && isMapOfArray)
       valType = isDocument ? `mongoose.Types.Map<${valType}>` : `Map<string, ${valType}>`;
 
+    if (val?.default === null) {
+      valType += " | null";
+    }
     return formatKeyEntry({ key, val: valType, isOptional });
   };
 };
