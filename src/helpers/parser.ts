@@ -141,12 +141,19 @@ const BASE_TYPES = new Set([
   mongoose.Schema.Types.Decimal128
 ]);
 
-export const convertBaseTypeToTs = (
-  key: string,
-  val: any,
-  isDocument: boolean,
-  noMongoose = false
-) => {
+export const convertBaseTypeToTs = ({
+  key,
+  val,
+  isDocument,
+  noMongoose,
+  datesAsStrings
+}: {
+  key: string;
+  val: any;
+  isDocument: boolean;
+  noMongoose: boolean;
+  datesAsStrings: boolean;
+}) => {
   // NOTE: ideally we check actual type of value to ensure its Schema.Types.Mixed (the same way we do with Schema.Types.ObjectId),
   // but this doesnt seem to work for some reason
   // {} is treated as Mixed
@@ -198,7 +205,7 @@ export const convertBaseTypeToTs = (
     case mongoose.Schema.Types.Date:
     case Date:
     case "Date":
-      return "Date";
+      return datesAsStrings ? "string" : "Date";
     case mongoose.Types.Buffer:
     case mongoose.Schema.Types.Buffer:
     case Buffer:
@@ -234,12 +241,14 @@ const parseChildSchemas = ({
   schema,
   isDocument,
   noMongoose,
-  modelName
+  modelName,
+  datesAsStrings
 }: {
   schema: any;
   isDocument: boolean;
   noMongoose: boolean;
   modelName: string;
+  datesAsStrings: boolean;
 }) => {
   let childInterfaces = "";
 
@@ -326,7 +335,13 @@ const parseChildSchemas = ({
           // get type of _id to pass to mongoose.Document
           // this is likely unecessary, since non-subdocs are not allowed to have option _id: false (https://mongoosejs.com/docs/guide.html#_id)
           if ((schema as any).tree._id)
-            _idType = convertBaseTypeToTs("_id", (schema as any).tree._id, true, noMongoose);
+            _idType = convertBaseTypeToTs({
+              key: "_id",
+              val: (schema as any).tree._id,
+              isDocument: true,
+              noMongoose,
+              datesAsStrings
+            });
 
           // TODO: this should extend `${name}Methods` like normal docs, but generator will only have methods, statics, etc. under the model name, not the subdoc model name
           // so after this is generated, we should do a pass and see if there are any child schemas that have non-subdoc definitions.
@@ -345,6 +360,7 @@ const parseChildSchemas = ({
         isDocument,
         footer: `}\n\n`,
         noMongoose,
+        datesAsStrings,
         shouldLeanIncludeVirtuals: getShouldLeanIncludeVirtuals(child.schema)
       });
     };
@@ -357,7 +373,8 @@ const parseChildSchemas = ({
 export const getParseKeyFn = (
   isDocument: boolean,
   shouldLeanIncludeVirtuals: boolean,
-  noMongoose: boolean
+  noMongoose: boolean,
+  datesAsStrings: boolean
 ) => {
   return (key: string, valOriginal: any): string => {
     // if the value is an object, we need to deepClone it to ensure changes to `val` aren't persisted in parent function
@@ -478,7 +495,12 @@ export const getParseKeyFn = (
       // If the val has the _aliasRootField property, it means this field is an alias for another field, and _aliasRootField contains the other field's type.
       // So we can re-call this function using _aliasRootField.
       if (val._aliasRootField) {
-        const parseKey = getParseKeyFn(isDocument, shouldLeanIncludeVirtuals, noMongoose);
+        const parseKey = getParseKeyFn(
+          isDocument,
+          shouldLeanIncludeVirtuals,
+          noMongoose,
+          datesAsStrings
+        );
         return parseKey(key, val._aliasRootField);
       }
 
@@ -528,7 +550,13 @@ export const getParseKeyFn = (
       // _ids are always required
       if (key === "_id") isOptional = false;
 
-      const convertedType = convertBaseTypeToTs(key, val, isDocument, noMongoose);
+      const convertedType = convertBaseTypeToTs({
+        key,
+        val,
+        isDocument,
+        noMongoose,
+        datesAsStrings
+      });
 
       // TODO: we should detect nested types from unknown types and handle differently.
       // Currently, if we get an unknown type (ie not handled) then users run into a "max callstack exceeded error"
@@ -536,7 +564,12 @@ export const getParseKeyFn = (
         const nestedSchema = _.cloneDeep(val);
         valType = "{\n";
 
-        const parseKey = getParseKeyFn(isDocument, shouldLeanIncludeVirtuals, noMongoose);
+        const parseKey = getParseKeyFn(
+          isDocument,
+          shouldLeanIncludeVirtuals,
+          noMongoose,
+          datesAsStrings
+        );
         Object.keys(nestedSchema).forEach((key: string) => {
           valType += parseKey(key, nestedSchema[key]);
         });
@@ -580,7 +613,8 @@ export const parseSchema = ({
   isDocument,
   header = "",
   footer = "",
-  noMongoose = false,
+  noMongoose,
+  datesAsStrings,
   shouldLeanIncludeVirtuals
 }: {
   schema: any;
@@ -588,14 +622,15 @@ export const parseSchema = ({
   isDocument: boolean;
   header?: string;
   footer?: string;
-  noMongoose?: boolean;
+  noMongoose: boolean;
+  datesAsStrings: boolean;
   shouldLeanIncludeVirtuals: boolean;
 }) => {
   let template = "";
   const schema = _.cloneDeep(schemaOriginal);
 
   if (schema.childSchemas && modelName) {
-    template += parseChildSchemas({ schema, isDocument, noMongoose, modelName });
+    template += parseChildSchemas({ schema, isDocument, noMongoose, modelName, datesAsStrings });
   }
 
   if (!_.isEmpty(schema.aliases) && modelName) {
@@ -605,7 +640,7 @@ export const parseSchema = ({
   template += header;
 
   const schemaTree = schema.tree;
-  const parseKey = getParseKeyFn(isDocument, shouldLeanIncludeVirtuals, noMongoose);
+  const parseKey = getParseKeyFn(isDocument, shouldLeanIncludeVirtuals, noMongoose, datesAsStrings);
 
   Object.keys(schemaTree).forEach((key: string) => {
     const val = schemaTree[key];

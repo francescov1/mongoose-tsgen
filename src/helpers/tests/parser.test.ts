@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 describe("getParseKeyFn", () => {
   test("handles untyped Array equivalents as `any[]`", () => {
     // see https://mongoosejs.com/docs/schematypes.html#arrays
-    const parseKey = parser.getParseKeyFn(false, false, false);
+    const parseKey = parser.getParseKeyFn(false, false, false, false);
 
     expect(parseKey("test1a", { type: [mongoose.Schema.Types.Mixed] })).toBe("test1a: any[];\n");
     expect(parseKey("test1b", [mongoose.Schema.Types.Mixed])).toBe("test1b: any[];\n");
@@ -21,7 +21,7 @@ describe("getParseKeyFn", () => {
 
   test("handles Object equivalents as `any`", () => {
     // see https://mongoosejs.com/docs/schematypes.html#mixed
-    const parseKey = parser.getParseKeyFn(false, false, false);
+    const parseKey = parser.getParseKeyFn(false, false, false, false);
 
     expect(parseKey("test1a", { type: mongoose.Schema.Types.Mixed })).toBe("test1a?: any;\n");
     expect(parseKey("test1b", mongoose.Schema.Types.Mixed)).toBe("test1b?: any;\n");
@@ -39,7 +39,7 @@ describe("getParseKeyFn", () => {
   });
 
   test("handles 2dsphere index edge case", () => {
-    const parseKey = parser.getParseKeyFn(false, false, false);
+    const parseKey = parser.getParseKeyFn(false, false, false, false);
 
     // should be optional; not required like normal arrays
     expect(parseKey("test1a", { type: [Number], index: "2dsphere" })).toBe("test1a?: number[];\n");
@@ -48,7 +48,7 @@ describe("getParseKeyFn", () => {
   });
 
   test("handles Schematypes", () => {
-    const parseKey = parser.getParseKeyFn(false, false, false);
+    const parseKey = parser.getParseKeyFn(false, false, false, false);
 
     expect(parseKey("test1a", { type: mongoose.Schema.Types.String })).toBe("test1a?: string;\n");
     expect(parseKey("test1b", { type: mongoose.Schema.Types.Number })).toBe("test1b?: number;\n");
@@ -62,7 +62,7 @@ describe("getParseKeyFn", () => {
   });
 
   test("handles references and mongoose-autopopulate", () => {
-    const parseKey = parser.getParseKeyFn(false, false, false);
+    const parseKey = parser.getParseKeyFn(false, false, false, false);
 
     expect(parseKey("test1a", { type: mongoose.Schema.Types.ObjectId, ref: "RefTest" })).toBe(
       'test1a?: RefTest["_id"] | RefTest;\n'
@@ -81,6 +81,16 @@ describe("getParseKeyFn", () => {
         autopopulate: true
       })
     ).toBe("test1c?: RefTest;\n");
+  });
+
+  test("handles dates as strings", () => {
+    // see https://mongoosejs.com/docs/schematypes.html#arrays
+    const parseKey = parser.getParseKeyFn(false, false, false, true);
+
+    expect(parseKey("aDate", Date)).toBe("aDate?: string;\n");
+    expect(parseKey("aDateType", { type: Date })).toBe("aDateType?: string;\n");
+    expect(parseKey("aDateString", "Date")).toBe("aDateString?: string;\n");
+    expect(parseKey("aDateTypeString", { type: "Date" })).toBe("aDateTypeString?: string;\n");
   });
 });
 

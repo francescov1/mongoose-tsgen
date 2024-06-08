@@ -33,7 +33,12 @@ describe("generateTypes", () => {
 
     const schemas = parser.loadSchemas(modelsPaths);
     let sourceFile = generator.createSourceFile(genFilePath);
-    sourceFile = await generator.generateTypes({ schemas, sourceFile });
+    sourceFile = await generator.generateTypes({
+      schemas,
+      sourceFile,
+      noMongoose: false,
+      datesAsStrings: false
+    });
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
     generator.replaceModelTypes(sourceFile, modelTypes, schemas);
@@ -54,7 +59,12 @@ describe("generateTypes", () => {
     const schemas = parser.loadSchemas(modelsPaths);
 
     let sourceFile = generator.createSourceFile(genFilePath);
-    sourceFile = await generator.generateTypes({ schemas, sourceFile });
+    sourceFile = await generator.generateTypes({
+      schemas,
+      sourceFile,
+      noMongoose: false,
+      datesAsStrings: false
+    });
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
     generator.replaceModelTypes(sourceFile, modelTypes, schemas);
@@ -72,7 +82,12 @@ describe("generateTypes", () => {
     const schemas = parser.loadSchemas(modelsPaths);
 
     let sourceFile = generator.createSourceFile(genFilePath);
-    sourceFile = await generator.generateTypes({ schemas, sourceFile });
+    sourceFile = await generator.generateTypes({
+      schemas,
+      sourceFile,
+      noMongoose: false,
+      datesAsStrings: false
+    });
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
     generator.replaceModelTypes(sourceFile, modelTypes, schemas);
@@ -90,7 +105,12 @@ describe("generateTypes", () => {
     const schemas = parser.loadSchemas(modelsPaths);
 
     let sourceFile = generator.createSourceFile(genFilePath);
-    sourceFile = await generator.generateTypes({ schemas, sourceFile });
+    sourceFile = await generator.generateTypes({
+      schemas,
+      sourceFile,
+      noMongoose: false,
+      datesAsStrings: false
+    });
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
     generator.replaceModelTypes(sourceFile, modelTypes, schemas);
