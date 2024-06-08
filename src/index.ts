@@ -143,7 +143,6 @@ class MongooseTsgen extends Command {
     }
   }
 
-  // TODO: Try without optional params, then remove from readme
   async generateDefinitions(config: MongooseTsgen.Config) {
     const { flags, args } = config;
     const modelsPaths = paths.getModelsPaths(args.model_path);
