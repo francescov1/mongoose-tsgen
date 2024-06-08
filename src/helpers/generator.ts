@@ -232,14 +232,16 @@ export const generateTypes = ({
   sourceFile,
   schemas,
   imports = [],
-  noMongoose
+  noMongoose,
+  datesAsStrings
 }: {
   sourceFile: SourceFile;
   schemas: {
     [modelName: string]: mongoose.Schema;
   };
   imports?: string[];
-  noMongoose?: boolean;
+  noMongoose: boolean;
+  datesAsStrings: boolean;
 }) => {
   sourceFile.addStatements(writer => {
     writer.write(templates.MAIN_HEADER).blankLine();
@@ -267,6 +269,7 @@ export const generateTypes = ({
         header: templates.getLeanDocs(modelName) + `\nexport type ${modelName} = {\n`,
         footer: "}",
         noMongoose,
+        datesAsStrings,
         shouldLeanIncludeVirtuals
       });
 
@@ -279,7 +282,13 @@ export const generateTypes = ({
       // not sure why schema doesnt have `tree` property for typings
       let _idType;
       if ((schema as any).tree._id) {
-        _idType = parser.convertBaseTypeToTs("_id", (schema as any).tree._id, true, noMongoose);
+        _idType = parser.convertBaseTypeToTs({
+          key: "_id",
+          val: (schema as any).tree._id,
+          isDocument: true,
+          noMongoose,
+          datesAsStrings
+        });
       }
 
       const mongooseDocExtend = `mongoose.Document<${_idType ?? "never"}, ${modelName}Queries>`;
@@ -294,7 +303,9 @@ export const generateTypes = ({
           templates.getDocumentDocs(modelName) +
           `\nexport type ${modelName}Document = ${mongooseDocExtend} & ${modelName}Methods & {\n`,
         footer: "}",
-        shouldLeanIncludeVirtuals
+        shouldLeanIncludeVirtuals,
+        noMongoose,
+        datesAsStrings
       });
 
       writer.write(documentInterfaceStr).blankLine();

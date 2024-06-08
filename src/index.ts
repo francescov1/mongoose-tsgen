@@ -69,6 +69,10 @@ class MongooseTsgen extends Command {
       description:
         "Don't generate types that reference mongoose (i.e. documents). Replace ObjectId with string."
     }),
+    "dates-as-strings": Flags.boolean({
+      description:
+        "Dates will be typed as strings. Useful for types returned to a frontend by API requests."
+    }),
     "no-populate-overload": Flags.boolean({
       description:
         "Disable augmenting mongoose with Query.populate overloads (the overloads narrow the return type of populated documents queries)."
@@ -139,6 +143,7 @@ class MongooseTsgen extends Command {
     }
   }
 
+  // TODO: Try without optional params, then remove from readme
   async generateDefinitions(config: MongooseTsgen.Config) {
     const { flags, args } = config;
     const modelsPaths = paths.getModelsPaths(args.model_path);
@@ -151,11 +156,13 @@ class MongooseTsgen extends Command {
     let sourceFile = generator.createSourceFile(genFilePath);
 
     const noMongoose = flags["no-mongoose"];
+    const datesAsStrings = flags["dates-as-strings"];
     sourceFile = generator.generateTypes({
       schemas,
       sourceFile,
       imports: flags.imports,
-      noMongoose
+      noMongoose,
+      datesAsStrings
     });
 
     // only get model types (methods, statics, queries & virtuals) if user does not specify `noMongoose`,

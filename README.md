@@ -148,6 +148,8 @@ OPTIONS
 
   -p, --project=project   [default: ./] Path of `tsconfig.json` or its root folder.
 
+  --dates-as-strings      Dates will be typed as strings. Useful for types returned to a frontend by API requests.
+
   --debug                 Print debug information if anything isn't working
 
   --no-format             Disable formatting generated files with prettier.
@@ -192,11 +194,14 @@ const result = await tsgen.generateDefinitions({
     "no-format": false,
     "no-mongoose": false,
     "no-populate-overload": false,
+    "dates-as-strings": false,
     debug: false,
     output: "./src/interfaces",
     project: "./"
   },
-  args: {}
+  args: {
+    model_path: "./src/models" // optional
+  }
 });
 await result.sourceFile.save();
 ```
