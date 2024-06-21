@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@package-lock-json": ["./package-lock.json"],
+      "@package-json": ["./fake.package.json"]
+    }
+  }
+}
