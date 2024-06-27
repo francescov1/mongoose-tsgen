@@ -383,9 +383,8 @@ export const registerUserTs = (basePath: string): (() => void) | null => {
   });
 
   // handle path aliases
-  const tsConfigString = fs.readFileSync(foundPath, "utf8");
   try {
-    const tsConfig = parseTSConfig(tsConfigString, path.dirname(foundPath));
+    const tsConfig = parseTSConfig(foundPath);
     if (tsConfig?.compilerOptions?.paths) {
       const baseUrl = process.cwd();
       if (process.env.DEBUG) {
@@ -409,18 +408,17 @@ export const registerUserTs = (basePath: string): (() => void) | null => {
   }
 };
 
-export function parseTSConfig(tsConfigString: string, basePath: string) {
+export function parseTSConfig(tsconfigFilePath: string) {
+  const tsConfigString = fs.readFileSync(tsconfigFilePath, "utf8");
+
   const tsConfig = JSON.parse(stripJsonComments(tsConfigString));
 
   // Handle the case where the tsconfig.json file has a "extends" property
   if (tsConfig.extends) {
     // Resolve the path to the extended tsconfig.json file
-    const extendedPath = path.resolve(basePath, tsConfig.extends);
+    const extendedPath = path.resolve(path.dirname(tsconfigFilePath), tsConfig.extends);
     // Read and merge paths from the extended tsconfig.json recursively
-    const extendedConfig = parseTSConfig(
-      fs.readFileSync(extendedPath, "utf8"),
-      path.dirname(extendedPath)
-    );
+    const extendedConfig = parseTSConfig(extendedPath);
     // Merge paths from extendedConfig into tsConfig
     tsConfig.compilerOptions.paths = {
       ...extendedConfig.compilerOptions.paths,
