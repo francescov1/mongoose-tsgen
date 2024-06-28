@@ -3,14 +3,24 @@ import _ from "lodash";
 import { MongooseSchema } from "./types";
 
 export const getSubdocName = (path: string, modelName = "") => {
-  const subDocName =
+  let subDocName =
     modelName +
     path
       .split(".")
       .map((p: string) => p[0].toUpperCase() + p.slice(1))
       .join("");
 
-  return convertToSingular(subDocName);
+  subDocName = convertToSingular(subDocName);
+
+  // // If a user names a field "model", it will conflict with the model name, so we need to rename it.
+  // // https://github.com/francescov1/mongoose-tsgen/issues/128
+  if (subDocName === `${modelName}Model`) {
+    // NOTE: This wasnt behavior for usage from getParseKeyFn, but it should probably be here anyways.
+    // If causes issues, add a param to control it
+    subDocName += "Field";
+  }
+
+  return subDocName;
 };
 
 export const convertToSingular = (str: string) => {
@@ -187,16 +197,12 @@ export const formatKeyEntry = ({
 
 export const loadSchemasFromModelPath = (
   modelsPaths: string[]
-): {
-  [modelName: string]: MongooseSchema;
-} => {
-  const schemas: {
-    [modelName: string]: MongooseSchema;
-  } = {};
+): { schema: MongooseSchema; model: any; modelName: string }[] => {
+  const schemas: { schema: MongooseSchema; model: any; modelName: string }[] = [];
 
   const checkAndRegisterModel = (obj: any): boolean => {
     if (!obj?.modelName || !obj?.schema) return false;
-    schemas[obj.modelName] = obj.schema;
+    schemas.push({ schema: obj.schema, model: obj, modelName: obj.modelName });
     return true;
   };
 
@@ -211,7 +217,7 @@ export const loadSchemasFromModelPath = (
       throw error;
     }
 
-    const prevSchemaCount = Object.keys(schemas).length;
+    const prevSchemaCount = schemas.length;
 
     // NOTE: This was used to find the most likely names of the model based on the filename, and only check those properties for mongoose models. Now, we check all properties, but this could be used as a "strict" option down the road.
 
@@ -253,7 +259,7 @@ export const loadSchemasFromModelPath = (
       checkAndRegisterModel(obj);
     }
 
-    const schemaCount = Object.keys(schemas).length - prevSchemaCount;
+    const schemaCount = schemas.length - prevSchemaCount;
     if (schemaCount === 0) {
       console.warn(
         `A module was found at ${singleModelPath}, but no new exported models were found. If this file contains a Mongoose schema, ensure it is exported and its name does not conflict with others.`

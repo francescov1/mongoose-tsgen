@@ -1,5 +1,4 @@
 import { Project, SourceFile, SyntaxKind, PropertySignature } from "ts-morph";
-import mongoose from "mongoose";
 import * as templates from "./templates";
 import { TsReaderModelTypes } from "../types";
 import { ParserSchema } from "../parser/schema";
@@ -9,6 +8,7 @@ import {
   getShouldLeanIncludeVirtuals,
   loadSchemasFromModelPath
 } from "../parser/utils";
+import { MongooseSchema } from "../parser/types";
 
 // this strips comments of special tokens since ts-morph generates jsdoc tokens automatically
 const cleanComment = (comment: string) => {
@@ -45,9 +45,8 @@ const convertFuncSignatureToType = (
 export const replaceModelTypes = (
   sourceFile: SourceFile,
   modelTypes: TsReaderModelTypes,
-  schemas: {
-    [modelName: string]: mongoose.Schema;
-  }
+  // TODO: Combine with other types
+  schemas: { schema: MongooseSchema; model: any; modelName: string }[]
 ) => {
   Object.entries(modelTypes).forEach(([modelName, types]) => {
     const { methods, statics, query, virtuals, comments } = types;
@@ -106,8 +105,13 @@ export const replaceModelTypes = (
         ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
         ?.getChildrenOfKind(SyntaxKind.PropertySignature);
 
+      // TODO: Review this
+      const { schema } = schemas.find(
+        ({ modelName: schemaModelName }) => schemaModelName === modelName
+      )!;
+
       const leanProperties =
-        getShouldLeanIncludeVirtuals(schemas[modelName]) &&
+        getShouldLeanIncludeVirtuals(schema) &&
         sourceFile
           ?.getTypeAlias(`${modelName}`)
           ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
@@ -304,25 +308,25 @@ export const generateTypes = ({
     //     writer.write("something;");
     // });
 
-    Object.keys(schemas).forEach(modelName => {
-      const schema = schemas[modelName];
-
+    schemas.forEach(({ modelName, schema, model }) => {
       // passing modelName causes childSchemas to be processed
 
       const leanHeader = templates.getLeanDocs(modelName) + `\nexport type ${modelName} = {\n`;
       const leanFooter = "}";
 
-      // TODO: Should only create one ParserSchema, but then export string with options noMongoose, isDocument, etc
-      const leanSchema = new ParserSchema({
+      const parserSchema = new ParserSchema({
         mongooseSchema: schema,
         modelName,
+        model
+      });
+
+      const leanInterfaceStr = parserSchema.generateTemplate({
         isDocument: false,
         noMongoose,
         datesAsStrings,
         header: leanHeader,
         footer: leanFooter
       });
-      const leanInterfaceStr = leanSchema.generateTemplate();
 
       writer.write(leanInterfaceStr).blankLine();
 
@@ -351,17 +355,14 @@ export const generateTypes = ({
         templates.getDocumentDocs(modelName) +
         `\nexport type ${modelName}Document = ${mongooseDocExtend} & ${modelName}Methods & {\n`;
       const documentFooter = "}";
-      // TODO: Should only create one ParserSchema, but then export string with options noMongoose, isDocument, etc
-      const documentSchema = new ParserSchema({
-        mongooseSchema: schema,
-        modelName,
+
+      documentInterfaceStr += parserSchema.generateTemplate({
         isDocument: true,
         noMongoose,
         datesAsStrings,
         header: documentHeader,
         footer: documentFooter
       });
-      documentInterfaceStr += documentSchema.generateTemplate();
 
       writer.write(documentInterfaceStr).blankLine();
     });

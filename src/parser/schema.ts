@@ -11,9 +11,7 @@ import {
 import _ from "lodash";
 import * as templates from "../helpers/templates";
 import { MongooseSchema, ParserSchemaField } from "./types";
-
-// TODO next:
-// - Fix all type issues here. Need to see if mongoose has TS types, otherwise create my own
+import mongoose from "mongoose";
 
 // old TODOs:
 // - Handle statics method issue
@@ -21,20 +19,14 @@ import { MongooseSchema, ParserSchemaField } from "./types";
 
 export class ParserSchema {
   modelName: string;
+  model: any; // TODO: Better type
   mongooseSchema: MongooseSchema;
   fields: ParserSchemaField[];
-  header: string;
-  footer: string;
   methods: Record<string, string> = {};
   statics: Record<string, string> = {};
   queries: Record<string, string> = {};
   virtuals: Record<string, string> = {};
   comments: { path: string; comment: string }[] = [];
-  childSchemas: ParserSchema[];
-
-  datesAsStrings: boolean;
-  isDocument: boolean;
-  noMongoose: boolean;
 
   // schema.tree with custom field _aliasRootField, TODO: Create explicit type for this
   schemaTree: MongooseSchema["tree"] = {};
@@ -43,29 +35,16 @@ export class ParserSchema {
 
   constructor({
     mongooseSchema,
-    datesAsStrings,
-    isDocument,
-    noMongoose,
     modelName,
-    header,
-    footer
+    model
   }: {
     mongooseSchema: MongooseSchema;
-    datesAsStrings: boolean;
-    isDocument: boolean;
-    noMongoose: boolean;
     modelName: string;
-    header: string;
-    footer: string;
+    model: mongoose.Model<any>;
   }) {
+    this.model = model;
     this.modelName = modelName;
     this.mongooseSchema = mongooseSchema;
-    this.datesAsStrings = datesAsStrings;
-    this.isDocument = isDocument;
-    this.noMongoose = noMongoose;
-    this.header = header;
-    this.footer = footer;
-    this.childSchemas = mongooseSchema.childSchemas && modelName ? this.parseChildSchemas() : [];
     this.schemaTree = this.parseTree();
 
     this.fields = this.generateFields(mongooseSchema);
@@ -88,27 +67,93 @@ export class ParserSchema {
     return [];
   }
 
-  public generateTemplate(): string {
+  public generateTemplate({
+    isDocument,
+    noMongoose,
+    datesAsStrings,
+    header,
+    footer
+  }: {
+    isDocument: boolean;
+    noMongoose: boolean;
+    datesAsStrings: boolean;
+    header: string;
+    footer: string;
+  }): string {
     let template = "";
 
-    this.childSchemas.forEach(child => {
-      template += child.generateTemplate();
-    });
+    if (this.mongooseSchema.childSchemas && this.modelName) {
+      const childParserSchemas = this.parseChildSchemas();
 
-    template += this.header;
+      // TODO: Splint into functuon
+      childParserSchemas.forEach(child => {
+        const path = child.model.path;
+
+        const name = getSubdocName(path, this.modelName);
+
+        let header = "";
+        if (isDocument)
+          header += child.mongooseSchema._isSubdocArray ?
+            templates.getSubdocumentDocs(this.modelName, path) :
+            templates.getDocumentDocs(this.modelName);
+        else header += templates.getLeanDocs(this.modelName, name);
+
+        header += "\nexport ";
+
+        if (isDocument) {
+          header += `type ${name}Document = `;
+          if (child.mongooseSchema._isSubdocArray) {
+            header += "mongoose.Types.Subdocument";
+          }
+          // not sure why schema doesnt have `tree` property for typings
+          else {
+            let _idType;
+            // get type of _id to pass to mongoose.Document
+            // this is likely unecessary, since non-subdocs are not allowed to have option _id: false (https://mongoosejs.com/docs/guide.html#_id)
+            if ((this.mongooseSchema as any).tree._id)
+              // TODO: Fix type manually
+              _idType = convertBaseTypeToTs({
+                key: "_id",
+                val: (this.mongooseSchema as any).tree._id,
+                isDocument: true,
+                noMongoose,
+                datesAsStrings
+              });
+
+            // TODO: this should extend `${name}Methods` like normal docs, but generator will only have methods, statics, etc. under the model name, not the subdoc model name
+            // so after this is generated, we should do a pass and see if there are any child schemas that have non-subdoc definitions.
+            // or could just wait until we dont need duplicate subdoc versions of docs (use the same one for both embedded doc and non-subdoc)
+            header += `mongoose.Document<${_idType ?? "never"}>`;
+          }
+
+          header += " & {\n";
+        } else header += `type ${name} = {\n`;
+
+        const footer = `}\n\n`;
+        template += child.generateTemplate({
+          isDocument,
+          noMongoose,
+          datesAsStrings,
+          header,
+          footer
+        });
+      });
+    }
+
+    template += header;
 
     const parseKey = getParseKeyFn({
-      isDocument: this.isDocument,
-      shouldLeanIncludeVirtuals: this.shouldLeanIncludeVirtuals,
-      noMongoose: this.noMongoose,
-      datesAsStrings: this.datesAsStrings
+      isDocument,
+      noMongoose,
+      datesAsStrings,
+      shouldLeanIncludeVirtuals: this.shouldLeanIncludeVirtuals
     });
 
     Object.entries(this.schemaTree).forEach(([key, val]) => {
       template += parseKey(key, val);
     });
 
-    template += this.footer;
+    template += footer;
     return template;
   }
 
@@ -130,6 +175,7 @@ export class ParserSchema {
 
   parseChildSchemas = (): ParserSchema[] => {
     const mongooseChildSchemas = _.cloneDeep(this.mongooseSchema.childSchemas);
+
     const childSchemas: ParserSchema[] = [];
 
     // NOTE: This is a hack for Schema maps. For some reason, when a map of a schema exists, the schema is not included
@@ -155,13 +201,7 @@ export class ParserSchema {
       const path = child.model.path;
       const isSubdocArray = child.model.$isArraySubdocument;
       const isSchemaMap = child.model.$isSchemaMap ?? false;
-      let name = getSubdocName(path, this.modelName);
-
-      // // If a user names a field "model", it will conflict with the model name, so we need to rename it.
-      // // https://github.com/francescov1/mongoose-tsgen/issues/128
-      if (name === `${this.modelName}Model`) {
-        name += "Field";
-      }
+      const name = getSubdocName(path, this.modelName);
 
       child.schema._isReplacedWithSchema = true;
       child.schema._inferredInterfaceName = name;
@@ -198,53 +238,10 @@ export class ParserSchema {
         _.set(this.mongooseSchema.tree, path, child.schema);
       }
 
-      let header = "";
-      if (this.isDocument)
-        header += isSubdocArray ?
-          templates.getSubdocumentDocs(this.modelName, path) :
-          templates.getDocumentDocs(this.modelName);
-      else header += templates.getLeanDocs(this.modelName, name);
-
-      header += "\nexport ";
-
-      if (this.isDocument) {
-        header += `type ${name}Document = `;
-        if (isSubdocArray) {
-          header += "mongoose.Types.Subdocument";
-        }
-        // not sure why schema doesnt have `tree` property for typings
-        else {
-          let _idType;
-          // get type of _id to pass to mongoose.Document
-          // this is likely unecessary, since non-subdocs are not allowed to have option _id: false (https://mongoosejs.com/docs/guide.html#_id)
-          if ((this.mongooseSchema as any).tree._id)
-            // TODO: Fix type manually
-            _idType = convertBaseTypeToTs({
-              key: "_id",
-              val: (this.mongooseSchema as any).tree._id,
-              isDocument: true,
-              noMongoose: this.noMongoose,
-              datesAsStrings: this.datesAsStrings
-            });
-
-          // TODO: this should extend `${name}Methods` like normal docs, but generator will only have methods, statics, etc. under the model name, not the subdoc model name
-          // so after this is generated, we should do a pass and see if there are any child schemas that have non-subdoc definitions.
-          // or could just wait until we dont need duplicate subdoc versions of docs (use the same one for both embedded doc and non-subdoc)
-          header += `mongoose.Document<${_idType ?? "never"}>`;
-        }
-
-        header += " & {\n";
-      } else header += `type ${name} = {\n`;
-
-      // TODO: this should not circularly call parseSchema
       const childSchema = new ParserSchema({
         mongooseSchema: child.schema,
         modelName: name,
-        header,
-        isDocument: this.isDocument,
-        footer: `}\n\n`,
-        noMongoose: this.noMongoose,
-        datesAsStrings: this.datesAsStrings
+        model: child.model
       });
 
       childSchemas.push(childSchema);

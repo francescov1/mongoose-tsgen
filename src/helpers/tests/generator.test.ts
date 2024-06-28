@@ -53,7 +53,7 @@ describe("generateTypes", () => {
   // TODO: the next 2 tests are kinda random and out of place. First one covers all the latest changes
   // related to allowing multiple schemas per model file. Second covers a few niche schema options.
   // Both should be split into unit tests once their code has been modularized
-  test.skip("generate different types of model inits", async () => {
+  test("generate different types of model inits", async () => {
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/device.ts");
     const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
 
@@ -76,7 +76,7 @@ describe("generateTypes", () => {
     expect(sourceFile.getFullText().trim()).toBe(getExpectedString("device.gen.ts").trim());
   });
 
-  test.skip("generate other schema options", async () => {
+  test("generate other schema options", async () => {
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/user2.ts");
     const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
 
@@ -98,7 +98,7 @@ describe("generateTypes", () => {
     expect(sourceFile.getFullText().trim()).toBe(getExpectedString("user2.gen.ts").trim());
   });
 
-  test.skip("generate model with subdocument field named models", async () => {
+  test("generate model with subdocument field named models", async () => {
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/landingPage.ts");
     const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
 
