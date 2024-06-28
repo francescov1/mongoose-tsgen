@@ -282,10 +282,6 @@ export const getParseKeyFn = ({
     let val = _.isPlainObject(valOriginal) ? _.cloneDeep(valOriginal) : valOriginal;
     let valType: string | undefined;
 
-    if (key === "subdocWithoutDefault") {
-      console.log("getParseKeyFn - ", `${key}: `, val);
-    }
-
     const requiredValue = Array.isArray(val.required) ? val.required[0] : val.required;
     let isOptional = requiredValue !== true;
 
@@ -298,6 +294,16 @@ export const getParseKeyFn = ({
      * with an empty array
      */
     const isArrayOuterDefaultSetToUndefined = Boolean(val._isDefaultSetToUndefined);
+
+    if (key === "subdocWithoutDefault") {
+      console.log("\n\nisArrayOuterDefaultSetToUndefined - ", isArrayOuterDefaultSetToUndefined);
+      console.log("requiredValue - ", requiredValue);
+      console.log("isOptional - ", isOptional);
+      console.log("isArray - ", isArray);
+      console.log("isUntypedArray - ", isUntypedArray);
+      console.log("isMapOfArray - ", isMapOfArray);
+      console.log("FIELD VALUE - ", `${key}: `, val);
+    }
 
     // this means its a subdoc
     if (isArray) {
@@ -349,7 +355,9 @@ export const getParseKeyFn = ({
         // 2dsphere index is a special edge case which does not have an inherent default value of []
         isOptional = true;
       } else if ("default" in val && val.default === undefined && requiredValue !== true) {
-        console.log(`"default" in val && val.default === undefined && requiredValue !== true`);
+        console.log(
+          `"default" in val && val.default === undefined && requiredValue !== true - ${key}`
+        );
         // If default: undefined, it means the field should not default with an empty array.
         isOptional = true;
       } else {

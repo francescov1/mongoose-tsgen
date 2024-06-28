@@ -168,9 +168,6 @@ export class ParserSchema {
       child.schema._isSubdocArray = isSubdocArray;
       child.schema._isSchemaMap = isSchemaMap;
 
-      // TODO: Can i unify this with this.schemaTree?
-      // const schemaTree = this.mongooseSchema.tree;
-
       const requiredValuePath = `${path}.required`;
       if (_.get(this.mongooseSchema.tree, requiredValuePath) === true) {
         child.schema.required = true;
