@@ -1,10 +1,15 @@
-import * as parser from "../parser";
+import { convertToSingular, getParseKeyFn } from "../utils";
 import mongoose from "mongoose";
 
 describe("getParseKeyFn", () => {
   test("handles untyped Array equivalents as `any[]`", () => {
     // see https://mongoosejs.com/docs/schematypes.html#arrays
-    const parseKey = parser.getParseKeyFn(false, false, false, false);
+    const parseKey = getParseKeyFn({
+      isDocument: false,
+      shouldLeanIncludeVirtuals: false,
+      noMongoose: false,
+      datesAsStrings: false
+    });
 
     expect(parseKey("test1a", { type: [mongoose.Schema.Types.Mixed] })).toBe("test1a: any[];\n");
     expect(parseKey("test1b", [mongoose.Schema.Types.Mixed])).toBe("test1b: any[];\n");
@@ -21,7 +26,12 @@ describe("getParseKeyFn", () => {
 
   test("handles Object equivalents as `any`", () => {
     // see https://mongoosejs.com/docs/schematypes.html#mixed
-    const parseKey = parser.getParseKeyFn(false, false, false, false);
+    const parseKey = getParseKeyFn({
+      isDocument: false,
+      shouldLeanIncludeVirtuals: false,
+      noMongoose: false,
+      datesAsStrings: false
+    });
 
     expect(parseKey("test1a", { type: mongoose.Schema.Types.Mixed })).toBe("test1a?: any;\n");
     expect(parseKey("test1b", mongoose.Schema.Types.Mixed)).toBe("test1b?: any;\n");
@@ -39,7 +49,12 @@ describe("getParseKeyFn", () => {
   });
 
   test("handles 2dsphere index edge case", () => {
-    const parseKey = parser.getParseKeyFn(false, false, false, false);
+    const parseKey = getParseKeyFn({
+      isDocument: false,
+      shouldLeanIncludeVirtuals: false,
+      noMongoose: false,
+      datesAsStrings: false
+    });
 
     // should be optional; not required like normal arrays
     expect(parseKey("test1a", { type: [Number], index: "2dsphere" })).toBe("test1a?: number[];\n");
@@ -48,7 +63,12 @@ describe("getParseKeyFn", () => {
   });
 
   test("handles Schematypes", () => {
-    const parseKey = parser.getParseKeyFn(false, false, false, false);
+    const parseKey = getParseKeyFn({
+      isDocument: false,
+      shouldLeanIncludeVirtuals: false,
+      noMongoose: false,
+      datesAsStrings: false
+    });
 
     expect(parseKey("test1a", { type: mongoose.Schema.Types.String })).toBe("test1a?: string;\n");
     expect(parseKey("test1b", { type: mongoose.Schema.Types.Number })).toBe("test1b?: number;\n");
@@ -62,7 +82,12 @@ describe("getParseKeyFn", () => {
   });
 
   test("handles references and mongoose-autopopulate", () => {
-    const parseKey = parser.getParseKeyFn(false, false, false, false);
+    const parseKey = getParseKeyFn({
+      isDocument: false,
+      shouldLeanIncludeVirtuals: false,
+      noMongoose: false,
+      datesAsStrings: false
+    });
 
     expect(parseKey("test1a", { type: mongoose.Schema.Types.ObjectId, ref: "RefTest" })).toBe(
       'test1a?: RefTest["_id"] | RefTest;\n'
@@ -85,7 +110,12 @@ describe("getParseKeyFn", () => {
 
   test("handles dates as strings", () => {
     // see https://mongoosejs.com/docs/schematypes.html#arrays
-    const parseKey = parser.getParseKeyFn(false, false, false, true);
+    const parseKey = getParseKeyFn({
+      isDocument: false,
+      shouldLeanIncludeVirtuals: false,
+      noMongoose: false,
+      datesAsStrings: true
+    });
 
     expect(parseKey("aDate", Date)).toBe("aDate?: string;\n");
     expect(parseKey("aDateType", { type: Date })).toBe("aDateType?: string;\n");
@@ -96,16 +126,16 @@ describe("getParseKeyFn", () => {
 
 describe("convertToSingular", () => {
   it("should properly convert words ending in sses", () => {
-    expect(parser.convertToSingular("glasses")).toBe("glass");
-    expect(parser.convertToSingular("classes")).toBe("class");
+    expect(convertToSingular("glasses")).toBe("glass");
+    expect(convertToSingular("classes")).toBe("class");
   });
 
   it("should properly convert plural words", () => {
-    expect(parser.convertToSingular("houses")).toBe("house");
-    expect(parser.convertToSingular("users")).toBe("user");
+    expect(convertToSingular("houses")).toBe("house");
+    expect(convertToSingular("users")).toBe("user");
   });
 
   it("should not convert words ending in ss", () => {
-    expect(parser.convertToSingular("grass")).toBe("grass");
+    expect(convertToSingular("grass")).toBe("grass");
   });
 });

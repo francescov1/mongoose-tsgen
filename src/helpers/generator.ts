@@ -1,8 +1,14 @@
 import { Project, SourceFile, SyntaxKind, PropertySignature } from "ts-morph";
 import mongoose from "mongoose";
-import * as parser from "./parser";
 import * as templates from "./templates";
-import { ModelTypes } from "../types";
+import { TsReaderModelTypes } from "../types";
+import { ParserSchema } from "../parser/schema";
+import {
+  convertBaseTypeToTs,
+  formatKeyEntry,
+  getShouldLeanIncludeVirtuals,
+  loadSchemasFromModelPath
+} from "../parser/utils";
 
 // this strips comments of special tokens since ts-morph generates jsdoc tokens automatically
 const cleanComment = (comment: string) => {
@@ -12,9 +18,33 @@ const cleanComment = (comment: string) => {
     .replace(/(\n)?[^\S\r\n]+\*\/$/, "");
 };
 
+const convertFuncSignatureToType = (
+  funcSignature: string,
+  funcType: "methods" | "statics" | "query",
+  modelName: string
+) => {
+  const [, params, returnType] = funcSignature.match(/\((?:this: \w*(?:, )?)?(.*)\) => (.*)/) ?? [];
+  let type;
+  if (funcType === "query") {
+    type = `(this: ${modelName}Query${
+      params?.length > 0 ? ", " + params : ""
+    }) => ${modelName}Query`;
+  } else if (funcType === "methods") {
+    type = `(this: ${modelName}Document${params?.length > 0 ? ", " + params : ""}) => ${
+      returnType ?? "any"
+    }`;
+  } else {
+    type = `(this: ${modelName}Model${params?.length > 0 ? ", " + params : ""}) => ${
+      returnType ?? "any"
+    }`;
+  }
+
+  return type;
+};
+
 export const replaceModelTypes = (
   sourceFile: SourceFile,
-  modelTypes: ModelTypes,
+  modelTypes: TsReaderModelTypes,
   schemas: {
     [modelName: string]: mongoose.Schema;
   }
@@ -31,7 +61,7 @@ export const replaceModelTypes = (
         .forEach(prop => {
           const signature = methods[prop.getName()];
           if (signature) {
-            const funcType = parser.convertFuncSignatureToType(signature, "methods", modelName);
+            const funcType = convertFuncSignatureToType(signature, "methods", modelName);
             prop.setType(funcType);
           }
         });
@@ -46,7 +76,7 @@ export const replaceModelTypes = (
         .forEach(prop => {
           const signature = statics[prop.getName()];
           if (signature) {
-            const funcType = parser.convertFuncSignatureToType(signature, "statics", modelName);
+            const funcType = convertFuncSignatureToType(signature, "statics", modelName);
             prop.setType(funcType);
           }
         });
@@ -61,7 +91,7 @@ export const replaceModelTypes = (
         .forEach(prop => {
           const signature = query[prop.getName()];
           if (signature) {
-            const funcType = parser.convertFuncSignatureToType(signature, "query", modelName);
+            const funcType = convertFuncSignatureToType(signature, "query", modelName);
             prop.setType(funcType);
           }
         });
@@ -77,7 +107,7 @@ export const replaceModelTypes = (
         ?.getChildrenOfKind(SyntaxKind.PropertySignature);
 
       const leanProperties =
-        parser.getShouldLeanIncludeVirtuals(schemas[modelName]) &&
+        getShouldLeanIncludeVirtuals(schemas[modelName]) &&
         sourceFile
           ?.getTypeAlias(`${modelName}`)
           ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
@@ -194,6 +224,24 @@ export const createSourceFile = (genPath: string) => {
   return sourceFile;
 };
 
+export const parseFunctions = (
+  funcs: any,
+  modelName: string,
+  funcType: "methods" | "statics" | "query"
+) => {
+  let interfaceString = "";
+
+  Object.keys(funcs).forEach(key => {
+    if (["initializeTimestamps"].includes(key)) return;
+
+    const funcSignature = "(...args: any[]) => any";
+    const type = convertFuncSignatureToType(funcSignature, funcType, modelName);
+    interfaceString += formatKeyEntry({ key, val: type });
+  });
+
+  return interfaceString;
+};
+
 export const getSchemaTypes = ({ schema, modelName }: { schema: any; modelName: string }) => {
   let schemaTypes = "";
 
@@ -206,15 +254,15 @@ export const getSchemaTypes = ({ schema, modelName }: { schema: any; modelName: 
 
   schemaTypes += templates.getQueryHelpersDocs(modelName);
   schemaTypes += `\nexport type ${modelName}Queries = {\n`;
-  schemaTypes += parser.parseFunctions(schema.query ?? {}, modelName, "query");
+  schemaTypes += parseFunctions(schema.query ?? {}, modelName, "query");
   schemaTypes += "}\n";
 
   schemaTypes += `\nexport type ${modelName}Methods = {\n`;
-  schemaTypes += parser.parseFunctions(schema.methods, modelName, "methods");
+  schemaTypes += parseFunctions(schema.methods, modelName, "methods");
   schemaTypes += "}\n";
 
   schemaTypes += `\nexport type ${modelName}Statics = {\n`;
-  schemaTypes += parser.parseFunctions(schema.statics, modelName, "statics");
+  schemaTypes += parseFunctions(schema.statics, modelName, "statics");
   schemaTypes += "}\n\n";
 
   const modelExtend = `mongoose.Model<${modelName}Document, ${modelName}Queries>`;
@@ -230,19 +278,19 @@ export const getSchemaTypes = ({ schema, modelName }: { schema: any; modelName: 
 
 export const generateTypes = ({
   sourceFile,
-  schemas,
   imports = [],
+  modelsPaths,
   noMongoose,
   datesAsStrings
 }: {
   sourceFile: SourceFile;
-  schemas: {
-    [modelName: string]: mongoose.Schema;
-  };
+  modelsPaths: string[];
   imports?: string[];
   noMongoose: boolean;
   datesAsStrings: boolean;
 }) => {
+  const schemas = loadSchemasFromModelPath(modelsPaths);
+
   sourceFile.addStatements(writer => {
     writer.write(templates.MAIN_HEADER).blankLine();
     // mongoose import
@@ -259,19 +307,22 @@ export const generateTypes = ({
     Object.keys(schemas).forEach(modelName => {
       const schema = schemas[modelName];
 
-      const shouldLeanIncludeVirtuals = parser.getShouldLeanIncludeVirtuals(schema);
       // passing modelName causes childSchemas to be processed
 
-      const leanInterfaceStr = parser.parseSchema({
-        schema,
+      const leanHeader = templates.getLeanDocs(modelName) + `\nexport type ${modelName} = {\n`;
+      const leanFooter = "}";
+
+      // TODO: Should only create one ParserSchema, but then export string with options noMongoose, isDocument, etc
+      const leanSchema = new ParserSchema({
+        mongooseSchema: schema,
         modelName,
         isDocument: false,
-        header: templates.getLeanDocs(modelName) + `\nexport type ${modelName} = {\n`,
-        footer: "}",
         noMongoose,
         datesAsStrings,
-        shouldLeanIncludeVirtuals
+        header: leanHeader,
+        footer: leanFooter
       });
+      const leanInterfaceStr = leanSchema.generateTemplate();
 
       writer.write(leanInterfaceStr).blankLine();
 
@@ -282,7 +333,7 @@ export const generateTypes = ({
       // not sure why schema doesnt have `tree` property for typings
       let _idType;
       if ((schema as any).tree._id) {
-        _idType = parser.convertBaseTypeToTs({
+        _idType = convertBaseTypeToTs({
           key: "_id",
           val: (schema as any).tree._id,
           isDocument: true,
@@ -295,18 +346,22 @@ export const generateTypes = ({
 
       let documentInterfaceStr = "";
       documentInterfaceStr += getSchemaTypes({ schema, modelName });
-      documentInterfaceStr += parser.parseSchema({
-        schema,
+
+      const documentHeader =
+        templates.getDocumentDocs(modelName) +
+        `\nexport type ${modelName}Document = ${mongooseDocExtend} & ${modelName}Methods & {\n`;
+      const documentFooter = "}";
+      // TODO: Should only create one ParserSchema, but then export string with options noMongoose, isDocument, etc
+      const documentSchema = new ParserSchema({
+        mongooseSchema: schema,
         modelName,
         isDocument: true,
-        header:
-          templates.getDocumentDocs(modelName) +
-          `\nexport type ${modelName}Document = ${mongooseDocExtend} & ${modelName}Methods & {\n`,
-        footer: "}",
-        shouldLeanIncludeVirtuals,
         noMongoose,
-        datesAsStrings
+        datesAsStrings,
+        header: documentHeader,
+        footer: documentFooter
       });
+      documentInterfaceStr += documentSchema.generateTemplate();
 
       writer.write(documentInterfaceStr).blankLine();
     });

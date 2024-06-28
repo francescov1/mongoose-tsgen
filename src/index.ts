@@ -1,12 +1,12 @@
 import { Args, Command, Config, Interfaces, Flags, ux } from "@oclif/core";
 
-import * as parser from "./helpers/parser";
 import * as tsReader from "./helpers/tsReader";
 import * as paths from "./helpers/paths";
 import * as formatter from "./helpers/formatter";
 import * as generator from "./helpers/generator";
 import * as cli from "./helpers/cli";
 import * as types from "./types";
+import { loadSchemasFromModelPath } from "./parser/utils";
 
 declare namespace MongooseTsgen {
   export type CliFlagConfig = Interfaces.InferredFlags<typeof MongooseTsgen["flags"]>;
@@ -149,15 +149,13 @@ class MongooseTsgen extends Command {
 
     const cleanupTs = tsReader.registerUserTs(flags.project);
 
-    const schemas = parser.loadSchemas(modelsPaths);
-
     const genFilePath = paths.cleanOutputPath(flags.output);
     let sourceFile = generator.createSourceFile(genFilePath);
 
     const noMongoose = flags["no-mongoose"];
     const datesAsStrings = flags["dates-as-strings"];
     sourceFile = generator.generateTypes({
-      schemas,
+      modelsPaths,
       sourceFile,
       imports: flags.imports,
       noMongoose,
@@ -169,6 +167,7 @@ class MongooseTsgen extends Command {
       this.log("Skipping TS model parsing and sourceFile model type replacement");
     } else {
       const modelTypes = tsReader.getModelTypes(modelsPaths);
+      const schemas = loadSchemasFromModelPath(modelsPaths);
       generator.replaceModelTypes(sourceFile, modelTypes, schemas);
 
       // add populate helpers

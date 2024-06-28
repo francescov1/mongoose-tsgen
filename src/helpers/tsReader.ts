@@ -12,7 +12,7 @@ import glob from "glob";
 import path from "path";
 import * as fs from "fs";
 import stripJsonComments from "strip-json-comments";
-import { ModelTypes } from "../types";
+import { TsReaderModelTypes } from "../types";
 
 function getNameAndType(funcDeclaration: MethodDeclaration) {
   const name = funcDeclaration.getName();
@@ -23,7 +23,7 @@ function getNameAndType(funcDeclaration: MethodDeclaration) {
 
 function findCommentsInFile(
   sourceFile: SourceFile,
-  modelTypes: ModelTypes,
+  modelTypes: TsReaderModelTypes,
   maxCommentDepth: number
 ) {
   // TODO: this is reused from findTypesInFile, should abstract out instead
@@ -98,7 +98,7 @@ function findCommentsInFile(
   return modelTypes;
 }
 
-function findTypesInFile(sourceFile: SourceFile, modelTypes: ModelTypes) {
+function findTypesInFile(sourceFile: SourceFile, modelTypes: TsReaderModelTypes) {
   const schemaModelMapping: {
     [schemaVariableName: string]: string;
   } = {};
@@ -280,7 +280,7 @@ const parseModelInitializer = (
 function initModelTypes(sourceFile: SourceFile, filePath: string) {
   if (process.env.DEBUG) console.log("tsreader: Searching file for Mongoose schemas: " + filePath);
 
-  const modelTypes: ModelTypes = {};
+  const modelTypes: TsReaderModelTypes = {};
   const mongooseImport = sourceFile.getImportDeclaration("mongoose");
 
   let isModelNamedImport = false;
@@ -334,11 +334,11 @@ function initModelTypes(sourceFile: SourceFile, filePath: string) {
   return modelTypes;
 }
 
-export const getModelTypes = (modelsPaths: string[], maxCommentDepth = 2): ModelTypes => {
+export const getModelTypes = (modelsPaths: string[], maxCommentDepth = 2): TsReaderModelTypes => {
   const project = new Project({});
   project.addSourceFilesAtPaths(modelsPaths);
 
-  let allModelTypes: ModelTypes = {};
+  let allModelTypes: TsReaderModelTypes = {};
 
   // TODO: ideally we only parse the files that we know have methods, statics, or virtuals.
   // Would save a lot of time
