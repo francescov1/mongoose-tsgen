@@ -1,8 +1,12 @@
 import { Project, SourceFile, SyntaxKind, PropertySignature } from "ts-morph";
-import mongoose from "mongoose";
-import * as parser from "./parser";
 import * as templates from "./templates";
-import { ModelTypes } from "../types";
+import { TsReaderModelTypes } from "../types";
+import { ParserSchema } from "../parser/schema";
+import { convertBaseTypeToTs, getShouldLeanIncludeVirtuals, loadModels } from "../parser/utils";
+import { MongooseModel } from "../parser/types";
+import { convertKeyValueToLine } from "../writer/stringBuilder";
+
+// TODO next: Pull this file apart. Create a new "file writer" file, move all the ts stuff somewhere else,
 
 // this strips comments of special tokens since ts-morph generates jsdoc tokens automatically
 const cleanComment = (comment: string) => {
@@ -12,12 +16,34 @@ const cleanComment = (comment: string) => {
     .replace(/(\n)?[^\S\r\n]+\*\/$/, "");
 };
 
+const convertFuncSignatureToType = (
+  funcSignature: string,
+  funcType: "methods" | "statics" | "query",
+  modelName: string
+) => {
+  const [, params, returnType] = funcSignature.match(/\((?:this: \w*(?:, )?)?(.*)\) => (.*)/) ?? [];
+  let type;
+  if (funcType === "query") {
+    type = `(this: ${modelName}Query${
+      params?.length > 0 ? ", " + params : ""
+    }) => ${modelName}Query`;
+  } else if (funcType === "methods") {
+    type = `(this: ${modelName}Document${params?.length > 0 ? ", " + params : ""}) => ${
+      returnType ?? "any"
+    }`;
+  } else {
+    type = `(this: ${modelName}Model${params?.length > 0 ? ", " + params : ""}) => ${
+      returnType ?? "any"
+    }`;
+  }
+
+  return type;
+};
+
 export const replaceModelTypes = (
   sourceFile: SourceFile,
-  modelTypes: ModelTypes,
-  schemas: {
-    [modelName: string]: mongoose.Schema;
-  }
+  modelTypes: TsReaderModelTypes,
+  models: MongooseModel[]
 ) => {
   Object.entries(modelTypes).forEach(([modelName, types]) => {
     const { methods, statics, query, virtuals, comments } = types;
@@ -31,7 +57,7 @@ export const replaceModelTypes = (
         .forEach((prop) => {
           const signature = methods[prop.getName()];
           if (signature) {
-            const funcType = parser.convertFuncSignatureToType(signature, "methods", modelName);
+            const funcType = convertFuncSignatureToType(signature, "methods", modelName);
             prop.setType(funcType);
           }
         });
@@ -46,7 +72,7 @@ export const replaceModelTypes = (
         .forEach((prop) => {
           const signature = statics[prop.getName()];
           if (signature) {
-            const funcType = parser.convertFuncSignatureToType(signature, "statics", modelName);
+            const funcType = convertFuncSignatureToType(signature, "statics", modelName);
             prop.setType(funcType);
           }
         });
@@ -61,7 +87,7 @@ export const replaceModelTypes = (
         .forEach((prop) => {
           const signature = query[prop.getName()];
           if (signature) {
-            const funcType = parser.convertFuncSignatureToType(signature, "query", modelName);
+            const funcType = convertFuncSignatureToType(signature, "query", modelName);
             prop.setType(funcType);
           }
         });
@@ -76,8 +102,10 @@ export const replaceModelTypes = (
         ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
         ?.getChildrenOfKind(SyntaxKind.PropertySignature);
 
+      const { schema } = models.find((model) => model.modelName === modelName)!;
+
       const leanProperties =
-        parser.getShouldLeanIncludeVirtuals(schemas[modelName]) &&
+        getShouldLeanIncludeVirtuals(schema) &&
         sourceFile
           ?.getTypeAlias(`${modelName}`)
           ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
@@ -194,7 +222,27 @@ export const createSourceFile = (genPath: string) => {
   return sourceFile;
 };
 
-export const getSchemaTypes = ({ schema, modelName }: { schema: any; modelName: string }) => {
+// TODO: statics, query, methods should all be parsed in the parser, and then written in the stringBuilder
+export const parseFunctions = (
+  funcs: { [key: string]: () => any },
+  modelName: string,
+  funcType: "methods" | "statics" | "query"
+) => {
+  let interfaceString = "";
+
+  Object.keys(funcs).forEach((key) => {
+    if (["initializeTimestamps"].includes(key)) return;
+
+    const funcSignature = "(...args: any[]) => any";
+    const type = convertFuncSignatureToType(funcSignature, funcType, modelName);
+    interfaceString += convertKeyValueToLine({ key, valueType: type });
+  });
+
+  return interfaceString;
+};
+
+export const getSchemaTypes = (model: MongooseModel) => {
+  const { modelName, schema } = model;
   let schemaTypes = "";
 
   // add type alias to modelName so that it can be imported without clashing with the mongoose model
@@ -206,15 +254,15 @@ export const getSchemaTypes = ({ schema, modelName }: { schema: any; modelName: 
 
   schemaTypes += templates.getQueryHelpersDocs(modelName);
   schemaTypes += `\nexport type ${modelName}Queries = {\n`;
-  schemaTypes += parser.parseFunctions(schema.query ?? {}, modelName, "query");
+  schemaTypes += parseFunctions(schema.query ?? {}, modelName, "query");
   schemaTypes += "}\n";
 
   schemaTypes += `\nexport type ${modelName}Methods = {\n`;
-  schemaTypes += parser.parseFunctions(schema.methods, modelName, "methods");
+  schemaTypes += parseFunctions(schema.methods, modelName, "methods");
   schemaTypes += "}\n";
 
   schemaTypes += `\nexport type ${modelName}Statics = {\n`;
-  schemaTypes += parser.parseFunctions(schema.statics, modelName, "statics");
+  schemaTypes += parseFunctions(schema.statics, modelName, "statics");
   schemaTypes += "}\n\n";
 
   const modelExtend = `mongoose.Model<${modelName}Document, ${modelName}Queries>`;
@@ -228,21 +276,22 @@ export const getSchemaTypes = ({ schema, modelName }: { schema: any; modelName: 
   return schemaTypes;
 };
 
+// TODO: This should be split up, shouldnt be writing to file and parsing schema simultaneously. Instead parse shema first then write later.
 export const generateTypes = ({
   sourceFile,
-  schemas,
   imports = [],
+  modelsPaths,
   noMongoose,
   datesAsStrings
 }: {
   sourceFile: SourceFile;
-  schemas: {
-    [modelName: string]: mongoose.Schema;
-  };
+  modelsPaths: string[];
   imports?: string[];
   noMongoose: boolean;
   datesAsStrings: boolean;
 }) => {
+  const models = loadModels(modelsPaths);
+
   sourceFile.addStatements((writer) => {
     writer.write(templates.MAIN_HEADER).blankLine();
     // mongoose import
@@ -256,56 +305,60 @@ export const generateTypes = ({
     //     writer.write("something;");
     // });
 
-    Object.keys(schemas).forEach((modelName) => {
-      const schema = schemas[modelName];
-
-      const shouldLeanIncludeVirtuals = parser.getShouldLeanIncludeVirtuals(schema);
+    models.forEach((model) => {
+      const { modelName, schema } = model;
       // passing modelName causes childSchemas to be processed
 
-      const leanInterfaceStr = parser.parseSchema({
-        schema,
+      const leanHeader = templates.getLeanDocs(modelName) + `\nexport type ${modelName} = {\n`;
+      const leanFooter = "}";
+
+      const parserSchema = new ParserSchema({
+        mongooseSchema: schema,
         modelName,
+        model
+      });
+
+      const leanInterfaceStr = parserSchema.generateTemplate({
         isDocument: false,
-        header: templates.getLeanDocs(modelName) + `\nexport type ${modelName} = {\n`,
-        footer: "}",
         noMongoose,
         datesAsStrings,
-        shouldLeanIncludeVirtuals
+        header: leanHeader,
+        footer: leanFooter
       });
 
       writer.write(leanInterfaceStr).blankLine();
 
       // if noMongoose, skip adding document types
-      if (noMongoose) return;
-
-      // get type of _id to pass to mongoose.Document
-      // not sure why schema doesnt have `tree` property for typings
-      let _idType;
-      if ((schema as any).tree._id) {
-        _idType = parser.convertBaseTypeToTs({
-          key: "_id",
-          val: (schema as any).tree._id,
-          isDocument: true,
-          noMongoose,
-          datesAsStrings
-        });
+      if (noMongoose) {
+        return;
       }
 
-      const mongooseDocExtend = `mongoose.Document<${_idType ?? "any"}, ${modelName}Queries>`;
+      // get type of _id to pass to mongoose.Document
+      const _idType = schema.tree._id
+        ? convertBaseTypeToTs({
+            key: "_id",
+            val: schema.tree._id,
+            isDocument: true,
+            noMongoose,
+            datesAsStrings
+          })
+        : "any";
+      const mongooseDocExtend = `mongoose.Document<${_idType}, ${modelName}Queries>`;
 
       let documentInterfaceStr = "";
-      documentInterfaceStr += getSchemaTypes({ schema, modelName });
-      documentInterfaceStr += parser.parseSchema({
-        schema,
-        modelName,
+      documentInterfaceStr += getSchemaTypes(model);
+
+      const documentHeader =
+        templates.getDocumentDocs(modelName) +
+        `\nexport type ${modelName}Document = ${mongooseDocExtend} & ${modelName}Methods & {\n`;
+      const documentFooter = "}";
+
+      documentInterfaceStr += parserSchema.generateTemplate({
         isDocument: true,
-        header:
-          templates.getDocumentDocs(modelName) +
-          `\nexport type ${modelName}Document = ${mongooseDocExtend} & ${modelName}Methods & {\n`,
-        footer: "}",
-        shouldLeanIncludeVirtuals,
         noMongoose,
-        datesAsStrings
+        datesAsStrings,
+        header: documentHeader,
+        footer: documentFooter
       });
 
       writer.write(documentInterfaceStr).blankLine();

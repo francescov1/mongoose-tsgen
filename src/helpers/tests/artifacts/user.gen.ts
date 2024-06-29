@@ -189,7 +189,7 @@ export type UserSchema = mongoose.Schema<UserDocument, UserModel, UserMethods, U
  * 
  * Type of `UserDocument["friends"]` element.
  */
-export type UserFriendDocument = mongoose.Types.Subdocument & {
+export type UserFriendDocument = mongoose.Types.Subdocument<mongoose.Types.ObjectId> & {
 uid: UserDocument["_id"] | UserDocument;
 nickname?: string;
 _id: mongoose.Types.ObjectId;
@@ -200,7 +200,7 @@ _id: mongoose.Types.ObjectId;
  * 
  * Type of `UserDocument["city.subdocWithoutDefault"]` element.
  */
-export type UserCitySubdocWithoutDefaultDocument = mongoose.Types.Subdocument & {
+export type UserCitySubdocWithoutDefaultDocument = mongoose.Types.Subdocument<mongoose.Types.ObjectId> & {
 a?: string;
 _id: mongoose.Types.ObjectId;
 }

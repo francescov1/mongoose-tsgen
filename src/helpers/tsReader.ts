@@ -12,7 +12,7 @@ import glob from "glob";
 import path from "path";
 import * as fs from "fs";
 import stripJsonComments from "strip-json-comments";
-import { ModelTypes } from "../types";
+import { TsReaderModelTypes } from "../types";
 
 function getNameAndType(funcDeclaration: MethodDeclaration) {
   const name = funcDeclaration.getName();
@@ -23,7 +23,7 @@ function getNameAndType(funcDeclaration: MethodDeclaration) {
 
 function findCommentsInFile(
   sourceFile: SourceFile,
-  modelTypes: ModelTypes,
+  modelTypes: TsReaderModelTypes,
   maxCommentDepth: number
 ) {
   // TODO: this is reused from findTypesInFile, should abstract out instead
@@ -62,12 +62,12 @@ function findCommentsInFile(
     const extractComments = (objLiteralExp: ObjectLiteralExpression, rootPath: string) => {
       const propAssignments = objLiteralExp.getChildrenOfKind(SyntaxKind.PropertyAssignment);
 
-      propAssignments.forEach(propAssignment => {
+      propAssignments.forEach((propAssignment) => {
         const propName = propAssignment.getFirstChildByKind(SyntaxKind.Identifier)?.getText();
         if (!propName) return;
 
         const path = rootPath ? `${rootPath}.${propName}` : propName;
-        propAssignment.getLeadingCommentRanges().forEach(commentRange => {
+        propAssignment.getLeadingCommentRanges().forEach((commentRange) => {
           const commentText = commentRange.getText();
 
           // skip comments that are not jsdocs
@@ -98,7 +98,7 @@ function findCommentsInFile(
   return modelTypes;
 }
 
-function findTypesInFile(sourceFile: SourceFile, modelTypes: ModelTypes) {
+function findTypesInFile(sourceFile: SourceFile, modelTypes: TsReaderModelTypes) {
   const schemaModelMapping: {
     [schemaVariableName: string]: string;
   } = {};
@@ -128,7 +128,7 @@ function findTypesInFile(sourceFile: SourceFile, modelTypes: ModelTypes) {
       const leftChildren = left.getChildren();
 
       let modelName: string;
-      const hasSchemaIdentifier = leftChildren.some(child => {
+      const hasSchemaIdentifier = leftChildren.some((child) => {
         if (child.getKind() !== SyntaxKind.Identifier) return false;
         modelName = schemaModelMapping[child.getText()];
         if (!modelName) return false;
@@ -136,17 +136,17 @@ function findTypesInFile(sourceFile: SourceFile, modelTypes: ModelTypes) {
         return true;
       });
 
-      const hasDotToken = leftChildren.some(child => child.getKind() === SyntaxKind.DotToken);
+      const hasDotToken = leftChildren.some((child) => child.getKind() === SyntaxKind.DotToken);
       if (!hasSchemaIdentifier || !hasDotToken) continue;
 
       const hasMethodsIdentifier = leftChildren.some(
-        child => child.getKind() === SyntaxKind.Identifier && child.getText() === "methods"
+        (child) => child.getKind() === SyntaxKind.Identifier && child.getText() === "methods"
       );
       const hasStaticsIdentifier = leftChildren.some(
-        child => child.getKind() === SyntaxKind.Identifier && child.getText() === "statics"
+        (child) => child.getKind() === SyntaxKind.Identifier && child.getText() === "statics"
       );
       const hasQueryIdentifier = leftChildren.some(
-        child => child.getKind() === SyntaxKind.Identifier && child.getText() === "query"
+        (child) => child.getKind() === SyntaxKind.Identifier && child.getText() === "query"
       );
 
       let rightFuncDeclarations: any[] = [];
@@ -260,9 +260,9 @@ const parseModelInitializer = (
   const callExprStr = callExpr.getText().replace(/[\r\n\t ]/g, "");
 
   // if model is a named import, we can match this without `mongoose.` prefix
-  const pattern = isModelNamedImport ?
-    /model(?:<.+?>)?\(["'`](\w+)["'`],(\w+),?\)/ :
-    /mongoose\.model(?:<.+?>)?\(["'`](\w+)["'`],(\w+),?\)/;
+  const pattern = isModelNamedImport
+    ? /model(?:<.+?>)?\(["'`](\w+)["'`],(\w+),?\)/
+    : /mongoose\.model(?:<.+?>)?\(["'`](\w+)["'`],(\w+),?\)/;
   const modelInitMatch = callExprStr.match(pattern);
   if (!modelInitMatch) {
     if (process.env.DEBUG) {
@@ -280,15 +280,15 @@ const parseModelInitializer = (
 function initModelTypes(sourceFile: SourceFile, filePath: string) {
   if (process.env.DEBUG) console.log("tsreader: Searching file for Mongoose schemas: " + filePath);
 
-  const modelTypes: ModelTypes = {};
+  const modelTypes: TsReaderModelTypes = {};
   const mongooseImport = sourceFile.getImportDeclaration("mongoose");
 
   let isModelNamedImport = false;
-  mongooseImport?.getNamedImports().forEach(importSpecifier => {
+  mongooseImport?.getNamedImports().forEach((importSpecifier) => {
     if (importSpecifier.getText() === "model") isModelNamedImport = true;
   });
 
-  sourceFile.getVariableDeclarations().forEach(d => {
+  sourceFile.getVariableDeclarations().forEach((d) => {
     const { modelName, schemaVariableName } = parseModelInitializer(d, isModelNamedImport) ?? {};
     if (!modelName || !schemaVariableName) return;
 
@@ -306,7 +306,7 @@ function initModelTypes(sourceFile: SourceFile, filePath: string) {
     };
   });
 
-  const defaultExportAssignment = sourceFile.getExportAssignment(d => !d.isExportEquals());
+  const defaultExportAssignment = sourceFile.getExportAssignment((d) => !d.isExportEquals());
   if (defaultExportAssignment) {
     const defaultModelInit = parseModelInitializer(defaultExportAssignment, isModelNamedImport);
     if (defaultModelInit) {
@@ -334,15 +334,15 @@ function initModelTypes(sourceFile: SourceFile, filePath: string) {
   return modelTypes;
 }
 
-export const getModelTypes = (modelsPaths: string[], maxCommentDepth = 2): ModelTypes => {
+export const getModelTypes = (modelsPaths: string[], maxCommentDepth = 2): TsReaderModelTypes => {
   const project = new Project({});
   project.addSourceFilesAtPaths(modelsPaths);
 
-  let allModelTypes: ModelTypes = {};
+  let allModelTypes: TsReaderModelTypes = {};
 
   // TODO: ideally we only parse the files that we know have methods, statics, or virtuals.
   // Would save a lot of time
-  modelsPaths.forEach(modelPath => {
+  modelsPaths.forEach((modelPath) => {
     const sourceFile = project.getSourceFileOrThrow(modelPath);
     let modelTypes = initModelTypes(sourceFile, modelPath);
 
@@ -359,9 +359,9 @@ export const getModelTypes = (modelsPaths: string[], maxCommentDepth = 2): Model
 };
 
 export const registerUserTs = (basePath: string): (() => void) | null => {
-  const pathToSearch = basePath.endsWith(".json") ?
-    basePath :
-    path.join(basePath, "**/tsconfig.json");
+  const pathToSearch = basePath.endsWith(".json")
+    ? basePath
+    : path.join(basePath, "**/tsconfig.json");
   const files = glob.sync(pathToSearch, { ignore: "**/node_modules/**" });
 
   if (files.length === 0) throw new Error(`No tsconfig.json file found at path "${basePath}"`);

@@ -1,7 +1,7 @@
 /**
  * Contains information parsed from ts-morph about various types for each model
  */
-export type ModelTypes = {
+export type TsReaderModelTypes = {
   [modelName: string]: {
     /** mongoose method function types */
     methods: { [funcName: string]: string };

@@ -1,11 +1,11 @@
 import { setupFolderStructure, cleanup } from "./utils";
-import * as parser from "../parser";
 import * as generator from "../generator";
 import * as paths from "../paths";
 import * as tsReader from "../tsReader";
 import fs from "fs";
 import path from "path";
 import mongoose from "mongoose";
+import { loadModels } from "../../parser/utils";
 
 function getExpectedString(filename: string) {
   return fs.readFileSync(path.join(__dirname, `artifacts/${filename}`), "utf8");
@@ -31,17 +31,18 @@ describe("generateTypes", () => {
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/models/user.ts");
     const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
 
-    const schemas = parser.loadSchemas(modelsPaths);
     let sourceFile = generator.createSourceFile(genFilePath);
     sourceFile = await generator.generateTypes({
-      schemas,
+      modelsPaths,
       sourceFile,
       noMongoose: false,
       datesAsStrings: false
     });
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
-    generator.replaceModelTypes(sourceFile, modelTypes, schemas);
+    const models = loadModels(modelsPaths);
+
+    generator.replaceModelTypes(sourceFile, modelTypes, models);
     generator.addPopulateHelpers(sourceFile);
     generator.overloadQueryPopulate(sourceFile);
 
@@ -56,18 +57,18 @@ describe("generateTypes", () => {
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/device.ts");
     const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
 
-    const schemas = parser.loadSchemas(modelsPaths);
-
     let sourceFile = generator.createSourceFile(genFilePath);
     sourceFile = await generator.generateTypes({
-      schemas,
+      modelsPaths,
       sourceFile,
       noMongoose: false,
       datesAsStrings: false
     });
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
-    generator.replaceModelTypes(sourceFile, modelTypes, schemas);
+    const models = loadModels(modelsPaths);
+
+    generator.replaceModelTypes(sourceFile, modelTypes, models);
     generator.addPopulateHelpers(sourceFile);
     generator.overloadQueryPopulate(sourceFile);
 
@@ -79,18 +80,17 @@ describe("generateTypes", () => {
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/user2.ts");
     const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
 
-    const schemas = parser.loadSchemas(modelsPaths);
-
     let sourceFile = generator.createSourceFile(genFilePath);
     sourceFile = await generator.generateTypes({
-      schemas,
+      modelsPaths,
       sourceFile,
       noMongoose: false,
       datesAsStrings: false
     });
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
-    generator.replaceModelTypes(sourceFile, modelTypes, schemas);
+    const models = loadModels(modelsPaths);
+    generator.replaceModelTypes(sourceFile, modelTypes, models);
     generator.addPopulateHelpers(sourceFile);
     generator.overloadQueryPopulate(sourceFile);
 
@@ -102,18 +102,18 @@ describe("generateTypes", () => {
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/landingPage.ts");
     const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
 
-    const schemas = parser.loadSchemas(modelsPaths);
-
     let sourceFile = generator.createSourceFile(genFilePath);
     sourceFile = await generator.generateTypes({
-      schemas,
+      modelsPaths,
       sourceFile,
       noMongoose: false,
       datesAsStrings: false
     });
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
-    generator.replaceModelTypes(sourceFile, modelTypes, schemas);
+    const models = loadModels(modelsPaths);
+
+    generator.replaceModelTypes(sourceFile, modelTypes, models);
     generator.addPopulateHelpers(sourceFile);
     generator.overloadQueryPopulate(sourceFile);
 

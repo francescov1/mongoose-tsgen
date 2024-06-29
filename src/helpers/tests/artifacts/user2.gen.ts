@@ -34,6 +34,21 @@ coordinates: User2AddressCoordinate[];
 }
 
 /**
+ * Lean version of User2AnotherSchemaDocument
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from `User2Document.toObject()`.
+ * ```
+ * const user2Object = user2.toObject();
+ * ```
+ */
+export type User2AnotherSchema = {
+info: string;
+creator?: string;
+time?: number;
+_id: mongoose.Types.ObjectId;
+}
+
+/**
  * Lean version of User2AnArrayOfSchemasWithArrayDocumentCoordinateDocument
  * 
  * This has all Mongoose getters & functions removed. This type will be returned from `User2AnArrayOfSchemasWithArrayDocumentDocument.toObject()`.
@@ -101,6 +116,7 @@ export type User2 = {
 _id: number;
 address: User2AnArrayOfSchemasWithArrayDocument;
 lastOnlineAt?: Date;
+anotherSchema?: User2AnotherSchema;
 anArrayOfSchemasWithArrayDocuments: User2AnArrayOfSchemasWithArrayDocument[];
 aMapOfSchemas: Map<string, User2AMapOfSchemaArray>;
 aMapOfSchemaArrays: Map<string, User2AMapOfSchemaArray[]>;
@@ -168,9 +184,19 @@ export type User2Schema = mongoose.Schema<User2Document, User2Model, User2Method
  * 
  * Type of `User2AddressDocument["coordinates"]` element.
  */
-export type User2AddressCoordinateDocument = mongoose.Types.Subdocument & {
+export type User2AddressCoordinateDocument = mongoose.Types.Subdocument<any> & {
 lat?: number;
 long?: number;
+}
+
+/**
+ * Mongoose Subdocument type
+ * 
+ * Type of `User2Document["address"]` element.
+ */
+export type User2AddressDocument = mongoose.Types.Subdocument<any> & {
+city: string;
+coordinates: mongoose.Types.DocumentArray<User2AddressCoordinateDocument>;
 }
 
 /**
@@ -181,9 +207,11 @@ long?: number;
  * const User2 = mongoose.model<User2Document, User2Model>("User2", User2Schema);
  * ```
  */
-export type User2AddressDocument = mongoose.Document<number> & {
-city: string;
-coordinates: mongoose.Types.DocumentArray<User2AddressCoordinateDocument>;
+export type User2AnotherSchemaDocument = mongoose.Document<mongoose.Types.ObjectId> & {
+info: string;
+creator?: string;
+time?: number;
+_id: mongoose.Types.ObjectId;
 }
 
 /**
@@ -191,7 +219,7 @@ coordinates: mongoose.Types.DocumentArray<User2AddressCoordinateDocument>;
  * 
  * Type of `User2AnArrayOfSchemasWithArrayDocumentDocument["coordinates"]` element.
  */
-export type User2AnArrayOfSchemasWithArrayDocumentCoordinateDocument = mongoose.Types.Subdocument & {
+export type User2AnArrayOfSchemasWithArrayDocumentCoordinateDocument = mongoose.Types.Subdocument<any> & {
 lat?: number;
 long?: number;
 }
@@ -201,20 +229,17 @@ long?: number;
  * 
  * Type of `User2Document["anArrayOfSchemasWithArrayDocuments"]` element.
  */
-export type User2AnArrayOfSchemasWithArrayDocumentDocument = mongoose.Types.Subdocument & {
+export type User2AnArrayOfSchemasWithArrayDocumentDocument = mongoose.Types.Subdocument<any> & {
 city: string;
 coordinates: mongoose.Types.DocumentArray<User2AnArrayOfSchemasWithArrayDocumentCoordinateDocument>;
 }
 
 /**
- * Mongoose Document type
+ * Mongoose Subdocument type
  * 
- * Pass this type to the Mongoose Model constructor:
- * ```
- * const User2 = mongoose.model<User2Document, User2Model>("User2", User2Schema);
- * ```
+ * Type of `User2Document["aMapOfSchemas"]` element.
  */
-export type User2AMapOfSchemaDocument = mongoose.Document<number> & {
+export type User2AMapOfSchemaDocument = mongoose.Types.Subdocument<mongoose.Types.ObjectId> & {
 info: string;
 creator?: string;
 time?: number;
@@ -226,7 +251,7 @@ _id: mongoose.Types.ObjectId;
  * 
  * Type of `User2Document["aMapOfSchemaArrays"]` element.
  */
-export type User2AMapOfSchemaArrayDocument = mongoose.Types.Subdocument & {
+export type User2AMapOfSchemaArrayDocument = mongoose.Types.Subdocument<mongoose.Types.ObjectId> & {
 info: string;
 creator?: string;
 time?: number;
@@ -245,6 +270,7 @@ export type User2Document = mongoose.Document<number, User2Queries> & User2Metho
 _id: number;
 address: User2AnArrayOfSchemasWithArrayDocumentDocument;
 lastOnlineAt?: Date;
+anotherSchema?: User2AnotherSchemaDocument;
 anArrayOfSchemasWithArrayDocuments: mongoose.Types.DocumentArray<User2AnArrayOfSchemasWithArrayDocumentDocument>;
 aMapOfSchemas: mongoose.Types.Map<User2AMapOfSchemaArrayDocument>;
 aMapOfSchemaArrays: mongoose.Types.Map<mongoose.Types.Array<User2AMapOfSchemaArrayDocument>>;
