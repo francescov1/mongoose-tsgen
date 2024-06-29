@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import _ from "lodash";
-import { MongooseSchema } from "./types";
+import { MongooseModel } from "./types";
 
 export const getSubdocName = (path: string, modelName = "") => {
   let subDocName =
@@ -195,14 +195,14 @@ export const formatKeyEntry = ({
   return line;
 };
 
-export const loadSchemasFromModelPath = (
-  modelsPaths: string[]
-): { schema: MongooseSchema; model: any; modelName: string }[] => {
-  const schemas: { schema: MongooseSchema; model: any; modelName: string }[] = [];
+export const loadModels = (modelsPaths: string[]): MongooseModel[] => {
+  // We use a dict with model names as keys to ensure uniqueness. If the user exports the same model twice, we only want to register it once.
+  const nameToModelMap: { [modelName: string]: MongooseModel } = {};
 
+  // TODO: Type guard
   const checkAndRegisterModel = (obj: any): boolean => {
     if (!obj?.modelName || !obj?.schema) return false;
-    schemas.push({ schema: obj.schema, model: obj, modelName: obj.modelName });
+    nameToModelMap[obj.modelName] = obj;
     return true;
   };
 
@@ -217,7 +217,7 @@ export const loadSchemasFromModelPath = (
       throw error;
     }
 
-    const prevSchemaCount = schemas.length;
+    const prevSchemaCount = Object.keys(nameToModelMap).length;
 
     // NOTE: This was used to find the most likely names of the model based on the filename, and only check those properties for mongoose models. Now, we check all properties, but this could be used as a "strict" option down the road.
 
@@ -259,7 +259,7 @@ export const loadSchemasFromModelPath = (
       checkAndRegisterModel(obj);
     }
 
-    const schemaCount = schemas.length - prevSchemaCount;
+    const schemaCount = Object.keys(nameToModelMap).length - prevSchemaCount;
     if (schemaCount === 0) {
       console.warn(
         `A module was found at ${singleModelPath}, but no new exported models were found. If this file contains a Mongoose schema, ensure it is exported and its name does not conflict with others.`
@@ -267,7 +267,7 @@ export const loadSchemasFromModelPath = (
     }
   });
 
-  return schemas;
+  return Object.values(nameToModelMap);
 };
 
 // TODO: This is one of the most complex functions, and should be refactored.
@@ -300,16 +300,6 @@ export const getParseKeyFn = ({
      * with an empty array
      */
     const isArrayOuterDefaultSetToUndefined = Boolean(val._isDefaultSetToUndefined);
-
-    // if (key === "subdocWithoutDefault") {
-    //   console.log("\n\nisArrayOuterDefaultSetToUndefined - ", isArrayOuterDefaultSetToUndefined);
-    //   console.log("requiredValue - ", requiredValue);
-    //   console.log("isOptional - ", isOptional);
-    //   console.log("isArray - ", isArray);
-    //   console.log("isUntypedArray - ", isUntypedArray);
-    //   console.log("isMapOfArray - ", isMapOfArray);
-    //   console.log("FIELD VALUE - ", `${key}: `, val);
-    // }
 
     // this means its a subdoc
     if (isArray) {
@@ -361,9 +351,6 @@ export const getParseKeyFn = ({
         // 2dsphere index is a special edge case which does not have an inherent default value of []
         isOptional = true;
       } else if ("default" in val && val.default === undefined && requiredValue !== true) {
-        console.log(
-          `"default" in val && val.default === undefined && requiredValue !== true - ${key}`
-        );
         // If default: undefined, it means the field should not default with an empty array.
         isOptional = true;
       } else {

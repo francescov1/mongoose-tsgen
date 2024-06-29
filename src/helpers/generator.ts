@@ -6,9 +6,9 @@ import {
   convertBaseTypeToTs,
   formatKeyEntry,
   getShouldLeanIncludeVirtuals,
-  loadSchemasFromModelPath
+  loadModels
 } from "../parser/utils";
-import { MongooseSchema } from "../parser/types";
+import { MongooseModel } from "../parser/types";
 
 // this strips comments of special tokens since ts-morph generates jsdoc tokens automatically
 const cleanComment = (comment: string) => {
@@ -45,8 +45,7 @@ const convertFuncSignatureToType = (
 export const replaceModelTypes = (
   sourceFile: SourceFile,
   modelTypes: TsReaderModelTypes,
-  // TODO: Combine with other types
-  schemas: { schema: MongooseSchema; model: any; modelName: string }[]
+  models: MongooseModel[]
 ) => {
   Object.entries(modelTypes).forEach(([modelName, types]) => {
     const { methods, statics, query, virtuals, comments } = types;
@@ -106,9 +105,7 @@ export const replaceModelTypes = (
         ?.getChildrenOfKind(SyntaxKind.PropertySignature);
 
       // TODO: Review this
-      const { schema } = schemas.find(
-        ({ modelName: schemaModelName }) => schemaModelName === modelName
-      )!;
+      const { schema } = models.find(model => model.modelName === modelName)!;
 
       const leanProperties =
         getShouldLeanIncludeVirtuals(schema) &&
@@ -293,7 +290,7 @@ export const generateTypes = ({
   noMongoose: boolean;
   datesAsStrings: boolean;
 }) => {
-  const schemas = loadSchemasFromModelPath(modelsPaths);
+  const models = loadModels(modelsPaths);
 
   sourceFile.addStatements(writer => {
     writer.write(templates.MAIN_HEADER).blankLine();
@@ -308,7 +305,8 @@ export const generateTypes = ({
     //     writer.write("something;");
     // });
 
-    schemas.forEach(({ modelName, schema, model }) => {
+    models.forEach(model => {
+      const { modelName, schema } = model;
       // passing modelName causes childSchemas to be processed
 
       const leanHeader = templates.getLeanDocs(modelName) + `\nexport type ${modelName} = {\n`;

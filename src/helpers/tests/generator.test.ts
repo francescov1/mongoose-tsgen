@@ -5,7 +5,7 @@ import * as tsReader from "../tsReader";
 import fs from "fs";
 import path from "path";
 import mongoose from "mongoose";
-import { loadSchemasFromModelPath } from "../../parser/utils";
+import { loadModels } from "../../parser/utils";
 
 function getExpectedString(filename: string) {
   return fs.readFileSync(path.join(__dirname, `artifacts/${filename}`), "utf8");
@@ -40,9 +40,9 @@ describe("generateTypes", () => {
     });
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
-    const schemas = loadSchemasFromModelPath(modelsPaths);
+    const models = loadModels(modelsPaths);
 
-    generator.replaceModelTypes(sourceFile, modelTypes, schemas);
+    generator.replaceModelTypes(sourceFile, modelTypes, models);
     generator.addPopulateHelpers(sourceFile);
     generator.overloadQueryPopulate(sourceFile);
 
@@ -66,9 +66,9 @@ describe("generateTypes", () => {
     });
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
-    const schemas = loadSchemasFromModelPath(modelsPaths);
+    const models = loadModels(modelsPaths);
 
-    generator.replaceModelTypes(sourceFile, modelTypes, schemas);
+    generator.replaceModelTypes(sourceFile, modelTypes, models);
     generator.addPopulateHelpers(sourceFile);
     generator.overloadQueryPopulate(sourceFile);
 
@@ -89,8 +89,8 @@ describe("generateTypes", () => {
     });
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
-    const schemas = loadSchemasFromModelPath(modelsPaths);
-    generator.replaceModelTypes(sourceFile, modelTypes, schemas);
+    const models = loadModels(modelsPaths);
+    generator.replaceModelTypes(sourceFile, modelTypes, models);
     generator.addPopulateHelpers(sourceFile);
     generator.overloadQueryPopulate(sourceFile);
 
@@ -111,9 +111,9 @@ describe("generateTypes", () => {
     });
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
-    const schemas = loadSchemasFromModelPath(modelsPaths);
+    const models = loadModels(modelsPaths);
 
-    generator.replaceModelTypes(sourceFile, modelTypes, schemas);
+    generator.replaceModelTypes(sourceFile, modelTypes, models);
     generator.addPopulateHelpers(sourceFile);
     generator.overloadQueryPopulate(sourceFile);
 

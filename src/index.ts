@@ -6,7 +6,7 @@ import * as formatter from "./helpers/formatter";
 import * as generator from "./helpers/generator";
 import * as cli from "./helpers/cli";
 import * as types from "./types";
-import { loadSchemasFromModelPath } from "./parser/utils";
+import { loadModels } from "./parser/utils";
 
 declare namespace MongooseTsgen {
   export type CliFlagConfig = Interfaces.InferredFlags<typeof MongooseTsgen["flags"]>;
@@ -167,8 +167,8 @@ class MongooseTsgen extends Command {
       this.log("Skipping TS model parsing and sourceFile model type replacement");
     } else {
       const modelTypes = tsReader.getModelTypes(modelsPaths);
-      const schemas = loadSchemasFromModelPath(modelsPaths);
-      generator.replaceModelTypes(sourceFile, modelTypes, schemas);
+      const models = loadModels(modelsPaths);
+      generator.replaceModelTypes(sourceFile, modelTypes, models);
 
       // add populate helpers
       await generator.addPopulateHelpers(sourceFile);

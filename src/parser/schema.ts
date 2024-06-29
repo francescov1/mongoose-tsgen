@@ -10,8 +10,7 @@ import {
 } from "./utils";
 import _ from "lodash";
 import * as templates from "../helpers/templates";
-import { MongooseSchema, ParserSchemaField } from "./types";
-import mongoose from "mongoose";
+import { MongooseModel, MongooseSchema, ParserSchemaField } from "./types";
 
 // old TODOs:
 // - Handle statics method issue
@@ -43,7 +42,7 @@ export class ParserSchema {
   }: {
     mongooseSchema: MongooseSchema;
     modelName: string;
-    model: mongoose.Model<any>;
+    model: MongooseModel;
   }) {
     this.model = model;
     this.modelName = modelName;
@@ -160,6 +159,7 @@ export class ParserSchema {
 
   /**
    * Parses the schema tree, and adds _aliasRootField to the tree for aliases.
+   * @param schema The schema to parse.
    * @returns The parsed schema tree.
    */
   parseTree = (schema: MongooseSchema): Record<string, any> => {
@@ -180,8 +180,6 @@ export class ParserSchema {
     const mongooseChildSchemas = _.cloneDeep(schema.childSchemas);
 
     const childSchemas: ParserSchema[] = [];
-
-    // console.log("this.mongooseSchema.paths: ", this.mongooseSchema.paths);
 
     // NOTE: This is a hack for Schema maps. For some reason, when a map of a schema exists, the schema is not included
     // in childSchemas. So we add it manually and add a few extra properties to ensure the processChild works correctly.

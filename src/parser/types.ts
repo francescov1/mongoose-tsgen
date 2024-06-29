@@ -28,3 +28,9 @@ export interface MongooseSchema extends mongoose.Schema {
   _isSchemaMap?: boolean;
   _isDefaultSetToUndefined?: boolean;
 }
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export interface MongooseModel<T = any, TQueryHelpers = {}, TMethods = {}, TVirtuals = {}>
+  extends Omit<mongoose.Model<T, TQueryHelpers, TMethods, TVirtuals>, "schema"> {
+  schema: MongooseSchema;
+}
