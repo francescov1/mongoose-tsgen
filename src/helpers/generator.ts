@@ -10,6 +10,8 @@ import {
 } from "../parser/utils";
 import { MongooseModel } from "../parser/types";
 
+// TODO next: Pull this file apart. Create a new "file writer" file, move all the ts stuff somewhere else,
+
 // this strips comments of special tokens since ts-morph generates jsdoc tokens automatically
 const cleanComment = (comment: string) => {
   return comment
@@ -226,7 +228,7 @@ export const createSourceFile = (genPath: string) => {
 };
 
 export const parseFunctions = (
-  funcs: any,
+  funcs: { [key: string]: () => any },
   modelName: string,
   funcType: "methods" | "statics" | "query"
 ) => {
@@ -243,7 +245,8 @@ export const parseFunctions = (
   return interfaceString;
 };
 
-export const getSchemaTypes = ({ schema, modelName }: { schema: any; modelName: string }) => {
+export const getSchemaTypes = (model: MongooseModel) => {
+  const { modelName, schema } = model;
   let schemaTypes = "";
 
   // add type alias to modelName so that it can be imported without clashing with the mongoose model
@@ -346,7 +349,7 @@ export const generateTypes = ({
       const mongooseDocExtend = `mongoose.Document<${_idType}, ${modelName}Queries>`;
 
       let documentInterfaceStr = "";
-      documentInterfaceStr += getSchemaTypes({ schema, modelName });
+      documentInterfaceStr += getSchemaTypes(model);
 
       const documentHeader =
         templates.getDocumentDocs(modelName) +
