@@ -213,7 +213,7 @@ _id: mongoose.Types.ObjectId;
  * const UserSubdocArrayWithComplexType = mongoose.model<UserSubdocArrayWithComplexTypeDocument, UserSubdocArrayWithComplexTypeModel>("UserSubdocArrayWithComplexType", UserSubdocArrayWithComplexTypeSchema);
  * ```
  */
-export type UserSubdocArrayWithComplexTypeExtensionDocument = mongoose.Document<any> & {
+export type UserSubdocArrayWithComplexTypeExtensionDocument = mongoose.Document<mongoose.Types.ObjectId> & {
 customer?: string;
 path: mongoose.Types.Array<string>;
 _id: mongoose.Types.ObjectId;
@@ -224,7 +224,7 @@ _id: mongoose.Types.ObjectId;
  * 
  * Type of `UserDocument["subdocArrayWithComplexType"]` element.
  */
-export type UserSubdocArrayWithComplexTypeDocument = mongoose.Types.Subdocument & {
+export type UserSubdocArrayWithComplexTypeDocument = mongoose.Types.Subdocument<any> & {
 fieldName?: string;
 extension?: UserSubdocArrayWithComplexTypeExtensionDocument;
 }
