@@ -19,7 +19,7 @@ import { MongooseModel, MongooseSchema, ParserSchemaField } from "./types";
 
 export class ParserSchema {
   modelName: string;
-  model: any; // TODO: Better type
+  model: any; // TODO: Can we get better types here?
   mongooseSchema: MongooseSchema;
   fields: ParserSchemaField[];
   methods: Record<string, string> = {};

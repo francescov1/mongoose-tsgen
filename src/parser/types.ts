@@ -18,7 +18,7 @@ export interface MongooseSchema extends mongoose.Schema {
   aliases: {
     [alias: string]: string;
   };
-  childSchemas: { schema: MongooseSchema; model: any }[];
+  childSchemas: { schema: MongooseSchema; model: any }[]; // TODO: mongoosemodel
 
   required: boolean;
 
