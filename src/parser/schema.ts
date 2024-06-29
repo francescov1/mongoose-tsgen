@@ -16,6 +16,7 @@ import mongoose from "mongoose";
 // old TODOs:
 // - Handle statics method issue
 // - Switch to using HydratedDocument, https://mongoosejs.com/docs/migrating_to_7.html. Also update query helpers https://mongoosejs.com/docs/typescript/query-helpers.html
+// TODO: Look into new inference of types https://mongoosejs.com/docs/typescript/schemas.html
 
 export class ParserSchema {
   modelName: string;
