@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import _ from "lodash";
 import { MongooseModel } from "./types";
+import { convertKeyValueToLine } from "../writer/stringBuilder";
 
 export const getSubdocName = (path: string, modelName = "") => {
   let subDocName =
@@ -15,7 +16,7 @@ export const getSubdocName = (path: string, modelName = "") => {
   // // If a user names a field "model", it will conflict with the model name, so we need to rename it.
   // // https://github.com/francescov1/mongoose-tsgen/issues/128
   if (subDocName === `${modelName}Model`) {
-    // NOTE: This wasnt behavior for usage from parseKey, but it should probably be here anyways.
+    // NOTE: This wasnt behavior for usage from getTypeFromKeyValue, but it should probably be here anyways.
     // If causes issues, add a param to control it
     subDocName += "Field";
   }
@@ -168,33 +169,6 @@ export const BASE_TYPES = new Set([
   mongoose.Schema.Types.Decimal128
 ]);
 
-// TODO: This should not be part of the parser, should be part of the writer
-export const formatKeyEntry = ({
-  key,
-  val,
-  isOptional = false,
-  newline = true
-}: {
-  key: string;
-  val: string;
-  isOptional?: boolean;
-  newline?: boolean;
-}) => {
-  let line = "";
-
-  if (key) {
-    // If the key contains any special characters, we need to wrap it in quotes
-    line += /^\w*$/.test(key) ? key : JSON.stringify(key);
-
-    if (isOptional) line += "?";
-    line += ": ";
-  }
-
-  line += val + ";";
-  if (newline) line += "\n";
-  return line;
-};
-
 export const loadModels = (modelsPaths: string[]): MongooseModel[] => {
   // We use a dict with model names as keys to ensure uniqueness. If the user exports the same model twice, we only want to register it once.
   const nameToModelMap: { [modelName: string]: MongooseModel } = {};
@@ -271,8 +245,8 @@ export const loadModels = (modelsPaths: string[]): MongooseModel[] => {
 };
 
 // TODO: This is one of the most complex functions, and should be refactored.
-
-export const parseKey = ({
+// TODO: May want to splti up the string building with the type extraction
+export const getTypeFromKeyValue = ({
   key,
   val: valOriginal,
   isDocument,
@@ -289,7 +263,7 @@ export const parseKey = ({
 }): string => {
   // if the value is an object, we need to deepClone it to ensure changes to `val` aren't persisted in parent function
   let val = _.isPlainObject(valOriginal) ? _.cloneDeep(valOriginal) : valOriginal;
-  let valType: string | undefined;
+  let valueType: string | undefined;
 
   const requiredValue = Array.isArray(val.required) ? val.required[0] : val.required;
   let isOptional = requiredValue !== true;
@@ -381,7 +355,7 @@ export const parseKey = ({
   if (val === Array || val?.type === Array || isUntypedArray) {
     // treat Array constructor and [] as an Array<Mixed>
     isArray = true;
-    valType = "any";
+    valueType = "any";
     isOptional = isArrayOuterDefaultSetToUndefined ?? false;
 
     // Array optionality is a bit overcomplicated, see https://github.com/francescov1/mongoose-tsgen/issues/124.
@@ -390,9 +364,9 @@ export const parseKey = ({
       isOptional = true;
     }
   } else if (val._inferredInterfaceName) {
-    valType = val._inferredInterfaceName + (isDocument ? "Document" : "");
+    valueType = val._inferredInterfaceName + (isDocument ? "Document" : "");
   } else if (isMap && val.of?._inferredInterfaceName) {
-    valType = val.of._inferredInterfaceName + (isDocument ? "Document" : "");
+    valueType = val.of._inferredInterfaceName + (isDocument ? "Document" : "");
     isOptional = val.of.required !== true;
   } else if (val.path && val.path && val.setters && val.getters) {
     // check for virtual properties
@@ -404,7 +378,7 @@ export const parseKey = ({
     // If the val has the _aliasRootField property, it means this field is an alias for another field, and _aliasRootField contains the other field's type.
     // So we can re-call this function using _aliasRootField.
     if (val._aliasRootField) {
-      return parseKey({
+      return getTypeFromKeyValue({
         key,
         val: val._aliasRootField,
         isDocument,
@@ -414,7 +388,7 @@ export const parseKey = ({
       });
     }
 
-    valType = "any";
+    valueType = "any";
     isOptional = false;
   } else if (
     key &&
@@ -437,13 +411,13 @@ export const parseKey = ({
 
     if (typeof val.ref === "function") {
       // If we get a function, we cant determine the document that we would populate, so just assume it's an ObjectId
-      valType = "mongoose.Types.ObjectId";
+      valueType = "mongoose.Types.ObjectId";
 
       // If generating the document version, we can also provide document as an option to reflect the populated case. But for
       // lean docs we can't do this cause we don't have a base type to extend from (since we can't determine it when parsing only JS).
       // Later the tsReader can implement a function typechecker to subtitute the type with the more exact one.
       if (isDocument) {
-        valType += " | mongoose.Document";
+        valueType += " | mongoose.Document";
       }
     } else if (docRef) {
       // If val.ref is an invalid type (not a string) then this gets skipped.
@@ -452,7 +426,7 @@ export const parseKey = ({
       }
 
       const populatedType = isDocument ? `${docRef}Document` : docRef;
-      valType = val.autopopulate ? // support for mongoose-autopopulate
+      valueType = val.autopopulate ? // support for mongoose-autopopulate
         populatedType :
         `${populatedType}["_id"] | ${populatedType}`;
     }
@@ -472,10 +446,10 @@ export const parseKey = ({
     // Currently, if we get an unknown type (ie not handled) then users run into a "max callstack exceeded error"
     if (convertedType === "{}") {
       const nestedSchema = _.cloneDeep(val);
-      valType = "{\n";
+      valueType = "{\n";
 
       Object.keys(nestedSchema).forEach((key: string) => {
-        valType += parseKey({
+        valueType += getTypeFromKeyValue({
           key,
           val: nestedSchema[key],
           isDocument,
@@ -485,34 +459,34 @@ export const parseKey = ({
         });
       });
 
-      valType += "}";
+      valueType += "}";
       isOptional = false;
     } else {
-      valType = convertedType;
+      valueType = convertedType;
     }
   }
 
-  if (!valType) return "";
+  if (!valueType) return "";
 
   if (isMap && !isMapOfArray)
-    valType = isDocument ? `mongoose.Types.Map<${valType}>` : `Map<string, ${valType}>`;
+    valueType = isDocument ? `mongoose.Types.Map<${valueType}>` : `Map<string, ${valueType}>`;
 
   if (isArray) {
     if (isDocument)
-      valType = `mongoose.Types.${val._isSubdocArray ? "Document" : ""}Array<` + valType + ">";
+      valueType = `mongoose.Types.${val._isSubdocArray ? "Document" : ""}Array<` + valueType + ">";
     else {
-      // if valType includes a space, likely means its a union type (ie "number | string") so lets wrap it in brackets when adding the array to the type
-      if (valType.includes(" ")) valType = `(${valType})`;
-      valType = `${valType}[]`;
+      // if valueType includes a space, likely means its a union type (ie "number | string") so lets wrap it in brackets when adding the array to the type
+      if (valueType.includes(" ")) valueType = `(${valueType})`;
+      valueType = `${valueType}[]`;
     }
   }
 
   // a little messy, but if we have a map of arrays, we need to wrap the value after adding the array info
   if (isMap && isMapOfArray)
-    valType = isDocument ? `mongoose.Types.Map<${valType}>` : `Map<string, ${valType}>`;
+    valueType = isDocument ? `mongoose.Types.Map<${valueType}>` : `Map<string, ${valueType}>`;
 
   if (val?.default === null) {
-    valType += " | null";
+    valueType += " | null";
   }
-  return formatKeyEntry({ key, val: valType, isOptional });
+  return convertKeyValueToLine({ key, valueType, isOptional });
 };

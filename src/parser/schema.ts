@@ -4,7 +4,7 @@
 
 import {
   convertBaseTypeToTs,
-  parseKey,
+  getTypeFromKeyValue,
   getShouldLeanIncludeVirtuals,
   getSubdocName
 } from "./utils";
@@ -143,7 +143,7 @@ export class ParserSchema {
     template += header;
 
     Object.entries(this.schemaTree).forEach(([key, val]) => {
-      template += parseKey({
+      template += getTypeFromKeyValue({
         key,
         val,
         isDocument,

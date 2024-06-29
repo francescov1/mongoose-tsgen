@@ -2,13 +2,9 @@ import { Project, SourceFile, SyntaxKind, PropertySignature } from "ts-morph";
 import * as templates from "./templates";
 import { TsReaderModelTypes } from "../types";
 import { ParserSchema } from "../parser/schema";
-import {
-  convertBaseTypeToTs,
-  formatKeyEntry,
-  getShouldLeanIncludeVirtuals,
-  loadModels
-} from "../parser/utils";
+import { convertBaseTypeToTs, getShouldLeanIncludeVirtuals, loadModels } from "../parser/utils";
 import { MongooseModel } from "../parser/types";
+import { convertKeyValueToLine } from "../writer/stringBuilder";
 
 // TODO next: Pull this file apart. Create a new "file writer" file, move all the ts stuff somewhere else,
 
@@ -239,7 +235,7 @@ export const parseFunctions = (
 
     const funcSignature = "(...args: any[]) => any";
     const type = convertFuncSignatureToType(funcSignature, funcType, modelName);
-    interfaceString += formatKeyEntry({ key, val: type });
+    interfaceString += convertKeyValueToLine({ key, valueType: type });
   });
 
   return interfaceString;
