@@ -154,7 +154,20 @@ const UserSchema: UserSchema = new Schema({
   optionalBaseTypeArray: {
     type: [String],
     default: undefined
-  }
+  },
+  subdocArrayWithComplexType: [
+    {
+      _id: false,
+      fieldName: String,
+      extension: {
+        type: {
+          customer: String,
+          path: [String],
+        },
+        default: null,
+      },
+    },
+  ]
 }, {
   toObject: {
     virtuals: true,

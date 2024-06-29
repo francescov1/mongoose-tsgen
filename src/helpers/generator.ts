@@ -28,7 +28,7 @@ export const replaceModelTypes = (
         ?.getTypeAlias(`${modelName}Methods`)
         ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
         ?.getChildrenOfKind(SyntaxKind.PropertySignature)
-        .forEach(prop => {
+        .forEach((prop) => {
           const signature = methods[prop.getName()];
           if (signature) {
             const funcType = parser.convertFuncSignatureToType(signature, "methods", modelName);
@@ -43,7 +43,7 @@ export const replaceModelTypes = (
         ?.getTypeAlias(`${modelName}Statics`)
         ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
         ?.getChildrenOfKind(SyntaxKind.PropertySignature)
-        .forEach(prop => {
+        .forEach((prop) => {
           const signature = statics[prop.getName()];
           if (signature) {
             const funcType = parser.convertFuncSignatureToType(signature, "statics", modelName);
@@ -58,7 +58,7 @@ export const replaceModelTypes = (
         ?.getTypeAlias(`${modelName}Queries`)
         ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
         ?.getChildrenOfKind(SyntaxKind.PropertySignature)
-        .forEach(prop => {
+        .forEach((prop) => {
           const signature = query[prop.getName()];
           if (signature) {
             const funcType = parser.convertFuncSignatureToType(signature, "query", modelName);
@@ -84,7 +84,7 @@ export const replaceModelTypes = (
           ?.getChildrenOfKind(SyntaxKind.PropertySignature);
 
       if (documentProperties || leanProperties) {
-        virtualNames.forEach(virtualName => {
+        virtualNames.forEach((virtualName) => {
           const virtualNameComponents = virtualName.split(".");
           let nestedDocProps: PropertySignature[] | undefined;
           let nestedLeanProps: PropertySignature[] | undefined;
@@ -93,13 +93,13 @@ export const replaceModelTypes = (
             if (i === virtualNameComponents.length - 1) {
               if (documentProperties) {
                 const docPropMatch = (nestedDocProps ?? documentProperties).find(
-                  prop => prop.getName() === nameComponent
+                  (prop) => prop.getName() === nameComponent
                 );
                 docPropMatch?.setType(virtuals[virtualName]);
               }
               if (leanProperties) {
                 const leanPropMatch = (nestedLeanProps ?? leanProperties).find(
-                  prop => prop.getName() === nameComponent
+                  (prop) => prop.getName() === nameComponent
                 );
                 leanPropMatch?.setType(virtuals[virtualName]);
               }
@@ -109,13 +109,13 @@ export const replaceModelTypes = (
 
             if (documentProperties) {
               nestedDocProps = (nestedDocProps ?? documentProperties)
-                .find(prop => prop.getName() === nameComponent)
+                .find((prop) => prop.getName() === nameComponent)
                 ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
                 ?.getChildrenOfKind(SyntaxKind.PropertySignature);
             }
             if (leanProperties) {
               nestedLeanProps = (nestedLeanProps ?? leanProperties)
-                .find(prop => prop.getName() === nameComponent)
+                .find((prop) => prop.getName() === nameComponent)
                 ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
                 ?.getChildrenOfKind(SyntaxKind.PropertySignature);
             }
@@ -146,14 +146,14 @@ export const replaceModelTypes = (
           if (i === pathComponents.length - 1) {
             if (documentProperties) {
               const docPropMatch = (nestedDocProps ?? documentProperties).find(
-                prop => prop.getName() === nameComponent
+                (prop) => prop.getName() === nameComponent
               );
 
               docPropMatch?.addJsDoc(cleanComment(comment));
             }
             if (leanProperties) {
               const leanPropMatch = (nestedLeanProps ?? leanProperties).find(
-                prop => prop.getName() === nameComponent
+                (prop) => prop.getName() === nameComponent
               );
 
               leanPropMatch?.addJsDoc(cleanComment(comment));
@@ -164,13 +164,13 @@ export const replaceModelTypes = (
 
           if (documentProperties) {
             nestedDocProps = (nestedDocProps ?? documentProperties)
-              .find(prop => prop.getName() === nameComponent)
+              .find((prop) => prop.getName() === nameComponent)
               ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
               ?.getChildrenOfKind(SyntaxKind.PropertySignature);
           }
           if (leanProperties) {
             nestedLeanProps = (nestedLeanProps ?? leanProperties)
-              .find(prop => prop.getName() === nameComponent)
+              .find((prop) => prop.getName() === nameComponent)
               ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
               ?.getChildrenOfKind(SyntaxKind.PropertySignature);
           }
@@ -243,7 +243,7 @@ export const generateTypes = ({
   noMongoose: boolean;
   datesAsStrings: boolean;
 }) => {
-  sourceFile.addStatements(writer => {
+  sourceFile.addStatements((writer) => {
     writer.write(templates.MAIN_HEADER).blankLine();
     // mongoose import
     if (!noMongoose) writer.write(templates.MONGOOSE_IMPORT);
@@ -256,7 +256,7 @@ export const generateTypes = ({
     //     writer.write("something;");
     // });
 
-    Object.keys(schemas).forEach(modelName => {
+    Object.keys(schemas).forEach((modelName) => {
       const schema = schemas[modelName];
 
       const shouldLeanIncludeVirtuals = parser.getShouldLeanIncludeVirtuals(schema);
@@ -291,7 +291,7 @@ export const generateTypes = ({
         });
       }
 
-      const mongooseDocExtend = `mongoose.Document<${_idType ?? "never"}, ${modelName}Queries>`;
+      const mongooseDocExtend = `mongoose.Document<${_idType ?? "any"}, ${modelName}Queries>`;
 
       let documentInterfaceStr = "";
       documentInterfaceStr += getSchemaTypes({ schema, modelName });

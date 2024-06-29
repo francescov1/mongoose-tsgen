@@ -100,7 +100,7 @@ export const parseFunctions = (
 ) => {
   let interfaceString = "";
 
-  Object.keys(funcs).forEach(key => {
+  Object.keys(funcs).forEach((key) => {
     if (["initializeTimestamps"].includes(key)) return;
 
     const funcSignature = "(...args: any[]) => any";
@@ -184,7 +184,7 @@ export const convertBaseTypeToTs = ({
         const enumValues = Object.values(val.enum);
 
         const includesNull = enumValues.includes(null);
-        const enumValuesWithoutNull = enumValues.filter(str => str !== null);
+        const enumValuesWithoutNull = enumValues.filter((str) => str !== null);
         let enumTypscriptType = `"` + enumValuesWithoutNull.join(`" | "`) + `"`;
         if (includesNull) enumTypscriptType += ` | null`;
         return enumTypscriptType;
@@ -317,9 +317,9 @@ const parseChildSchemas = ({
 
       let header = "";
       if (isDocument)
-        header += isSubdocArray ?
-          templates.getSubdocumentDocs(rootPath, path) :
-          templates.getDocumentDocs(rootPath);
+        header += isSubdocArray
+          ? templates.getSubdocumentDocs(rootPath, path)
+          : templates.getDocumentDocs(rootPath);
       else header += templates.getLeanDocs(rootPath, name);
 
       header += "\nexport ";
@@ -346,7 +346,7 @@ const parseChildSchemas = ({
           // TODO: this should extend `${name}Methods` like normal docs, but generator will only have methods, statics, etc. under the model name, not the subdoc model name
           // so after this is generated, we should do a pass and see if there are any child schemas that have non-subdoc definitions.
           // or could just wait until we dont need duplicate subdoc versions of docs (use the same one for both embedded doc and non-subdoc)
-          header += `mongoose.Document<${_idType ?? "never"}>`;
+          header += `mongoose.Document<${_idType ?? "any"}>`;
         }
 
         header += " & {\n";
@@ -468,6 +468,7 @@ export const getParseKeyFn = (
       isArray = true;
     }
 
+    // TODO: Check for type.type, this indicates a field named type https://mongoosejs.com/docs/schematypes.html#type-key
     if (val === Array || val?.type === Array || isUntypedArray) {
       // treat Array constructor and [] as an Array<Mixed>
       isArray = true;
@@ -542,9 +543,9 @@ export const getParseKeyFn = (
         }
 
         const populatedType = isDocument ? `${docRef}Document` : docRef;
-        valType = val.autopopulate ? // support for mongoose-autopopulate
-          populatedType :
-          `${populatedType}["_id"] | ${populatedType}`;
+        valType = val.autopopulate // support for mongoose-autopopulate
+          ? populatedType
+          : `${populatedType}["_id"] | ${populatedType}`;
       }
     } else {
       // _ids are always required
@@ -670,9 +671,9 @@ export const loadSchemas = (modelsPaths: string[]) => {
     try {
       exportedData = require(singleModelPath);
     } catch (err) {
-      const error = (err as Error).message?.includes(`Cannot find module '${singleModelPath}'`) ?
-        new Error(`Could not find a module at path ${singleModelPath}.`) :
-        err;
+      const error = (err as Error).message?.includes(`Cannot find module '${singleModelPath}'`)
+        ? new Error(`Could not find a module at path ${singleModelPath}.`)
+        : err;
       throw error;
     }
 

@@ -1,5 +1,5 @@
 {
-  "extends": ["oclif", "oclif-typescript"],
+  "extends": ["oclif", "oclif-typescript", "prettier"],
   "rules": {
     "camelcase": 0,
     "quotes": 0,
