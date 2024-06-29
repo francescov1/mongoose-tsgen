@@ -331,22 +331,21 @@ export const generateTypes = ({
       writer.write(leanInterfaceStr).blankLine();
 
       // if noMongoose, skip adding document types
-      if (noMongoose) return;
-
-      // get type of _id to pass to mongoose.Document
-      // not sure why schema doesnt have `tree` property for typings
-      let _idType;
-      if ((schema as any).tree._id) {
-        _idType = convertBaseTypeToTs({
-          key: "_id",
-          val: (schema as any).tree._id,
-          isDocument: true,
-          noMongoose,
-          datesAsStrings
-        });
+      if (noMongoose) {
+        return;
       }
 
-      const mongooseDocExtend = `mongoose.Document<${_idType ?? "never"}, ${modelName}Queries>`;
+      // get type of _id to pass to mongoose.Document
+      const _idType = schema.tree._id ?
+        convertBaseTypeToTs({
+            key: "_id",
+            val: schema.tree._id,
+            isDocument: true,
+            noMongoose,
+            datesAsStrings
+          }) :
+        "any";
+      const mongooseDocExtend = `mongoose.Document<${_idType}, ${modelName}Queries>`;
 
       let documentInterfaceStr = "";
       documentInterfaceStr += getSchemaTypes({ schema, modelName });

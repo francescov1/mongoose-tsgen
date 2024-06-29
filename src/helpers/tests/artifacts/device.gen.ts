@@ -82,7 +82,7 @@ export type HomeSchema = mongoose.Schema<HomeDocument, HomeModel, HomeMethods, H
  * const Home = mongoose.model<HomeDocument, HomeModel>("Home", HomeSchema);
  * ```
  */
-export type HomeDocument = mongoose.Document<never, HomeQueries> & HomeMethods & {
+export type HomeDocument = mongoose.Document<any, HomeQueries> & HomeMethods & {
 homeId?: string;
 homeName?: string;
 status: string;
