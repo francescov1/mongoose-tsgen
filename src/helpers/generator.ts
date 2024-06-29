@@ -102,7 +102,6 @@ export const replaceModelTypes = (
         ?.getFirstChildByKind(SyntaxKind.TypeLiteral)
         ?.getChildrenOfKind(SyntaxKind.PropertySignature);
 
-      // TODO: Review this
       const { schema } = models.find(model => model.modelName === modelName)!;
 
       const leanProperties =
@@ -223,6 +222,7 @@ export const createSourceFile = (genPath: string) => {
   return sourceFile;
 };
 
+// TODO: statics, query, methods should all be parsed in the parser, and then written in the stringBuilder
 export const parseFunctions = (
   funcs: { [key: string]: () => any },
   modelName: string,
@@ -276,6 +276,7 @@ export const getSchemaTypes = (model: MongooseModel) => {
   return schemaTypes;
 };
 
+// TODO: This should be split up, shouldnt be writing to file and parsing schema simultaneously. Instead parse shema first then write later.
 export const generateTypes = ({
   sourceFile,
   imports = [],
