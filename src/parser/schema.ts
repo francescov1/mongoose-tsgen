@@ -165,6 +165,7 @@ export class ParserSchema {
   parseTree = (): Record<string, any> => {
     const tree = _.cloneDeep(this.mongooseSchema.tree);
 
+    // Add alias types to tree
     if (!_.isEmpty(this.mongooseSchema.aliases) && this.modelName) {
       Object.entries(this.mongooseSchema.aliases).forEach(([alias, path]: [string, any]) => {
         _.set(tree, `${alias}._aliasRootField`, _.get(tree, path));
