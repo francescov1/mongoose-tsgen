@@ -179,6 +179,7 @@ export class ParserSchema {
 
     const childSchemas: ParserSchema[] = [];
 
+    console.log("this.mongooseSchema.paths: ", this.mongooseSchema.paths);
     // NOTE: This is a hack for Schema maps. For some reason, when a map of a schema exists, the schema is not included
     // in childSchemas. So we add it manually and add a few extra properties to ensure the processChild works correctly.
     for (const [path, type] of Object.entries(this.mongooseSchema.paths)) {
@@ -210,7 +211,7 @@ export class ParserSchema {
       child.schema._isSchemaMap = isSchemaMap;
 
       const requiredValuePath = `${path}.required`;
-      if (_.get(this.mongooseSchema.tree, requiredValuePath) === true) {
+      if (_.get(this.schemaTree, requiredValuePath) === true) {
         child.schema.required = true;
       }
 
@@ -221,22 +222,22 @@ export class ParserSchema {
       if (isSubdocArray) {
         const defaultValuePath = `${path}.default`;
         if (
-          _.has(this.mongooseSchema.tree, defaultValuePath) &&
-          _.get(this.mongooseSchema.tree, defaultValuePath) === undefined
+          _.has(this.schemaTree, defaultValuePath) &&
+          _.get(this.schemaTree, defaultValuePath) === undefined
         ) {
           child.schema._isDefaultSetToUndefined = true;
         }
       }
 
       if (isSchemaMap) {
-        _.set(this.mongooseSchema.tree, path, {
+        _.set(this.schemaTree, path, {
           type: Map,
           of: isSubdocArray ? [child.schema] : child.schema
         });
       } else if (isSubdocArray) {
-        _.set(this.mongooseSchema.tree, path, [child.schema]);
+        _.set(this.schemaTree, path, [child.schema]);
       } else {
-        _.set(this.mongooseSchema.tree, path, child.schema);
+        _.set(this.schemaTree, path, child.schema);
       }
 
       const childSchema = new ParserSchema({
