@@ -35,6 +35,33 @@ _id: mongoose.Types.ObjectId;
 }
 
 /**
+ * Lean version of UserSubdocArrayWithComplexTypeExtensionDocument
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from `UserSubdocArrayWithComplexTypeDocument.toObject()`.
+ * ```
+ * const usersubdocarraywithcomplextypeObject = usersubdocarraywithcomplextype.toObject();
+ * ```
+ */
+export type UserSubdocArrayWithComplexTypeExtension = {
+customer?: string;
+path: string[];
+_id: mongoose.Types.ObjectId;
+}
+
+/**
+ * Lean version of UserSubdocArrayWithComplexTypeDocument
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from `UserDocument.toObject()`.
+ * ```
+ * const userObject = user.toObject();
+ * ```
+ */
+export type UserSubdocArrayWithComplexType = {
+fieldName?: string;
+extension?: UserSubdocArrayWithComplexTypeExtension;
+}
+
+/**
  * Lean version of UserDocument
  * 
  * This has all Mongoose getters & functions removed. This type will be returned from `UserDocument.toObject()`. To avoid conflicts with model names, use the type alias `UserObject`.
@@ -92,6 +119,7 @@ baseEnumClass?: "value1" | "value2";
 "special-character"?: string;
 typeWithAnAlias?: number;
 optionalBaseTypeArray?: string[];
+subdocArrayWithComplexType: UserSubdocArrayWithComplexType[];
 alias: {
 field?: number;
 };
@@ -182,6 +210,30 @@ _id: mongoose.Types.ObjectId;
  * 
  * Pass this type to the Mongoose Model constructor:
  * ```
+ * const UserSubdocArrayWithComplexType = mongoose.model<UserSubdocArrayWithComplexTypeDocument, UserSubdocArrayWithComplexTypeModel>("UserSubdocArrayWithComplexType", UserSubdocArrayWithComplexTypeSchema);
+ * ```
+ */
+export type UserSubdocArrayWithComplexTypeExtensionDocument = mongoose.Document<any> & {
+customer?: string;
+path: mongoose.Types.Array<string>;
+_id: mongoose.Types.ObjectId;
+}
+
+/**
+ * Mongoose Subdocument type
+ * 
+ * Type of `UserDocument["subdocArrayWithComplexType"]` element.
+ */
+export type UserSubdocArrayWithComplexTypeDocument = mongoose.Types.Subdocument & {
+fieldName?: string;
+extension?: UserSubdocArrayWithComplexTypeExtensionDocument;
+}
+
+/**
+ * Mongoose Document type
+ * 
+ * Pass this type to the Mongoose Model constructor:
+ * ```
  * const User = mongoose.model<UserDocument, UserModel>("User", UserSchema);
  * ```
  */
@@ -235,6 +287,7 @@ baseEnumClass?: "value1" | "value2";
 "special-character"?: string;
 typeWithAnAlias?: number;
 optionalBaseTypeArray?: mongoose.Types.Array<string>;
+subdocArrayWithComplexType: mongoose.Types.DocumentArray<UserSubdocArrayWithComplexTypeDocument>;
 alias: {
 field?: number;
 };
