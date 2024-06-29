@@ -1,4 +1,5 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "declaration": true,
     "importHelpers": true,
@@ -9,7 +10,10 @@
     "target": "es2017",
     "esModuleInterop": true,
     "types": ["node", "jest"],
-    "typeRoots": ["./node_modules/@types"]
+    "typeRoots": ["./node_modules/@types"],
+    "paths": {
+      "@package-json": ["./package.json"]
+    }
   },
   "include": ["src/**/*"]
 }
