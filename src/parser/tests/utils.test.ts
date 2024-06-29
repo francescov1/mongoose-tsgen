@@ -1,126 +1,323 @@
-import { convertToSingular, getParseKeyFn } from "../utils";
+import { convertToSingular, parseKey } from "../utils";
 import mongoose from "mongoose";
 
-describe("getParseKeyFn", () => {
+describe("parseKey", () => {
   test("handles untyped Array equivalents as `any[]`", () => {
-    // see https://mongoosejs.com/docs/schematypes.html#arrays
-    const parseKey = getParseKeyFn({
+    const genericParseKeyParams = {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
       datesAsStrings: false
-    });
+    };
+    // see https://mongoosejs.com/docs/schematypes.html#arrays
 
-    expect(parseKey("test1a", { type: [mongoose.Schema.Types.Mixed] })).toBe("test1a: any[];\n");
-    expect(parseKey("test1b", [mongoose.Schema.Types.Mixed])).toBe("test1b: any[];\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test1a",
+        val: { type: [mongoose.Schema.Types.Mixed] }
+      })
+    ).toBe("test1a: any[];\n");
 
-    expect(parseKey("test2a", { type: [] })).toBe("test2a: any[];\n");
-    expect(parseKey("test2b", [])).toBe("test2b: any[];\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test1b",
+        val: [mongoose.Schema.Types.Mixed]
+      })
+    ).toBe("test1b: any[];\n");
 
-    expect(parseKey("test3a", { type: Array })).toBe("test3a: any[];\n");
-    expect(parseKey("test3b", Array)).toBe("test3b: any[];\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test2a",
+        val: { type: [] }
+      })
+    ).toBe("test2a: any[];\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test2b",
+        val: []
+      })
+    ).toBe("test2b: any[];\n");
 
-    expect(parseKey("test4a", { type: [{}] })).toBe("test4a: any[];\n");
-    expect(parseKey("test4b", [{}])).toBe("test4b: any[];\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test3a",
+        val: { type: Array }
+      })
+    ).toBe("test3a: any[];\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test3b",
+        val: Array
+      })
+    ).toBe("test3b: any[];\n");
+
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test4a",
+        val: { type: [{}] }
+      })
+    ).toBe("test4a: any[];\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test4b",
+        val: [{}]
+      })
+    ).toBe("test4b: any[];\n");
   });
 
   test("handles Object equivalents as `any`", () => {
     // see https://mongoosejs.com/docs/schematypes.html#mixed
-    const parseKey = getParseKeyFn({
+    const genericParseKeyParams = {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
       datesAsStrings: false
-    });
+    };
 
-    expect(parseKey("test1a", { type: mongoose.Schema.Types.Mixed })).toBe("test1a?: any;\n");
-    expect(parseKey("test1b", mongoose.Schema.Types.Mixed)).toBe("test1b?: any;\n");
-    expect(parseKey("test1c", { type: mongoose.Schema.Types.Mixed, required: true })).toBe(
-      "test1c: any;\n"
-    );
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test1a",
+        val: { type: mongoose.Schema.Types.Mixed }
+      })
+    ).toBe("test1a?: any;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test1b",
+        val: mongoose.Schema.Types.Mixed
+      })
+    ).toBe("test1b?: any;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test1c",
+        val: { type: mongoose.Schema.Types.Mixed, required: true }
+      })
+    ).toBe("test1c: any;\n");
 
-    expect(parseKey("test2a", { type: {} })).toBe("test2a?: any;\n");
-    expect(parseKey("test2b", {})).toBe("test2b?: any;\n");
-    expect(parseKey("test2c", { type: {}, required: true })).toBe("test2c: any;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test2a",
+        val: { type: {} }
+      })
+    ).toBe("test2a?: any;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test2b",
+        val: {}
+      })
+    ).toBe("test2b?: any;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test2c",
+        val: { type: {}, required: true }
+      })
+    ).toBe("test2c: any;\n");
 
-    expect(parseKey("test3a", { type: Object })).toBe("test3a?: any;\n");
-    expect(parseKey("test3b", Object)).toBe("test3b?: any;\n");
-    expect(parseKey("test3c", { type: Object, required: true })).toBe("test3c: any;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test3a",
+        val: { type: Object }
+      })
+    ).toBe("test3a?: any;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test3b",
+        val: Object
+      })
+    ).toBe("test3b?: any;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test3c",
+        val: { type: Object, required: true }
+      })
+    ).toBe("test3c: any;\n");
   });
 
   test("handles 2dsphere index edge case", () => {
-    const parseKey = getParseKeyFn({
+    const genericParseKeyParams = {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
       datesAsStrings: false
-    });
+    };
 
     // should be optional; not required like normal arrays
-    expect(parseKey("test1a", { type: [Number], index: "2dsphere" })).toBe("test1a?: number[];\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test1a",
+        val: { type: [Number], index: "2dsphere" }
+      })
+    ).toBe("test1a?: number[];\n");
     // should be required, as usual
-    expect(parseKey("test2a", { type: [Number] })).toBe("test2a: number[];\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test2a",
+        val: { type: [Number] }
+      })
+    ).toBe("test2a: number[];\n");
   });
 
   test("handles Schematypes", () => {
-    const parseKey = getParseKeyFn({
+    const genericParseKeyParams = {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
       datesAsStrings: false
-    });
+    };
 
-    expect(parseKey("test1a", { type: mongoose.Schema.Types.String })).toBe("test1a?: string;\n");
-    expect(parseKey("test1b", { type: mongoose.Schema.Types.Number })).toBe("test1b?: number;\n");
-    expect(parseKey("test1c", { type: mongoose.Schema.Types.Date })).toBe("test1c?: Date;\n");
-    expect(parseKey("test1d", { type: mongoose.Schema.Types.Boolean })).toBe("test1d?: boolean;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test1a",
+        val: { type: mongoose.Schema.Types.String }
+      })
+    ).toBe("test1a?: string;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test1b",
+        val: { type: mongoose.Schema.Types.Number }
+      })
+    ).toBe("test1b?: number;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test1c",
+        val: { type: mongoose.Schema.Types.Date }
+      })
+    ).toBe("test1c?: Date;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test1d",
+        val: { type: mongoose.Schema.Types.Boolean }
+      })
+    ).toBe("test1d?: boolean;\n");
 
-    expect(parseKey("test2a", mongoose.Schema.Types.String)).toBe("test2a?: string;\n");
-    expect(parseKey("test2b", mongoose.Schema.Types.Number)).toBe("test2b?: number;\n");
-    expect(parseKey("test2c", mongoose.Schema.Types.Date)).toBe("test2c?: Date;\n");
-    expect(parseKey("test2d", mongoose.Schema.Types.Boolean)).toBe("test2d?: boolean;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test2a",
+        val: mongoose.Schema.Types.String
+      })
+    ).toBe("test2a?: string;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test2b",
+        val: mongoose.Schema.Types.Number
+      })
+    ).toBe("test2b?: number;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test2c",
+        val: mongoose.Schema.Types.Date
+      })
+    ).toBe("test2c?: Date;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test2d",
+        val: mongoose.Schema.Types.Boolean
+      })
+    ).toBe("test2d?: boolean;\n");
   });
 
   test("handles references and mongoose-autopopulate", () => {
-    const parseKey = getParseKeyFn({
+    const genericParseKeyParams = {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
       datesAsStrings: false
-    });
+    };
 
-    expect(parseKey("test1a", { type: mongoose.Schema.Types.ObjectId, ref: "RefTest" })).toBe(
-      'test1a?: RefTest["_id"] | RefTest;\n'
-    );
     expect(
-      parseKey("test1b", {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "RefTest",
-        autopopulate: false
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test1a",
+        val: { type: mongoose.Schema.Types.ObjectId, ref: "RefTest" }
+      })
+    ).toBe('test1a?: RefTest["_id"] | RefTest;\n');
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test1b",
+        val: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "RefTest",
+          autopopulate: false
+        }
       })
     ).toBe('test1b?: RefTest["_id"] | RefTest;\n');
     expect(
-      parseKey("test1c", {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "RefTest",
-        autopopulate: true
+      parseKey({
+        ...genericParseKeyParams,
+        key: "test1c",
+        val: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "RefTest",
+          autopopulate: true
+        }
       })
     ).toBe("test1c?: RefTest;\n");
   });
 
   test("handles dates as strings", () => {
     // see https://mongoosejs.com/docs/schematypes.html#arrays
-    const parseKey = getParseKeyFn({
+    const genericParseKeyParams = {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
       datesAsStrings: true
-    });
+    };
 
-    expect(parseKey("aDate", Date)).toBe("aDate?: string;\n");
-    expect(parseKey("aDateType", { type: Date })).toBe("aDateType?: string;\n");
-    expect(parseKey("aDateString", "Date")).toBe("aDateString?: string;\n");
-    expect(parseKey("aDateTypeString", { type: "Date" })).toBe("aDateTypeString?: string;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "aDate",
+        val: Date
+      })
+    ).toBe("aDate?: string;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "aDateType",
+        val: { type: Date }
+      })
+    ).toBe("aDateType?: string;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "aDateString",
+        val: "Date"
+      })
+    ).toBe("aDateString?: string;\n");
+    expect(
+      parseKey({
+        ...genericParseKeyParams,
+        key: "aDateTypeString",
+        val: { type: "Date" }
+      })
+    ).toBe("aDateTypeString?: string;\n");
   });
 });
 

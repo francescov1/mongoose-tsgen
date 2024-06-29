@@ -4,7 +4,7 @@
 
 import {
   convertBaseTypeToTs,
-  getParseKeyFn,
+  parseKey,
   getShouldLeanIncludeVirtuals,
   getSubdocName
 } from "./utils";
@@ -142,15 +142,15 @@ export class ParserSchema {
 
     template += header;
 
-    const parseKey = getParseKeyFn({
-      isDocument,
-      noMongoose,
-      datesAsStrings,
-      shouldLeanIncludeVirtuals: this.shouldLeanIncludeVirtuals
-    });
-
     Object.entries(this.schemaTree).forEach(([key, val]) => {
-      template += parseKey(key, val);
+      template += parseKey({
+        key,
+        val,
+        isDocument,
+        noMongoose,
+        datesAsStrings,
+        shouldLeanIncludeVirtuals: this.shouldLeanIncludeVirtuals
+      });
     });
 
     template += footer;

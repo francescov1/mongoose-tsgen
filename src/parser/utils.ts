@@ -15,7 +15,7 @@ export const getSubdocName = (path: string, modelName = "") => {
   // // If a user names a field "model", it will conflict with the model name, so we need to rename it.
   // // https://github.com/francescov1/mongoose-tsgen/issues/128
   if (subDocName === `${modelName}Model`) {
-    // NOTE: This wasnt behavior for usage from getParseKeyFn, but it should probably be here anyways.
+    // NOTE: This wasnt behavior for usage from parseKey, but it should probably be here anyways.
     // If causes issues, add a param to control it
     subDocName += "Field";
   }
@@ -272,244 +272,247 @@ export const loadModels = (modelsPaths: string[]): MongooseModel[] => {
 
 // TODO: This is one of the most complex functions, and should be refactored.
 
-export const getParseKeyFn = ({
+export const parseKey = ({
+  key,
+  val: valOriginal,
   isDocument,
   shouldLeanIncludeVirtuals,
   noMongoose,
   datesAsStrings
 }: {
+  key: string;
+  val: any;
   isDocument: boolean;
   shouldLeanIncludeVirtuals: boolean;
   noMongoose: boolean;
   datesAsStrings: boolean;
-}) => {
-  return (key: string, valOriginal: any): string => {
-    // if the value is an object, we need to deepClone it to ensure changes to `val` aren't persisted in parent function
-    let val = _.isPlainObject(valOriginal) ? _.cloneDeep(valOriginal) : valOriginal;
-    let valType: string | undefined;
+}): string => {
+  // if the value is an object, we need to deepClone it to ensure changes to `val` aren't persisted in parent function
+  let val = _.isPlainObject(valOriginal) ? _.cloneDeep(valOriginal) : valOriginal;
+  let valType: string | undefined;
 
-    const requiredValue = Array.isArray(val.required) ? val.required[0] : val.required;
-    let isOptional = requiredValue !== true;
+  const requiredValue = Array.isArray(val.required) ? val.required[0] : val.required;
+  let isOptional = requiredValue !== true;
 
-    let isArray = Array.isArray(val);
-    let isUntypedArray = false;
-    let isMapOfArray = false;
-    /**
-     * If _isDefaultSetToUndefined is set, it means this is a subdoc array with `default: undefined`, indicating that mongoose will not automatically
-     * assign an empty array to the value. Therefore, isOptional = true. In other cases, isOptional is false since the field will be automatically initialized
-     * with an empty array
-     */
-    const isArrayOuterDefaultSetToUndefined = Boolean(val._isDefaultSetToUndefined);
+  let isArray = Array.isArray(val);
+  let isUntypedArray = false;
+  let isMapOfArray = false;
+  /**
+   * If _isDefaultSetToUndefined is set, it means this is a subdoc array with `default: undefined`, indicating that mongoose will not automatically
+   * assign an empty array to the value. Therefore, isOptional = true. In other cases, isOptional is false since the field will be automatically initialized
+   * with an empty array
+   */
+  const isArrayOuterDefaultSetToUndefined = Boolean(val._isDefaultSetToUndefined);
 
-    // this means its a subdoc
-    if (isArray) {
-      val = val[0];
-      if (val === undefined && val?.type === undefined) {
-        isUntypedArray = true;
-        isOptional = isArrayOuterDefaultSetToUndefined ?? false;
-      } else {
-        isOptional = val._isDefaultSetToUndefined ?? false;
-      }
-
-      // Array optionality is a bit overcomplicated, see https://github.com/francescov1/mongoose-tsgen/issues/124.
-      // If user explicitely sets required: false, we override our logic and assume they know best.
-      if (requiredValue === false) {
-        isOptional = true;
-      }
-    } else if (Array.isArray(val.type)) {
-      val.type = val.type[0];
-      isArray = true;
-
-      if (val.type === undefined) {
-        isUntypedArray = true;
-        isOptional = isArrayOuterDefaultSetToUndefined ?? false;
-      } else if (val.type.type) {
-        /**
-         * Arrays can also take the following format.
-         * This is used when validation needs to be done on both the element itself and the full array.
-         * This format implies `required: true`.
-         *
-         * ```
-         * friends: {
-         *   type: [
-         *     {
-         *       type: Schema.Types.ObjectId,
-         *       ref: "User",
-         *       validate: [
-         *         function(userId: mongoose.Types.ObjectId) { return !this.friends.includes(userId); }
-         *       ]
-         *     }
-         *   ],
-         *   validate: [function(val) { return val.length <= 3; } ]
-         * }
-         * ```
-         */
-        if (val.type.ref) val.ref = val.type.ref;
-        val.type = val.type.type;
-        isOptional = false;
-      } else if (val.index === "2dsphere") {
-        // 2dsphere index is a special edge case which does not have an inherent default value of []
-        isOptional = true;
-      } else if ("default" in val && val.default === undefined && requiredValue !== true) {
-        // If default: undefined, it means the field should not default with an empty array.
-        isOptional = true;
-      } else {
-        isOptional = isArrayOuterDefaultSetToUndefined;
-      }
-
-      // Array optionality is a bit overcomplicated, see https://github.com/francescov1/mongoose-tsgen/issues/124.
-      // If user explicitely sets required: false, we override our logic and assume they know best.
-      if (requiredValue === false) {
-        isOptional = true;
-      }
-    }
-
-    if (BASE_TYPES.has(val)) val = { type: val };
-
-    const isMap = isMapType(val?.type);
-
-    // // handles maps of arrays as per https://github.com/francescov1/mongoose-tsgen/issues/63
-    if (isMap && Array.isArray(val.of)) {
-      val.of = val.of[0];
-      isMapOfArray = true;
-      isArray = true;
-    }
-
-    if (val === Array || val?.type === Array || isUntypedArray) {
-      // treat Array constructor and [] as an Array<Mixed>
-      isArray = true;
-      valType = "any";
+  // this means its a subdoc
+  if (isArray) {
+    val = val[0];
+    if (val === undefined && val?.type === undefined) {
+      isUntypedArray = true;
       isOptional = isArrayOuterDefaultSetToUndefined ?? false;
-
-      // Array optionality is a bit overcomplicated, see https://github.com/francescov1/mongoose-tsgen/issues/124.
-      // If user explicitely sets required: false, we override our logic and assume they know best.
-      if (requiredValue === false) {
-        isOptional = true;
-      }
-    } else if (val._inferredInterfaceName) {
-      valType = val._inferredInterfaceName + (isDocument ? "Document" : "");
-    } else if (isMap && val.of?._inferredInterfaceName) {
-      valType = val.of._inferredInterfaceName + (isDocument ? "Document" : "");
-      isOptional = val.of.required !== true;
-    } else if (val.path && val.path && val.setters && val.getters) {
-      // check for virtual properties
-      // skip id property
-      if (key === "id") return "";
-
-      // if not lean doc and lean docs shouldnt include virtuals, ignore entry
-      if (!isDocument && !shouldLeanIncludeVirtuals) return "";
-
-      // If the val has the _aliasRootField property, it means this field is an alias for another field, and _aliasRootField contains the other field's type.
-      // So we can re-call this function using _aliasRootField.
-      if (val._aliasRootField) {
-        const parseKey = getParseKeyFn({
-          isDocument,
-          shouldLeanIncludeVirtuals,
-          noMongoose,
-          datesAsStrings
-        });
-        return parseKey(key, val._aliasRootField);
-      }
-
-      valType = "any";
-      isOptional = false;
-    } else if (
-      key &&
-      [
-        "get",
-        "set",
-        "schemaName",
-        "_defaultCaster",
-        "defaultOptions",
-        "_checkRequired",
-        "_cast",
-        "checkRequired",
-        "cast",
-        "__v"
-      ].includes(key)
-    ) {
-      return "";
-    } else if (val.ref) {
-      let docRef = val.ref.replace?.(`'`, "");
-
-      if (typeof val.ref === "function") {
-        // If we get a function, we cant determine the document that we would populate, so just assume it's an ObjectId
-        valType = "mongoose.Types.ObjectId";
-
-        // If generating the document version, we can also provide document as an option to reflect the populated case. But for
-        // lean docs we can't do this cause we don't have a base type to extend from (since we can't determine it when parsing only JS).
-        // Later the tsReader can implement a function typechecker to subtitute the type with the more exact one.
-        if (isDocument) {
-          valType += " | mongoose.Document";
-        }
-      } else if (docRef) {
-        // If val.ref is an invalid type (not a string) then this gets skipped.
-        if (docRef.includes(".")) {
-          docRef = getSubdocName(docRef);
-        }
-
-        const populatedType = isDocument ? `${docRef}Document` : docRef;
-        valType = val.autopopulate ? // support for mongoose-autopopulate
-          populatedType :
-          `${populatedType}["_id"] | ${populatedType}`;
-      }
     } else {
-      // _ids are always required
-      if (key === "_id") isOptional = false;
+      isOptional = val._isDefaultSetToUndefined ?? false;
+    }
 
-      const convertedType = convertBaseTypeToTs({
+    // Array optionality is a bit overcomplicated, see https://github.com/francescov1/mongoose-tsgen/issues/124.
+    // If user explicitely sets required: false, we override our logic and assume they know best.
+    if (requiredValue === false) {
+      isOptional = true;
+    }
+  } else if (Array.isArray(val.type)) {
+    val.type = val.type[0];
+    isArray = true;
+
+    if (val.type === undefined) {
+      isUntypedArray = true;
+      isOptional = isArrayOuterDefaultSetToUndefined ?? false;
+    } else if (val.type.type) {
+      /**
+       * Arrays can also take the following format.
+       * This is used when validation needs to be done on both the element itself and the full array.
+       * This format implies `required: true`.
+       *
+       * ```
+       * friends: {
+       *   type: [
+       *     {
+       *       type: Schema.Types.ObjectId,
+       *       ref: "User",
+       *       validate: [
+       *         function(userId: mongoose.Types.ObjectId) { return !this.friends.includes(userId); }
+       *       ]
+       *     }
+       *   ],
+       *   validate: [function(val) { return val.length <= 3; } ]
+       * }
+       * ```
+       */
+      if (val.type.ref) val.ref = val.type.ref;
+      val.type = val.type.type;
+      isOptional = false;
+    } else if (val.index === "2dsphere") {
+      // 2dsphere index is a special edge case which does not have an inherent default value of []
+      isOptional = true;
+    } else if ("default" in val && val.default === undefined && requiredValue !== true) {
+      // If default: undefined, it means the field should not default with an empty array.
+      isOptional = true;
+    } else {
+      isOptional = isArrayOuterDefaultSetToUndefined;
+    }
+
+    // Array optionality is a bit overcomplicated, see https://github.com/francescov1/mongoose-tsgen/issues/124.
+    // If user explicitely sets required: false, we override our logic and assume they know best.
+    if (requiredValue === false) {
+      isOptional = true;
+    }
+  }
+
+  if (BASE_TYPES.has(val)) val = { type: val };
+
+  const isMap = isMapType(val?.type);
+
+  // // handles maps of arrays as per https://github.com/francescov1/mongoose-tsgen/issues/63
+  if (isMap && Array.isArray(val.of)) {
+    val.of = val.of[0];
+    isMapOfArray = true;
+    isArray = true;
+  }
+
+  if (val === Array || val?.type === Array || isUntypedArray) {
+    // treat Array constructor and [] as an Array<Mixed>
+    isArray = true;
+    valType = "any";
+    isOptional = isArrayOuterDefaultSetToUndefined ?? false;
+
+    // Array optionality is a bit overcomplicated, see https://github.com/francescov1/mongoose-tsgen/issues/124.
+    // If user explicitely sets required: false, we override our logic and assume they know best.
+    if (requiredValue === false) {
+      isOptional = true;
+    }
+  } else if (val._inferredInterfaceName) {
+    valType = val._inferredInterfaceName + (isDocument ? "Document" : "");
+  } else if (isMap && val.of?._inferredInterfaceName) {
+    valType = val.of._inferredInterfaceName + (isDocument ? "Document" : "");
+    isOptional = val.of.required !== true;
+  } else if (val.path && val.path && val.setters && val.getters) {
+    // check for virtual properties
+    // skip id property
+    if (key === "id") return "";
+
+    // if not lean doc and lean docs shouldnt include virtuals, ignore entry
+    if (!isDocument && !shouldLeanIncludeVirtuals) return "";
+    // If the val has the _aliasRootField property, it means this field is an alias for another field, and _aliasRootField contains the other field's type.
+    // So we can re-call this function using _aliasRootField.
+    if (val._aliasRootField) {
+      return parseKey({
         key,
-        val,
+        val: val._aliasRootField,
         isDocument,
+        shouldLeanIncludeVirtuals,
         noMongoose,
         datesAsStrings
       });
+    }
 
-      // TODO: we should detect nested types from unknown types and handle differently.
-      // Currently, if we get an unknown type (ie not handled) then users run into a "max callstack exceeded error"
-      if (convertedType === "{}") {
-        const nestedSchema = _.cloneDeep(val);
-        valType = "{\n";
+    valType = "any";
+    isOptional = false;
+  } else if (
+    key &&
+    [
+      "get",
+      "set",
+      "schemaName",
+      "_defaultCaster",
+      "defaultOptions",
+      "_checkRequired",
+      "_cast",
+      "checkRequired",
+      "cast",
+      "__v"
+    ].includes(key)
+  ) {
+    return "";
+  } else if (val.ref) {
+    let docRef = val.ref.replace?.(`'`, "");
 
-        const parseKey = getParseKeyFn({
+    if (typeof val.ref === "function") {
+      // If we get a function, we cant determine the document that we would populate, so just assume it's an ObjectId
+      valType = "mongoose.Types.ObjectId";
+
+      // If generating the document version, we can also provide document as an option to reflect the populated case. But for
+      // lean docs we can't do this cause we don't have a base type to extend from (since we can't determine it when parsing only JS).
+      // Later the tsReader can implement a function typechecker to subtitute the type with the more exact one.
+      if (isDocument) {
+        valType += " | mongoose.Document";
+      }
+    } else if (docRef) {
+      // If val.ref is an invalid type (not a string) then this gets skipped.
+      if (docRef.includes(".")) {
+        docRef = getSubdocName(docRef);
+      }
+
+      const populatedType = isDocument ? `${docRef}Document` : docRef;
+      valType = val.autopopulate ? // support for mongoose-autopopulate
+        populatedType :
+        `${populatedType}["_id"] | ${populatedType}`;
+    }
+  } else {
+    // _ids are always required
+    if (key === "_id") isOptional = false;
+
+    const convertedType = convertBaseTypeToTs({
+      key,
+      val,
+      isDocument,
+      noMongoose,
+      datesAsStrings
+    });
+
+    // TODO: we should detect nested types from unknown types and handle differently.
+    // Currently, if we get an unknown type (ie not handled) then users run into a "max callstack exceeded error"
+    if (convertedType === "{}") {
+      const nestedSchema = _.cloneDeep(val);
+      valType = "{\n";
+
+      Object.keys(nestedSchema).forEach((key: string) => {
+        valType += parseKey({
+          key,
+          val: nestedSchema[key],
           isDocument,
           shouldLeanIncludeVirtuals,
           noMongoose,
           datesAsStrings
         });
-        Object.keys(nestedSchema).forEach((key: string) => {
-          valType += parseKey(key, nestedSchema[key]);
-        });
+      });
 
-        valType += "}";
-        isOptional = false;
-      } else {
-        valType = convertedType;
-      }
+      valType += "}";
+      isOptional = false;
+    } else {
+      valType = convertedType;
     }
+  }
 
-    if (!valType) return "";
+  if (!valType) return "";
 
-    if (isMap && !isMapOfArray)
-      valType = isDocument ? `mongoose.Types.Map<${valType}>` : `Map<string, ${valType}>`;
+  if (isMap && !isMapOfArray)
+    valType = isDocument ? `mongoose.Types.Map<${valType}>` : `Map<string, ${valType}>`;
 
-    if (isArray) {
-      if (isDocument)
-        valType = `mongoose.Types.${val._isSubdocArray ? "Document" : ""}Array<` + valType + ">";
-      else {
-        // if valType includes a space, likely means its a union type (ie "number | string") so lets wrap it in brackets when adding the array to the type
-        if (valType.includes(" ")) valType = `(${valType})`;
-        valType = `${valType}[]`;
-      }
+  if (isArray) {
+    if (isDocument)
+      valType = `mongoose.Types.${val._isSubdocArray ? "Document" : ""}Array<` + valType + ">";
+    else {
+      // if valType includes a space, likely means its a union type (ie "number | string") so lets wrap it in brackets when adding the array to the type
+      if (valType.includes(" ")) valType = `(${valType})`;
+      valType = `${valType}[]`;
     }
+  }
 
-    // a little messy, but if we have a map of arrays, we need to wrap the value after adding the array info
-    if (isMap && isMapOfArray)
-      valType = isDocument ? `mongoose.Types.Map<${valType}>` : `Map<string, ${valType}>`;
+  // a little messy, but if we have a map of arrays, we need to wrap the value after adding the array info
+  if (isMap && isMapOfArray)
+    valType = isDocument ? `mongoose.Types.Map<${valType}>` : `Map<string, ${valType}>`;
 
-    if (val?.default === null) {
-      valType += " | null";
-    }
-    return formatKeyEntry({ key, val: valType, isOptional });
-  };
+  if (val?.default === null) {
+    valType += " | null";
+  }
+  return formatKeyEntry({ key, val: valType, isOptional });
 };
