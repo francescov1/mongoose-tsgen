@@ -301,15 +301,15 @@ export const getParseKeyFn = ({
      */
     const isArrayOuterDefaultSetToUndefined = Boolean(val._isDefaultSetToUndefined);
 
-    if (key === "subdocWithoutDefault") {
-      console.log("\n\nisArrayOuterDefaultSetToUndefined - ", isArrayOuterDefaultSetToUndefined);
-      console.log("requiredValue - ", requiredValue);
-      console.log("isOptional - ", isOptional);
-      console.log("isArray - ", isArray);
-      console.log("isUntypedArray - ", isUntypedArray);
-      console.log("isMapOfArray - ", isMapOfArray);
-      console.log("FIELD VALUE - ", `${key}: `, val);
-    }
+    // if (key === "subdocWithoutDefault") {
+    //   console.log("\n\nisArrayOuterDefaultSetToUndefined - ", isArrayOuterDefaultSetToUndefined);
+    //   console.log("requiredValue - ", requiredValue);
+    //   console.log("isOptional - ", isOptional);
+    //   console.log("isArray - ", isArray);
+    //   console.log("isUntypedArray - ", isUntypedArray);
+    //   console.log("isMapOfArray - ", isMapOfArray);
+    //   console.log("FIELD VALUE - ", `${key}: `, val);
+    // }
 
     // this means its a subdoc
     if (isArray) {

@@ -93,7 +93,7 @@ export type LandingSchema = mongoose.Schema<LandingDocument, LandingModel, Landi
  * 
  * Type of `LandingDocument["models"]` element.
  */
-export type LandingModelFieldDocument = mongoose.Types.Subdocument & {
+export type LandingModelFieldDocument = mongoose.Types.Subdocument<mongoose.Types.ObjectId> & {
 name?: string;
 _id: mongoose.Types.ObjectId;
 }

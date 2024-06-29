@@ -34,6 +34,8 @@ export class ParserSchema {
 
   shouldLeanIncludeVirtuals: boolean;
 
+  childSchemas: ParserSchema[];
+
   constructor({
     mongooseSchema,
     modelName,
@@ -46,7 +48,9 @@ export class ParserSchema {
     this.model = model;
     this.modelName = modelName;
     this.mongooseSchema = mongooseSchema;
-    this.schemaTree = this.parseTree();
+    this.childSchemas = this.parseChildSchemas(mongooseSchema);
+
+    this.schemaTree = this.parseTree(mongooseSchema);
 
     this.fields = this.generateFields(mongooseSchema);
 
@@ -84,16 +88,15 @@ export class ParserSchema {
     let template = "";
 
     if (this.mongooseSchema.childSchemas && this.modelName) {
-      const childParserSchemas = this.parseChildSchemas();
-
       // TODO: Splint into functuon
-      childParserSchemas.forEach(child => {
+      this.childSchemas.forEach(child => {
         const path = child.model.path;
 
         const name = getSubdocName(path, this.modelName);
 
         let header = "";
         if (isDocument)
+          // TODO: Does this make sense for child docs?
           header += child.mongooseSchema._isSubdocArray ?
             templates.getSubdocumentDocs(this.modelName, path) :
             templates.getDocumentDocs(this.modelName);
@@ -103,29 +106,26 @@ export class ParserSchema {
 
         if (isDocument) {
           header += `type ${name}Document = `;
-          if (child.mongooseSchema._isSubdocArray) {
-            header += "mongoose.Types.Subdocument";
-          }
-          // not sure why schema doesnt have `tree` property for typings
-          else {
-            let _idType;
-            // get type of _id to pass to mongoose.Document
-            // this is likely unecessary, since non-subdocs are not allowed to have option _id: false (https://mongoosejs.com/docs/guide.html#_id)
-            if ((this.mongooseSchema as any).tree._id)
-              // TODO: Fix type manually
-              _idType = convertBaseTypeToTs({
+
+          // get type of _id to pass to mongoose.Document
+          // this is likely unecessary, since non-subdocs are not allowed to have option _id: false (https://mongoosejs.com/docs/guide.html#_id)
+          // TODO: Fix type manually
+          const _idType = child.mongooseSchema.tree._id ?
+            convertBaseTypeToTs({
                 key: "_id",
-                val: (this.mongooseSchema as any).tree._id,
+                val: child.mongooseSchema.tree._id,
                 isDocument: true,
                 noMongoose,
                 datesAsStrings
-              });
+              }) :
+            "any";
 
-            // TODO: this should extend `${name}Methods` like normal docs, but generator will only have methods, statics, etc. under the model name, not the subdoc model name
-            // so after this is generated, we should do a pass and see if there are any child schemas that have non-subdoc definitions.
-            // or could just wait until we dont need duplicate subdoc versions of docs (use the same one for both embedded doc and non-subdoc)
-            header += `mongoose.Document<${_idType ?? "never"}>`;
-          }
+          // TODO: this should extend `${name}Methods` like normal docs, but generator will only have methods, statics, etc. under the model name, not the subdoc model name
+          // so after this is generated, we should do a pass and see if there are any child schemas that have non-subdoc definitions.
+          // or could just wait until we dont need duplicate subdoc versions of docs (use the same one for both embedded doc and non-subdoc)
+          header += child.mongooseSchema._isSubdocArray ?
+            `mongoose.Types.Subdocument<${_idType}>` :
+            `mongoose.Document<${_idType}>`;
 
           header += " & {\n";
         } else header += `type ${name} = {\n`;
@@ -162,9 +162,10 @@ export class ParserSchema {
    * Parses the schema tree, and adds _aliasRootField to the tree for aliases.
    * @returns The parsed schema tree.
    */
-  parseTree = (): Record<string, any> => {
-    const tree = _.cloneDeep(this.mongooseSchema.tree);
+  parseTree = (schema: MongooseSchema): Record<string, any> => {
+    const tree = _.cloneDeep(schema.tree);
 
+    // TODO: Rename this to what it was before, related to adding type aliases
     // Add alias types to tree
     if (!_.isEmpty(this.mongooseSchema.aliases) && this.modelName) {
       Object.entries(this.mongooseSchema.aliases).forEach(([alias, path]: [string, any]) => {
@@ -175,12 +176,13 @@ export class ParserSchema {
     return tree;
   };
 
-  parseChildSchemas = (): ParserSchema[] => {
-    const mongooseChildSchemas = _.cloneDeep(this.mongooseSchema.childSchemas);
+  parseChildSchemas = (schema: MongooseSchema): ParserSchema[] => {
+    const mongooseChildSchemas = _.cloneDeep(schema.childSchemas);
 
     const childSchemas: ParserSchema[] = [];
 
-    console.log("this.mongooseSchema.paths: ", this.mongooseSchema.paths);
+    // console.log("this.mongooseSchema.paths: ", this.mongooseSchema.paths);
+
     // NOTE: This is a hack for Schema maps. For some reason, when a map of a schema exists, the schema is not included
     // in childSchemas. So we add it manually and add a few extra properties to ensure the processChild works correctly.
     for (const [path, type] of Object.entries(this.mongooseSchema.paths)) {
@@ -212,7 +214,7 @@ export class ParserSchema {
       child.schema._isSchemaMap = isSchemaMap;
 
       const requiredValuePath = `${path}.required`;
-      if (_.get(this.schemaTree, requiredValuePath) === true) {
+      if (_.get(this.mongooseSchema.tree, requiredValuePath) === true) {
         child.schema.required = true;
       }
 
@@ -223,22 +225,22 @@ export class ParserSchema {
       if (isSubdocArray) {
         const defaultValuePath = `${path}.default`;
         if (
-          _.has(this.schemaTree, defaultValuePath) &&
-          _.get(this.schemaTree, defaultValuePath) === undefined
+          _.has(this.mongooseSchema.tree, defaultValuePath) &&
+          _.get(this.mongooseSchema.tree, defaultValuePath) === undefined
         ) {
           child.schema._isDefaultSetToUndefined = true;
         }
       }
 
       if (isSchemaMap) {
-        _.set(this.schemaTree, path, {
+        _.set(this.mongooseSchema.tree, path, {
           type: Map,
           of: isSubdocArray ? [child.schema] : child.schema
         });
       } else if (isSubdocArray) {
-        _.set(this.schemaTree, path, [child.schema]);
+        _.set(this.mongooseSchema.tree, path, [child.schema]);
       } else {
-        _.set(this.schemaTree, path, child.schema);
+        _.set(this.mongooseSchema.tree, path, child.schema);
       }
 
       const childSchema = new ParserSchema({

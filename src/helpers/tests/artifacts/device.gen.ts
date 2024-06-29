@@ -179,7 +179,7 @@ export type DeviceSchema = mongoose.Schema<DeviceDocument, DeviceModel, DeviceMe
  * const Device = mongoose.model<DeviceDocument, DeviceModel>("Device", DeviceSchema);
  * ```
  */
-export type DeviceHomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
+export type DeviceHomeDocument = mongoose.Document<any> & {
 homeId?: string;
 homeName?: string;
 status: any;
@@ -290,7 +290,7 @@ export type Device2Schema = mongoose.Schema<Device2Document, Device2Model, Devic
  * const Device2 = mongoose.model<Device2Document, Device2Model>("Device2", Device2Schema);
  * ```
  */
-export type Device2HomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
+export type Device2HomeDocument = mongoose.Document<any> & {
 homeId?: string;
 homeName?: string;
 status: any;
@@ -401,7 +401,7 @@ export type Device3Schema = mongoose.Schema<Device3Document, Device3Model, Devic
  * const Device3 = mongoose.model<Device3Document, Device3Model>("Device3", Device3Schema);
  * ```
  */
-export type Device3HomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
+export type Device3HomeDocument = mongoose.Document<any> & {
 homeId?: string;
 homeName?: string;
 status: any;
@@ -512,7 +512,7 @@ export type Device4Schema = mongoose.Schema<Device4Document, Device4Model, Devic
  * const Device4 = mongoose.model<Device4Document, Device4Model>("Device4", Device4Schema);
  * ```
  */
-export type Device4HomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
+export type Device4HomeDocument = mongoose.Document<any> & {
 homeId?: string;
 homeName?: string;
 status: any;
@@ -623,7 +623,7 @@ export type DeviceDefaultSchema = mongoose.Schema<DeviceDefaultDocument, DeviceD
  * const DeviceDefault = mongoose.model<DeviceDefaultDocument, DeviceDefaultModel>("DeviceDefault", DeviceDefaultSchema);
  * ```
  */
-export type DeviceDefaultHomeDocument = mongoose.Document<mongoose.Types.ObjectId> & {
+export type DeviceDefaultHomeDocument = mongoose.Document<any> & {
 homeId?: string;
 homeName?: string;
 status: any;

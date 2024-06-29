@@ -36,6 +36,7 @@ const User2Schema: User2Schema = new mongoose.Schema(
       required: true,
     },
     lastOnlineAt: Date,
+    anotherSchema: anotherSchema,
 
     // Testing https://github.com/francescov1/mongoose-tsgen/issues/114
     anArrayOfSchemasWithArrayDocuments: [addressSchema],
