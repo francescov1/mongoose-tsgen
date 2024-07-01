@@ -60,7 +60,7 @@ describe("getModelsPaths", () => {
 describe("cleanOutputPath", () => {
   test("path ending in custom file name", () => {
     const cleaned = paths.cleanOutputPath("/test/path/with/index.d.ts");
-    expect(cleaned).toBe("/test/path/with/index.d.ts");
+    expect(cleaned).toBe(path.normalize("/test/path/with/index.d.ts"));
   });
 
   test("path ending in javascript file extension error", () => {
