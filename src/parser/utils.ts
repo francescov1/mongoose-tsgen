@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import _ from "lodash";
+import pluralize from "pluralize"
 import { MongooseModel } from "./types";
 import { convertKeyValueToLine } from "../writer/stringBuilder";
 
@@ -11,7 +12,7 @@ export const getSubdocName = (path: string, modelName = "") => {
       .map((p: string) => p[0].toUpperCase() + p.slice(1))
       .join("");
 
-  subDocName = convertToSingular(subDocName);
+  subDocName = pluralize.singular(subDocName);
 
   // // If a user names a field "model", it will conflict with the model name, so we need to rename it.
   // // https://github.com/francescov1/mongoose-tsgen/issues/128
@@ -22,19 +23,6 @@ export const getSubdocName = (path: string, modelName = "") => {
   }
 
   return subDocName;
-};
-
-export const convertToSingular = (str: string) => {
-  if (str.endsWith("sses")) {
-    // https://github.com/francescov1/mongoose-tsgen/issues/79
-    return str.slice(0, -2);
-  }
-
-  if (str.endsWith("s") && !str.endsWith("ss")) {
-    return str.slice(0, -1);
-  }
-
-  return str;
 };
 
 export const isMapType = (val: any): boolean => {

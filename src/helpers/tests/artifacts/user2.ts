@@ -56,6 +56,21 @@ const User2Schema: User2Schema = new mongoose.Schema(
         type: Map,
         of: anotherSchema
       }
+    ],
+    // Testing singular of special cases
+    children: [
+      {
+        uid: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User2",
+          required: true
+        }
+      }
+    ],
+    people: [
+      {
+        name: String
+      }
     ]
   },
   {

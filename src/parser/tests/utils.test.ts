@@ -1,4 +1,4 @@
-import { convertToSingular, getTypeFromKeyValue } from "../utils";
+import { getTypeFromKeyValue } from "../utils";
 import mongoose from "mongoose";
 
 describe("getTypeFromKeyValue", () => {
@@ -321,18 +321,3 @@ describe("getTypeFromKeyValue", () => {
   });
 });
 
-describe("convertToSingular", () => {
-  it("should properly convert words ending in sses", () => {
-    expect(convertToSingular("glasses")).toBe("glass");
-    expect(convertToSingular("classes")).toBe("class");
-  });
-
-  it("should properly convert plural words", () => {
-    expect(convertToSingular("houses")).toBe("house");
-    expect(convertToSingular("users")).toBe("user");
-  });
-
-  it("should not convert words ending in ss", () => {
-    expect(convertToSingular("grass")).toBe("grass");
-  });
-});
