@@ -424,6 +424,12 @@ export function parseTSConfig(tsconfigFilePath: string) {
       ...extendedConfig.compilerOptions.paths,
       ...tsConfig.compilerOptions.paths
     };
+
+    // We only want to set the base URL if its not already set, since the child tsconfig should always overwrite extended tsconfigs. 
+    // So the first child we find with a base URL be the final base URL
+    if (extendedConfig.compilerOptions.baseUrl && !tsConfig.compilerOptions.baseUrl) {
+      tsConfig.compilerOptions.baseUrl = extendedConfig.compilerOptions.baseUrl
+    }
   }
 
   return tsConfig;
