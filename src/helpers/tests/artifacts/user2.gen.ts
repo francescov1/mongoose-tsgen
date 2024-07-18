@@ -8,6 +8,32 @@
 import mongoose from "mongoose";
 
 /**
+ * Lean version of User2ChildDocument
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from `UserDocument.toObject()`.
+ * ```
+ * const userObject = user.toObject();
+ * ```
+ */
+export type User2Child = {
+uid: User2["_id"] | User2;
+_id: mongoose.Types.ObjectId;
+}
+
+/**
+ * Lean version of User2PersonDocument
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from `UserDocument.toObject()`.
+ * ```
+ * const userObject = user.toObject();
+ * ```
+ */
+export type User2Person = {
+name: string;
+_id: mongoose.Types.ObjectId;
+}
+
+/**
  * Lean version of User2AddressCoordinateDocument
  * 
  * This has all Mongoose getters & functions removed. This type will be returned from `User2AddressDocument.toObject()`.
@@ -121,6 +147,8 @@ anArrayOfSchemasWithArrayDocuments: User2AnArrayOfSchemasWithArrayDocument[];
 aMapOfSchemas: Map<string, User2AMapOfSchemaArray>;
 aMapOfSchemaArrays: Map<string, User2AMapOfSchemaArray[]>;
 anArrayOfSchemaMaps: (Map<string, User2AMapOfSchemaArray>)[];
+children: User2Child[];
+people: User2Person[];
 updatedAt?: Date;
 createdAt?: Date;
 }
@@ -178,6 +206,26 @@ export type User2Model = mongoose.Model<User2Document, User2Queries> & User2Stat
  * ```
  */
 export type User2Schema = mongoose.Schema<User2Document, User2Model, User2Methods, User2Queries>
+
+/**
+ * Mongoose Subdocument type
+ * 
+ * Type of `User2Document["children"]` element.
+ */
+export type User2ChildDocument = mongoose.Types.Subdocument<mongoose.Types.ObjectId> & {
+uid: User2Document["_id"] | User2Document;
+_id: mongoose.Types.ObjectId;
+}
+
+/**
+ * Mongoose Subdocument type
+ * 
+ * Type of `User2Document["people"]` element.
+ */
+export type User2PersonDocument = mongoose.Types.Subdocument<mongoose.Types.ObjectId> & {
+name: string;
+_id: mongoose.Types.ObjectId;
+}
 
 /**
  * Mongoose Subdocument type
@@ -275,6 +323,8 @@ anArrayOfSchemasWithArrayDocuments: mongoose.Types.DocumentArray<User2AnArrayOfS
 aMapOfSchemas: mongoose.Types.Map<User2AMapOfSchemaArrayDocument>;
 aMapOfSchemaArrays: mongoose.Types.Map<mongoose.Types.Array<User2AMapOfSchemaArrayDocument>>;
 anArrayOfSchemaMaps: mongoose.Types.Array<mongoose.Types.Map<User2AMapOfSchemaArrayDocument>>;
+children: mongoose.Types.DocumentArray<User2ChildDocument>;
+people: mongoose.Types.DocumentArray<User2PersonDocument>;
 updatedAt?: Date;
 createdAt?: Date;
 }
