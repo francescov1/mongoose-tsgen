@@ -8,32 +8,6 @@
 import mongoose from "mongoose";
 
 /**
- * Lean version of User2ChildDocument
- * 
- * This has all Mongoose getters & functions removed. This type will be returned from `UserDocument.toObject()`.
- * ```
- * const userObject = user.toObject();
- * ```
- */
-export type User2Child = {
-uid: User2["_id"] | User2;
-_id: mongoose.Types.ObjectId;
-}
-
-/**
- * Lean version of User2PersonDocument
- * 
- * This has all Mongoose getters & functions removed. This type will be returned from `UserDocument.toObject()`.
- * ```
- * const userObject = user.toObject();
- * ```
- */
-export type User2Person = {
-name: string;
-_id: mongoose.Types.ObjectId;
-}
-
-/**
  * Lean version of User2AddressCoordinateDocument
  * 
  * This has all Mongoose getters & functions removed. This type will be returned from `User2AddressDocument.toObject()`.
@@ -98,6 +72,32 @@ long?: number;
 export type User2AnArrayOfSchemasWithArrayDocument = {
 city: string;
 coordinates: User2AnArrayOfSchemasWithArrayDocumentCoordinate[];
+}
+
+/**
+ * Lean version of User2ChildDocument
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from `User2Document.toObject()`.
+ * ```
+ * const user2Object = user2.toObject();
+ * ```
+ */
+export type User2Child = {
+uid: User2["_id"] | User2;
+_id: mongoose.Types.ObjectId;
+}
+
+/**
+ * Lean version of User2PersonDocument
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from `User2Document.toObject()`.
+ * ```
+ * const user2Object = user2.toObject();
+ * ```
+ */
+export type User2Person = {
+name?: string;
+_id: mongoose.Types.ObjectId;
 }
 
 /**
@@ -210,26 +210,6 @@ export type User2Schema = mongoose.Schema<User2Document, User2Model, User2Method
 /**
  * Mongoose Subdocument type
  * 
- * Type of `User2Document["children"]` element.
- */
-export type User2ChildDocument = mongoose.Types.Subdocument<mongoose.Types.ObjectId> & {
-uid: User2Document["_id"] | User2Document;
-_id: mongoose.Types.ObjectId;
-}
-
-/**
- * Mongoose Subdocument type
- * 
- * Type of `User2Document["people"]` element.
- */
-export type User2PersonDocument = mongoose.Types.Subdocument<mongoose.Types.ObjectId> & {
-name: string;
-_id: mongoose.Types.ObjectId;
-}
-
-/**
- * Mongoose Subdocument type
- * 
  * Type of `User2AddressDocument["coordinates"]` element.
  */
 export type User2AddressCoordinateDocument = mongoose.Types.Subdocument<any> & {
@@ -280,6 +260,26 @@ long?: number;
 export type User2AnArrayOfSchemasWithArrayDocumentDocument = mongoose.Types.Subdocument<any> & {
 city: string;
 coordinates: mongoose.Types.DocumentArray<User2AnArrayOfSchemasWithArrayDocumentCoordinateDocument>;
+}
+
+/**
+ * Mongoose Subdocument type
+ * 
+ * Type of `User2Document["children"]` element.
+ */
+export type User2ChildDocument = mongoose.Types.Subdocument<mongoose.Types.ObjectId> & {
+uid: User2Document["_id"] | User2Document;
+_id: mongoose.Types.ObjectId;
+}
+
+/**
+ * Mongoose Subdocument type
+ * 
+ * Type of `User2Document["people"]` element.
+ */
+export type User2PersonDocument = mongoose.Types.Subdocument<mongoose.Types.ObjectId> & {
+name?: string;
+_id: mongoose.Types.ObjectId;
 }
 
 /**

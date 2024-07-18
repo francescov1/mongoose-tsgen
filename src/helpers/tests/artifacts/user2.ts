@@ -62,7 +62,7 @@ const User2Schema: User2Schema = new mongoose.Schema(
       {
         uid: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
+          ref: "User2",
           required: true
         }
       }
