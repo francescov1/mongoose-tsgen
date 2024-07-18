@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": "./a-base-url",
     "paths": {
       "@package-lock-json": ["./package-lock.json"],
       "@package-json": ["./fake.package.json"]

@@ -11,6 +11,7 @@
     "esModuleInterop": true,
     "types": ["node", "jest"],
     "typeRoots": ["./node_modules/@types"],
+    "baseUrl": "./a-base-url-from-child",
     "paths": {
       "@package-json": ["./package.json"]
     }
