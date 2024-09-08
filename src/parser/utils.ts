@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import _ from "lodash";
-import pluralize from "pluralize"
+import pluralize from "pluralize";
 import { MongooseModel } from "./types";
 import { convertKeyValueToLine } from "../writer/stringBuilder";
 
@@ -171,6 +171,10 @@ export const loadModels = (modelsPaths: string[]): MongooseModel[] => {
   modelsPaths.forEach((singleModelPath: string) => {
     let exportedData;
     try {
+      if (process.env.DEBUG) {
+        console.log("parser: Attempting to import model from path: " + singleModelPath);
+      }
+
       exportedData = require(singleModelPath);
     } catch (err) {
       const error = (err as Error).message?.includes(`Cannot find module '${singleModelPath}'`)
