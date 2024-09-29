@@ -376,28 +376,33 @@ export const registerUserTs = (basePath: string): (() => void) | null => {
     console.log("tsreader: Registering tsconfig.json with ts-node at path: " + foundPath);
   }
 
+  require("ts-node").register({
+    transpileOnly: true,
+    project: foundPath,
+    experimentalResolver: true,
+    // https://github.com/TypeStrong/ts-node/issues/922#issuecomment-913361913
+    "ts-node": {
+      // These options are overrides used only by ts-node
+      compilerOptions: {
+        module: "commonjs"
+      }
+    }
+  });
+
   // handle path aliases
   try {
+    if (process.env.DEBUG) {
+      console.log(
+        `tsreader: Parsing tsconfig.json at path '${foundPath}' to search for 'paths' field`
+      );
+    }
     const tsConfig = parseTSConfig(foundPath);
-    require("ts-node").register({
-      transpileOnly: true,
-      project: foundPath,
-      experimentalResolver: true,
-      // https://github.com/TypeStrong/ts-node/issues/922#issuecomment-913361913
-      "ts-node": {
-        // These options are overrides used only by ts-node
-        compilerOptions: {
-          module: "commonjs"
-        }
-      }
-    });
 
     if (tsConfig?.compilerOptions?.paths) {
       const baseUrl = path.join(process.cwd(), tsConfig?.compilerOptions?.baseUrl ?? "");
       if (process.env.DEBUG) {
         console.log(
-          "tsreader: Found paths field in tsconfig.json, registering project with tsconfig-paths using baseUrl " +
-            baseUrl
+          `tsreader: Found 'paths' field in tsconfig.json, registering project with tsconfig-paths using baseUrl '${baseUrl}'`
         );
       }
 
