@@ -375,18 +375,23 @@ export const registerUserTs = (basePath: string): (() => void) | null => {
   if (process.env.DEBUG) {
     console.log("tsreader: Registering tsconfig.json with ts-node at path: " + foundPath);
   }
-  require("ts-node").register({
-    transpileOnly: true,
-    project: foundPath,
-    experimentalResolver: true,
-    compilerOptions: {
-      module: "commonjs"
-    }
-  });
 
   // handle path aliases
   try {
     const tsConfig = parseTSConfig(foundPath);
+    require("ts-node").register({
+      transpileOnly: true,
+      project: foundPath,
+      experimentalResolver: true,
+      // https://github.com/TypeStrong/ts-node/issues/922#issuecomment-913361913
+      "ts-node": {
+        // These options are overrides used only by ts-node
+        compilerOptions: {
+          module: "commonjs"
+        }
+      }
+    });
+
     if (tsConfig?.compilerOptions?.paths) {
       const baseUrl = path.join(process.cwd(), tsConfig?.compilerOptions?.baseUrl ?? "");
       if (process.env.DEBUG) {
@@ -400,6 +405,7 @@ export const registerUserTs = (basePath: string): (() => void) | null => {
         baseUrl,
         paths: tsConfig.compilerOptions.paths
       });
+      console.log("tsreader: tsconfig-paths registered");
 
       return cleanup;
     }
