@@ -12,6 +12,7 @@ import glob from "glob";
 import path from "path";
 import * as fs from "fs";
 import stripJsonComments from "strip-json-comments";
+import resolve from "resolve";
 import { TsReaderModelTypes } from "../types";
 
 function getNameAndType(funcDeclaration: MethodDeclaration) {
@@ -417,7 +418,10 @@ export function parseTSConfig(tsconfigFilePath: string) {
   // Handle the case where the tsconfig.json file has a "extends" property
   if (tsConfig.extends) {
     // Resolve the path to the extended tsconfig.json file
-    const extendedPath = path.resolve(path.dirname(tsconfigFilePath), tsConfig.extends);
+    const extendedPath = resolve.sync(tsConfig.extends, {
+      basedir: path.dirname(tsconfigFilePath)
+    });
+
     // Read and merge paths from the extended tsconfig.json recursively
     const extendedConfig = parseTSConfig(extendedPath);
     // Merge paths from extendedConfig into tsConfig
