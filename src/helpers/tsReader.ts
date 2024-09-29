@@ -12,6 +12,7 @@ import glob from "glob";
 import path from "path";
 import * as fs from "fs";
 import stripJsonComments from "strip-json-comments";
+import resolve from "resolve";
 import { TsReaderModelTypes } from "../types";
 
 function getNameAndType(funcDeclaration: MethodDeclaration) {
@@ -374,24 +375,34 @@ export const registerUserTs = (basePath: string): (() => void) | null => {
   if (process.env.DEBUG) {
     console.log("tsreader: Registering tsconfig.json with ts-node at path: " + foundPath);
   }
+
   require("ts-node").register({
     transpileOnly: true,
     project: foundPath,
     experimentalResolver: true,
-    compilerOptions: {
-      module: "commonjs"
+    // https://github.com/TypeStrong/ts-node/issues/922#issuecomment-913361913
+    "ts-node": {
+      // These options are overrides used only by ts-node
+      compilerOptions: {
+        module: "commonjs"
+      }
     }
   });
 
   // handle path aliases
   try {
+    if (process.env.DEBUG) {
+      console.log(
+        `tsreader: Parsing tsconfig.json at path '${foundPath}' to search for 'paths' field`
+      );
+    }
     const tsConfig = parseTSConfig(foundPath);
+
     if (tsConfig?.compilerOptions?.paths) {
       const baseUrl = path.join(process.cwd(), tsConfig?.compilerOptions?.baseUrl ?? "");
       if (process.env.DEBUG) {
         console.log(
-          "tsreader: Found paths field in tsconfig.json, registering project with tsconfig-paths using baseUrl " +
-            baseUrl
+          `tsreader: Found 'paths' field in tsconfig.json, registering project with tsconfig-paths using baseUrl '${baseUrl}'`
         );
       }
 
@@ -399,6 +410,7 @@ export const registerUserTs = (basePath: string): (() => void) | null => {
         baseUrl,
         paths: tsConfig.compilerOptions.paths
       });
+      console.log("tsreader: tsconfig-paths registered");
 
       return cleanup;
     }
@@ -417,7 +429,10 @@ export function parseTSConfig(tsconfigFilePath: string) {
   // Handle the case where the tsconfig.json file has a "extends" property
   if (tsConfig.extends) {
     // Resolve the path to the extended tsconfig.json file
-    const extendedPath = path.resolve(path.dirname(tsconfigFilePath), tsConfig.extends);
+    const extendedPath = resolve.sync(tsConfig.extends, {
+      basedir: path.dirname(tsconfigFilePath)
+    });
+
     // Read and merge paths from the extended tsconfig.json recursively
     const extendedConfig = parseTSConfig(extendedPath);
     // Merge paths from extendedConfig into tsConfig

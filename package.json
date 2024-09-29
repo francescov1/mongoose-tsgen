@@ -1,7 +1,7 @@
 {
   "name": "mongoose-tsgen",
   "description": "A Typescript interface generator for Mongoose that works out of the box.",
-  "version": "9.4.2",
+  "version": "9.4.3",
   "author": "Francesco Virga @francescov1",
   "bin": {
     "mtgen": "./bin/run"
@@ -19,6 +19,7 @@
     "mkdirp": "^1.0.4",
     "pluralize": "^8.0.0",
     "prettier": "^2.5.1",
+    "resolve": "^1.22.8",
     "strip-json-comments": "^3.1.1",
     "ts-morph": "^19.0.0",
     "ts-node": "^10.9.2",
@@ -30,6 +31,7 @@
     "typescript": ">= 4"
   },
   "devDependencies": {
+    "@tsconfig/node20": "^20.1.4",
     "@types/eslint": "^7.2.4",
     "@types/flat": "^5.0.1",
     "@types/jest": "^26.0.14",
@@ -37,6 +39,7 @@
     "@types/mkdirp": "^1.0.1",
     "@types/node": "^10.17.35",
     "@types/pluralize": "^0.0.33",
+    "@types/resolve": "^1.20.6",
     "eslint": "^7.13.0",
     "eslint-config-oclif": "^4.0.0",
     "eslint-config-oclif-typescript": "^1.0.3",
