@@ -76,6 +76,11 @@ class MongooseTsgen extends Command {
     "no-populate-overload": Flags.boolean({
       description:
         "Disable augmenting mongoose with Query.populate overloads (the overloads narrow the return type of populated documents queries)."
+    }),
+    recursive: Flags.boolean({
+      char: "r",
+      description: "Include files in nested subdirectories when searching for models",
+      default: false
     })
   };
 
@@ -145,7 +150,7 @@ class MongooseTsgen extends Command {
 
   async generateDefinitions(config: MongooseTsgen.Config) {
     const { flags, args } = config;
-    const modelsPaths = paths.getModelsPaths(args.model_path);
+    const modelsPaths = paths.getModelsPaths(args.model_path, flags.recursive);
 
     const cleanupTs = tsReader.registerUserTs(flags.project);
 
