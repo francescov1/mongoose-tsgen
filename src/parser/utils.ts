@@ -111,6 +111,11 @@ export const convertBaseTypeToTs = ({
         return "{}";
       }
 
+      // If we can't determine the type, return any but don't warn for known schema fields
+      if (["type", "refPath", "required"].includes(key)) {
+        return "any";
+      }
+
       console.warn(
         `parser: Unknown type detected for field "${key}", using type "any". Please create an issue in the mongoose-tsgen GitHub repo to have this case handled.`
       );
