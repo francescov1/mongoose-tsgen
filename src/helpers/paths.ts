@@ -23,17 +23,19 @@ export const getConfigFromFile = (configPath?: string): Record<string, unknown> 
   return JSON.parse(rawConfig);
 };
 
-export const getModelsPaths = (basePath?: string): string[] => {
+export const getModelsPaths = (basePath?: string, recursive = false): string[] => {
   let modelsPaths: string[];
   if (basePath && basePath !== "") {
     // base path, only check that path
     const { ext } = path.parse(basePath);
 
-    // if path points to a folder, search for ts files in folder.
-    const modelsFolderPath = ext === "" ? path.join(basePath, "*.ts") : basePath;
+    // if path points to a folder, search for ts files in folder
+    // Use **/*.ts for recursive search, *.ts for flat search
+    const globPattern = recursive ? "**/*.ts" : "*.ts";
+    const modelsFolderPath = ext === "" ? path.join(basePath, globPattern) : basePath;
 
     modelsPaths = glob.sync(modelsFolderPath, {
-      ignore: "**/node_modules/**"
+      ignore: ["**/node_modules/**", "**/*.gen.ts", "**/index.ts"]
     });
 
     if (modelsPaths.length === 0) {
@@ -45,15 +47,15 @@ export const getModelsPaths = (basePath?: string): string[] => {
     modelsPaths.sort((_a, b) => (b.endsWith("index.ts") ? -1 : 0));
   } else {
     // no base path, recursive search files in a `models/` folder
-    const modelsFolderPath = `**/models/!(index).ts`;
+    const modelsFolderPath = recursive ? "**/models/**/*.ts" : "**/models/!(index).ts";
 
     modelsPaths = glob.sync(modelsFolderPath, {
-      ignore: "**/node_modules/**"
+      ignore: ["**/node_modules/**", "**/*.gen.ts", "**/index.ts"]
     });
 
     if (modelsPaths.length === 0) {
       throw new Error(
-        `Recursive search could not find any model files at "**/models/!(index).ts". Please provide a path to your models folder.`
+        `Recursive search could not find any model files at "${modelsFolderPath}". Please provide a path to your models folder.`
       );
     }
   }
