@@ -40,6 +40,42 @@ describe("getModelsPaths", () => {
     expect(modelsPath).toEqual(expected);
   });
 
+  // New tests for recursive functionality
+  test("recursive search in nested folders", async () => {
+    // Setup nested folder structure
+    setupFolderStructure("./models", "user");
+    setupFolderStructure("./models/level1", "user");
+    setupFolderStructure("./models/level1/level2", "device");
+
+    // Test non-recursive (default behavior)
+    let modelsPath = await paths.getModelsPaths("./src/helpers/tests/models", false);
+    const expectedNonRecursive = [path.join(__dirname, "models/user.ts")];
+    expect(modelsPath).toEqual(expectedNonRecursive);
+
+    // Test recursive
+    modelsPath = await paths.getModelsPaths("./src/helpers/tests/models", true);
+    const expectedRecursive = [
+      path.join(__dirname, "models/user.ts"),
+      path.join(__dirname, "models/level1/user.ts"),
+      path.join(__dirname, "models/level1/level2/device.ts")
+    ].sort();
+
+    expect(modelsPath.sort()).toEqual(expectedRecursive);
+  });
+
+  test("recursive search with mixed file types", async () => {
+    // Setup structure with both .ts and non-.ts files
+    setupFolderStructure("./models/nested", "user", true); // includes .gen.ts
+    setupFolderStructure("./models/nested/inner", "device");
+
+    const modelsPath = await paths.getModelsPaths("./src/helpers/tests/models", true);
+    const expected = [
+      path.join(__dirname, "models/nested/user.ts"),
+      path.join(__dirname, "models/nested/inner/device.ts")
+    ].sort();
+
+    expect(modelsPath.sort()).toEqual(expected);
+  });
   test("no models with empty path", async () => {
     expect(() => {
       paths.getModelsPaths("");
