@@ -368,20 +368,10 @@ export const generateTypes = ({
   return sourceFile;
 };
 
-export const saveFile = ({ sourceFile }: { sourceFile: SourceFile; genFilePath: string }) => {
+export const saveFile = ({ sourceFile }: { sourceFile: SourceFile; generatedFilePath: string }) => {
   try {
     sourceFile.saveSync();
-    // fs.writeFileSync(genFilePath, sourceFile.getFullText(), "utf8");
   } catch (err) {
-    // if folder doesnt exist, create and then write again
-    // if (err.message.includes("ENOENT: no such file or directory")) {
-    //   console.log(`Path ${genFilePath} not found; creating...`);
-
-    //   const { dir } = path.parse(genFilePath);
-    //   mkdirp.sync(dir);
-
-    //   fs.writeFileSync(genFilePath, sourceFile.getFullText(), "utf8");
-    // }
     console.error(err);
     throw err;
   }

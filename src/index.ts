@@ -135,8 +135,8 @@ class MongooseTsgen extends Command {
 
     const cleanupTs = tsReader.registerUserTs(flags.project);
 
-    const genFilePath = paths.cleanOutputPath(flags.output);
-    let sourceFile = generator.createSourceFile(genFilePath);
+    const generatedFilePath = paths.cleanOutputPath(flags.output);
+    let sourceFile = generator.createSourceFile(generatedFilePath);
 
     const noMongoose = flags["no-mongoose"];
     const datesAsStrings = flags["dates-as-strings"];
@@ -170,18 +170,17 @@ class MongooseTsgen extends Command {
       this.log("Dry run detected, generated interfaces will be printed to console:\n");
       this.log(sourceFile.getFullText());
     } else {
-      this.log(`Writing interfaces to ${genFilePath}`);
+      this.log(`Writing interfaces to ${generatedFilePath}`);
 
-      generator.saveFile({ genFilePath, sourceFile });
+      generator.saveFile({ generatedFilePath, sourceFile });
 
-      if (!flags["no-format"]) await formatter.format([genFilePath]);
+      if (!flags["no-format"]) await formatter.format([generatedFilePath]);
       this.log("Writing complete 🐒");
-      // process.exit();
     }
 
     ux.action.stop();
 
-    return { genFilePath, sourceFile };
+    return { generatedFilePath, sourceFile };
   }
 }
 
