@@ -120,7 +120,7 @@ Note that this practice is well documented online, I've found the following two 
 
 <!-- commands -->
 
-## `mtgen [MODEL_PATH]`
+## `mtgen <MODEL_PATH]>`
 
 Generate a Typescript file containing Mongoose Schema typings.
 
@@ -128,7 +128,7 @@ Generate a Typescript file containing Mongoose Schema typings.
 
 ```
 USAGE
-  $ mtgen [MODEL_PATH]
+  $ mtgen <MODEL_PATH>
 
 OPTIONS
   -c, --config=config     [default: ./] Path of `mtgen.config.json` or its root folder. CLI flag
@@ -161,11 +161,24 @@ OPTIONS
                           the return type of populated documents queries).
 ```
 
-Specify the directory of your Mongoose schema definitions using `MODEL_PATH`. If left blank, all sub-directories will be searched for `models/*.ts` (ignores `index.ts` files). Files found are expected to export a Mongoose model. 
+Specify the directory of your Mongoose schema definitions using `MODEL_PATH`. Defaults to `"**/models/!(index).ts"`
 
 _See code: [src/index.ts](https://github.com/francescov1/mongoose-tsgen/blob/master/src/index.ts)_
 
 <!-- commandsstop -->
+
+## Blob patterns and `package.json`
+
+Wrap blob patterns with double quotes like so: `mtgen "models/**/*.ts"`.
+
+Use escape characters for wrapping blob patterns in `package.json`:
+
+```json
+"scripts": {
+  "generate-mongoose-types": "mtgen \"models/**/*.ts\""
+}
+```
+
 
 ## Configuration File
 
@@ -185,32 +198,33 @@ All CLI options can be provided using a `mtgen.config.json` file. Use the `--con
 `mongoose-tsgen` can also be imported or required and used programmatically. Below is an example:
 
 ```typescript
-import MongooseTsgen from "mongoose-tsgen";
+import MongooseTsgen from "./";
 
-const tsgen = new MongooseTsgen([]);
-const result = await tsgen.generateDefinitions({
-  flags: {
-    "dry-run": false,
-    "no-format": false,
-    "no-mongoose": false,
-    "no-populate-overload": false,
-    "dates-as-strings": false,
-    debug: false,
-    output: "./src/interfaces",
-    project: "./"
-  },
-  args: {
-    model_path: "./src/models" // optional
-  }
-});
-await result.sourceFile.save();
+async function run() {
+    const tsgen = new MongooseTsgen();
+    await tsgen.generateDefinitions({
+        flags: {
+            "dry-run": false,
+            "no-format": false,
+            "no-mongoose": false,
+            "no-populate-overload": false,
+            "dates-as-strings": false,
+            debug: false,
+            output: "./src/interfaces",
+            project: "./tsconfig.test.json"
+        },
+        args: {
+            model_path: "./src/helpers/tests/artifacts/**/*.ts" // optional
+        }
+    });
+}
+
+run()
 ```
-
-Note that this will not load the config file.
 
 ## Query Population
 
-Any field with a `ref` property will be typed as `RefDocument["_id"] | RefDocument`. As part of the generated file, mongoose will be augmented with `Query.populate` overloads to narrow return types of populated queries (this can be disabled using the `--no-populate-overload` flag). A helper type `PopulatedDocument` and a type guard function `IsPopulated` will also be generated to help with handling populated documents, see usage below:
+Mongoose fields with a `ref` property will be typed as `RefDocument["_id"] | RefDocument`. As part of the generated file, mongoose will be augmented with `Query.populate` overloads to narrow return types of populated queries (this can be disabled using the `--no-populate-overload` flag). A helper type `PopulatedDocument` and a type guard function `IsPopulated` will also be generated to help with handling populated documents, see usage below:
 
 ```typescript
 import { IsPopulated, PopulatedDocument } from "../interfaces/mongoose.gen.ts";
@@ -397,4 +411,4 @@ References:
 ## Development
 
 - [ ] Consider [population field selection](https://mongoosejs.com/docs/populate.html#field-selection) when typing populates
-- [ ] Slim down dependencies: `oclif` is unnecessarily large, `prettier` should be handled by users if desired.
+- [ ] Slim down dependencies: `oclif` is unnecessarily large, `prettier` should be handled by users if eired.
