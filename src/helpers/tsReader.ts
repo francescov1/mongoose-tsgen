@@ -417,7 +417,9 @@ export const registerUserTs = (basePath: string): (() => void) | null => {
         baseUrl,
         paths: tsConfig.compilerOptions.paths
       });
-      console.log("tsreader: tsconfig-paths registered");
+      if (process.env.DEBUG) {
+        console.log("tsreader: tsconfig-paths registered");
+      }
 
       return cleanup;
     }
