@@ -198,7 +198,7 @@ All CLI options can be provided using a `mtgen.config.json` file. Use the `--con
 `mongoose-tsgen` can also be imported or required and used programmatically. Below is an example:
 
 ```typescript
-import MongooseTsgen from "./";
+import MongooseTsgen from "mongoose-tsgen";
 
 async function run() {
     const tsgen = new MongooseTsgen();
@@ -411,4 +411,4 @@ References:
 ## Development
 
 - [ ] Consider [population field selection](https://mongoosejs.com/docs/populate.html#field-selection) when typing populates
-- [ ] Slim down dependencies: `oclif` is unnecessarily large, `prettier` should be handled by users if eired.
+- [ ] Slim down dependencies: `oclif` is unnecessarily large, `prettier` should be handled by users if desired.
