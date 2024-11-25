@@ -20,8 +20,6 @@ export const getConfigFromFile = (configPath?: string): Record<string, unknown> 
     );
   }
 
-  console.log(`Loading 1config from file "${configPath}"`);
-
   const rawConfig = fs.readFileSync(configPath, "utf8");
   return JSON.parse(rawConfig);
 };

@@ -92,8 +92,6 @@ class MongooseTsgen extends Command {
       customConfig.flags.config
     );
 
-    console.log(configFileFlags);
-
     return {
       flags: {
         ...configFileFlags,
