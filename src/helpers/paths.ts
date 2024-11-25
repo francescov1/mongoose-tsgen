@@ -14,10 +14,11 @@ export const getConfigFromFile = (configPath?: string): Record<string, unknown> 
   const { dir, base } = path.parse(configPath);
 
   if (!base) configPath = path.join(dir, "mtgen.config.json");
-  else if (base !== "mtgen.config.json")
+  else if (base !== "mtgen.config.json") {
     throw new Error(
       `${base} is not a valid config filename. Ensure to provide a path to a mtgen.config.json file or its parent folder.`
     );
+  }
 
   const rawConfig = fs.readFileSync(configPath, "utf8");
   return JSON.parse(rawConfig);

@@ -9,14 +9,9 @@ import * as types from "./types";
 import { loadModels } from "./parser/utils";
 
 declare namespace MongooseTsgen {
-  export type CliFlagConfig = Interfaces.InferredFlags<typeof MongooseTsgen["flags"]>;
   export type FlagConfig = types.Normalize<
-    Omit<CliFlagConfig, "config" | "help" | "json" | "output" | "project"> & {
-      output: string;
-      project: string;
-    }
+    Omit<Interfaces.InferredFlags<typeof MongooseTsgen["flags"]>, "help">
   >;
-
   export type ArgConfig = types.Normalize<Interfaces.InferredArgs<typeof MongooseTsgen["args"]>>;
 
   export interface Config {
@@ -84,73 +79,64 @@ class MongooseTsgen extends Command {
     model_path: Args.string()
   };
 
-  constructor(argv: string[], config = new Config({ root: __dirname })) {
+  constructor(argv: string[] = [], config = new Config({ root: __dirname })) {
     super(argv, config);
   }
 
-  private async getConfig() {
-    const { flags: cliFlags, args } = await this.parse(MongooseTsgen);
-
+  private async getConfig(
+    customConfig: MongooseTsgen.Config
+  ): Promise<
+    MongooseTsgen.Config & { flags: MongooseTsgen.FlagConfig & { output: string; project: string } }
+  > {
     const configFileFlags: Partial<MongooseTsgen.FlagConfig> = paths.getConfigFromFile(
-      cliFlags.config
+      customConfig.flags.config
     );
-
-    // remove "config" since its only used to grab the config file
-    delete cliFlags.config;
-
-    // we cant set flags as `default` using the official oclif method since the defaults would overwrite flags provided in the config file.
-    // instead, well just set "output" and "project" as default manually if theyre still missing after merge with configFile.
-    configFileFlags.output = configFileFlags?.output ?? "./src/interfaces";
-    configFileFlags.project = configFileFlags?.project ?? "./";
 
     return {
       flags: {
         ...configFileFlags,
-        ...cliFlags
-      } as MongooseTsgen.FlagConfig,
-      args
+        ...customConfig.flags,
+
+        // We dont need the config field anymore now that we've merged the config file here
+        config: undefined,
+
+        // we cant set flags as `default` using the official oclif method since the defaults would overwrite flags provided in the config file.
+        // instead, well just set "output" and "project" as default manually if theyre still missing after merge with configFile.
+        output: configFileFlags?.output ?? customConfig.flags.output ?? "./src/interfaces",
+        project: configFileFlags?.project ?? customConfig.flags.project ?? "./"
+      },
+      args: {
+        ...configFileFlags,
+        ...customConfig.args
+      }
     };
   }
 
   async run() {
-    const config = await this.getConfig();
-    const { flags } = config;
+    const customConfig = await this.parse(MongooseTsgen);
+    try {
+      await this.generateDefinitions(customConfig);
+    } catch (error) {
+      this.error(error as Error, { exit: 1 });
+    }
+  }
+
+  async generateDefinitions(customConfig: MongooseTsgen.Config) {
+    ux.action.start("Generating mongoose typescript definitions");
+
+    const { flags, args } = await this.getConfig(customConfig);
 
     if (flags.debug) {
       this.log("Debug mode enabled");
       process.env.DEBUG = "1";
     }
 
-    ux.action.start("Generating mongoose typescript definitions");
-
-    try {
-      const { genFilePath, sourceFile } = await this.generateDefinitions(config);
-      ux.action.stop();
-      if (flags["dry-run"]) {
-        this.log("Dry run detected, generated interfaces will be printed to console:\n");
-        this.log(sourceFile.getFullText());
-      } else {
-        this.log(`Writing interfaces to ${genFilePath}`);
-
-        generator.saveFile({ genFilePath, sourceFile });
-
-        if (!flags["no-format"]) await formatter.format([genFilePath]);
-        this.log("Writing complete 🐒");
-        process.exit();
-      }
-    } catch (error) {
-      this.error(error as Error, { exit: 1 });
-    }
-  }
-
-  async generateDefinitions(config: MongooseTsgen.Config) {
-    const { flags, args } = config;
     const modelsPaths = paths.getModelsPaths(args.model_path);
 
     const cleanupTs = tsReader.registerUserTs(flags.project);
 
-    const genFilePath = paths.cleanOutputPath(flags.output);
-    let sourceFile = generator.createSourceFile(genFilePath);
+    const generatedFilePath = paths.cleanOutputPath(flags.output);
+    let sourceFile = generator.createSourceFile(generatedFilePath);
 
     const noMongoose = flags["no-mongoose"];
     const datesAsStrings = flags["dates-as-strings"];
@@ -179,7 +165,22 @@ class MongooseTsgen extends Command {
     }
 
     cleanupTs?.();
-    return { genFilePath, sourceFile };
+
+    if (flags["dry-run"]) {
+      this.log("Dry run detected, generated interfaces will be printed to console:\n");
+      this.log(sourceFile.getFullText());
+    } else {
+      this.log(`Writing interfaces to ${generatedFilePath}`);
+
+      generator.saveFile({ generatedFilePath, sourceFile });
+
+      if (!flags["no-format"]) await formatter.format([generatedFilePath]);
+      this.log("Writing complete 🐒");
+    }
+
+    ux.action.stop();
+
+    return { generatedFilePath, sourceFile };
   }
 }
 

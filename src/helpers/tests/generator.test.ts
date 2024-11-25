@@ -24,14 +24,14 @@ describe("generateTypes", () => {
   afterEach(cleanup);
   afterEach(cleanupModelsInMemory);
 
-  const genFilePath = "mtgen-test.ts";
+  const generatedFilePath = "mtgen-test.ts";
 
   test("generate file string success", async () => {
     setupFolderStructure("./models", "user", true);
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/models/user.ts");
     const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
 
-    let sourceFile = generator.createSourceFile(genFilePath);
+    let sourceFile = generator.createSourceFile(generatedFilePath);
     sourceFile = await generator.generateTypes({
       modelsPaths,
       sourceFile,
@@ -57,7 +57,7 @@ describe("generateTypes", () => {
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/device.ts");
     const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
 
-    let sourceFile = generator.createSourceFile(genFilePath);
+    let sourceFile = generator.createSourceFile(generatedFilePath);
     sourceFile = await generator.generateTypes({
       modelsPaths,
       sourceFile,
@@ -80,7 +80,7 @@ describe("generateTypes", () => {
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/user2.ts");
     const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
 
-    let sourceFile = generator.createSourceFile(genFilePath);
+    let sourceFile = generator.createSourceFile(generatedFilePath);
     sourceFile = await generator.generateTypes({
       modelsPaths,
       sourceFile,
@@ -102,7 +102,7 @@ describe("generateTypes", () => {
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/landingPage.ts");
     const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
 
-    let sourceFile = generator.createSourceFile(genFilePath);
+    let sourceFile = generator.createSourceFile(generatedFilePath);
     sourceFile = await generator.generateTypes({
       modelsPaths,
       sourceFile,
