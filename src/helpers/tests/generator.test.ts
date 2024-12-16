@@ -50,11 +50,11 @@ describe("generateTypes", () => {
     expect(sourceFile.getFullText().trim()).toBe(getExpectedString("user.gen.ts").trim());
   });
 
-  test("generate file string success", async () => {
+  test("generate file string with alt collection names", async () => {
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/files.ts");
     const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
 
-    let sourceFile = generator.createSourceFile(genFilePath);
+    let sourceFile = generator.createSourceFile(generatedFilePath);
     sourceFile = await generator.generateTypes({
       modelsPaths,
       sourceFile,
@@ -68,7 +68,7 @@ describe("generateTypes", () => {
     generator.replaceModelTypes(sourceFile, modelTypes, models);
     generator.addPopulateHelpers(sourceFile);
     generator.overloadQueryPopulate(sourceFile);
-
+    // fs.writeFileSync('./src/helpers/tests/artifacts/files.gen.ts', sourceFile.getFullText().trim());
     cleanupTs?.();
     expect(sourceFile.getFullText().trim()).toBe(getExpectedString("files.gen.ts").trim());
   });
@@ -283,7 +283,7 @@ describe("convertFuncSignatureToType", () => {
       "methods",
       "User"
     );
-    expect(result).toBe("() => any");
+    expect(result).toBe("(this: UserDocument) => any");
   });
 });
 
@@ -354,7 +354,7 @@ describe("saveFile", () => {
     sourceFile.addStatements("const test = 'hello';");
 
     expect(() => {
-      generator.saveFile({ sourceFile, genFilePath: testFilePath });
+      generator.saveFile({ sourceFile, generatedFilePath: testFilePath });
     }).not.toThrow();
 
     expect(fs.existsSync(testFilePath)).toBe(true);
@@ -363,7 +363,7 @@ describe("saveFile", () => {
   test("throws error on invalid path", () => {
     const sourceFile = generator.createSourceFile("/invalid/path/test.ts");
     expect(() => {
-      generator.saveFile({ sourceFile, genFilePath: "/invalid/path/test.ts" });
+      generator.saveFile({ sourceFile, generatedFilePath: "/invalid/path/test.ts" });
     }).toThrow();
   });
 });

@@ -34,7 +34,7 @@ export const sanitizeTypeName = (name: string): string => {
     }
 
     const parts = name
-      // Split on any non-alphanumeric characters (not just dots)
+      // Split on any non-alphanumeric characters (including dots)
       .split(/[^a-zA-Z0-9]+/)
       // Filter out empty parts
       .filter(Boolean);
@@ -92,7 +92,7 @@ export const convertFuncSignatureToType = (
     const sanitizedModelName = sanitizeTypeName(modelName);
 
     // Extract parameters and return type using regex with named groups
-    const signatureMatch = funcSignature.match(
+    const signatureMatch = funcSignature?.match(
       /\((?:this: \w*(?:, )?)?(?<params>.*)\) => (?<returnType>.*)/
     );
 
