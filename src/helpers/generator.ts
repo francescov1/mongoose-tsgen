@@ -97,7 +97,9 @@ export const convertFuncSignatureToType = (
     );
 
     if (!signatureMatch?.groups) {
-      console.warn(`Invalid function signature format: ${funcSignature}`);
+      console.warn(
+        `Failed to parse function signature: ${funcSignature}, please open an issue if you believe this is an error`
+      );
       return `(this: ${sanitizedModelName}Document) => any`;
     }
 
