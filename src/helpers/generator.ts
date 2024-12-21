@@ -128,7 +128,13 @@ export const convertFuncSignatureToType = (
     return `(this: ${thisType}${paramsString}) => ${mappedReturnType}`;
   } catch (err) {
     console.error("Error converting function signature:", err);
-    return `() => any`;
+    const fallbackModelName = modelName;
+    const thisType = {
+      query: `${fallbackModelName}Query`,
+      methods: `${fallbackModelName}Document`,
+      statics: `${fallbackModelName}Model`
+    }[funcType];
+    return `(this: ${thisType}) => any`;
   }
 };
 
@@ -370,6 +376,7 @@ export const getSchemaTypes = (model: MongooseModel) => {
   return schemaTypes;
 };
 
+// TODO: This should be split up, shouldn't be writing to file and parsing schema simultaneously. Instead parse schema first then write later.
 export const generateTypes = ({
   sourceFile,
   imports = [],
