@@ -18,17 +18,17 @@ export const cleanComment = (comment: string): string => {
     .replace(/(\n)?[^\S\r\n]+\*\/$/, ""); // Remove closing */
 };
 
-export const sanitizeTypeName = (name: string): string => {
+export const sanitizeModelName = (name: string): string => {
   try {
     // First, handle empty or invalid input
     if (!name) {
-      console.warn('sanitizeTypeName received empty name, using default "UnknownType"');
+      console.warn('sanitizeModelName received empty name, using default "UnknownType"');
       return "UnknownType";
     }
 
     if (typeof name !== "string") {
       console.warn(
-        `sanitizeTypeName received non-string input: ${typeof name}, using default "UnknownType"`
+        `sanitizeModelName received non-string input: ${typeof name}, using default "UnknownType"`
       );
       return "UnknownType";
     }
@@ -40,7 +40,7 @@ export const sanitizeTypeName = (name: string): string => {
       .filter(Boolean);
 
     if (parts.length === 0) {
-      console.warn("sanitizeTypeName: name contained no valid parts after splitting");
+      console.warn("sanitizeModelName: name contained no valid parts after splitting");
       return "UnknownType";
     }
 
@@ -52,7 +52,7 @@ export const sanitizeTypeName = (name: string): string => {
           const cleaned = part.replace(/[^a-zA-Z0-9]/g, "");
 
           if (!cleaned) {
-            console.warn(`sanitizeTypeName: part "${part}" contained no valid characters`);
+            console.warn(`sanitizeModelName: part "${part}" contained no valid characters`);
             return "";
           }
 
@@ -72,13 +72,13 @@ export const sanitizeTypeName = (name: string): string => {
       .join("");
 
     if (!sanitizedName) {
-      console.warn('sanitizeTypeName: all parts were invalid, using default "UnknownType"');
+      console.warn('sanitizeModelName: all parts were invalid, using default "UnknownType"');
       return "UnknownType";
     }
 
     return sanitizedName;
   } catch (err) {
-    console.error("Error in sanitizeTypeName:", err);
+    console.error("Error in sanitizeModelName:", err);
     return "UnknownType";
   }
 };
@@ -89,7 +89,7 @@ export const convertFuncSignatureToType = (
   modelName: string
 ): string => {
   try {
-    const sanitizedModelName = sanitizeTypeName(modelName);
+    const sanitizedModelName = sanitizeModelName(modelName);
 
     // Extract parameters and return type using regex with named groups
     const signatureMatch = funcSignature?.match(
@@ -144,7 +144,7 @@ export const replaceModelTypes = (
   models: MongooseModel[]
 ) => {
   Object.entries(modelTypes).forEach(([modelName, types]) => {
-    const sanitizedModelName = sanitizeTypeName(modelName);
+    const sanitizedModelName = sanitizeModelName(modelName);
     const { methods, statics, query, virtuals, comments } = types;
 
     // methods
@@ -342,7 +342,7 @@ export const parseFunctions = (
 
 export const getSchemaTypes = (model: MongooseModel) => {
   const { modelName, schema } = model;
-  const sanitizedModelName = sanitizeTypeName(modelName);
+  const sanitizedModelName = sanitizeModelName(modelName);
   let schemaTypes = "";
 
   // add type alias to modelName so that it can be imported without clashing with the mongoose model
@@ -404,7 +404,7 @@ export const generateTypes = ({
 
     models.forEach((model) => {
       const { modelName, schema } = model;
-      const sanitizedModelName = sanitizeTypeName(modelName);
+      const sanitizedModelName = sanitizeModelName(modelName);
 
       const leanHeader =
         templates.getLeanDocs(sanitizedModelName) + `\nexport type ${sanitizedModelName} = {\n`;
