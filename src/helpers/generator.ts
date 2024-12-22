@@ -18,69 +18,83 @@ export const cleanComment = (comment: string): string => {
     .replace(/(\n)?[^\S\r\n]+\*\/$/, ""); // Remove closing */
 };
 
+/**
+ * Sanitizes a model name to be used as a TypeScript type name.
+ * Handles dot notation (e.g. "user.profile" -> "UserProfile") and validates the result.
+ *
+ * @param name - The model name to sanitize
+ * @returns The sanitized model name that can be used as a TypeScript type
+ * @throws {Error} If the name is empty, invalid, or results in an invalid TypeScript type name
+ * @throws {TypeError} If the name is not a string
+ */
 export const sanitizeModelName = (name: string): string => {
-  try {
-    // First, handle empty or invalid input
-    if (!name) {
-      console.warn('sanitizeModelName received empty name, using default "UnknownType"');
-      return "UnknownType";
-    }
-
-    if (typeof name !== "string") {
-      console.warn(
-        `sanitizeModelName received non-string input: ${typeof name}, using default "UnknownType"`
-      );
-      return "UnknownType";
-    }
-
-    const parts = name
-      // Split on any non-alphanumeric characters (including dots)
-      .split(/[^a-zA-Z0-9]+/)
-      // Filter out empty parts
-      .filter(Boolean);
-
-    if (parts.length === 0) {
-      console.warn("sanitizeModelName: name contained no valid parts after splitting");
-      return "UnknownType";
-    }
-
-    const sanitizedName = parts
-      // Transform each part
-      .map((part) => {
-        try {
-          // Remove any invalid characters
-          const cleaned = part.replace(/[^a-zA-Z0-9]/g, "");
-
-          if (!cleaned) {
-            console.warn(`sanitizeModelName: part "${part}" contained no valid characters`);
-            return "";
-          }
-
-          // Ensure the part starts with a letter
-          if (/^[0-9]/.test(cleaned)) {
-            return `T${cleaned}`;
-          }
-
-          // Capitalize first letter and keep rest as is
-          return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-        } catch (err) {
-          console.error(`Error processing part "${part}":`, err);
-          return "";
-        }
-      })
-      .filter(Boolean) // Remove any empty strings from failed processing
-      .join("");
-
-    if (!sanitizedName) {
-      console.warn('sanitizeModelName: all parts were invalid, using default "UnknownType"');
-      return "UnknownType";
-    }
-
-    return sanitizedName;
-  } catch (err) {
-    console.error("Error in sanitizeModelName:", err);
-    return "UnknownType";
+  if (typeof name !== "string") {
+    console.error(`Model name must be a string, received: ${typeof name}`);
+    throw new TypeError(`Model name must be a string, received: ${typeof name}`);
   }
+
+  const trimmedName = name.trim();
+  if (!trimmedName) {
+    console.error("Model name cannot be empty");
+    throw new Error("Model name cannot be empty");
+  }
+
+  // List of TypeScript reserved keywords (we should probably use an external dep for this since I'm sure I missed many)
+  const reservedKeywords = new Set([
+    "string",
+    "number",
+    "boolean",
+    "any",
+    "void",
+    "null",
+    "undefined",
+    "object",
+    "function",
+    "class",
+    "interface",
+    "enum",
+    "type",
+    "abstract",
+    "implements",
+    "extends",
+    "new",
+    "private",
+    "protected",
+    "public",
+    "static",
+    "super",
+    "this",
+    "readonly"
+  ]);
+
+  // Convert dots to nothing and capitalize first letter after each dot
+  const finalName = trimmedName
+    .split(".")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join("");
+
+  // Check if the final name is valid
+  if (/^[0-9]/.test(finalName)) {
+    console.error(`Invalid model name: "${name}" - type name cannot start with a number`);
+    throw new Error(`Invalid model name: "${name}" - type name cannot start with a number`);
+  }
+
+  if (reservedKeywords.has(finalName.toLowerCase())) {
+    console.error(`Invalid model name: "${name}" - cannot use TypeScript reserved keyword`);
+    throw new Error(`Invalid model name: "${name}" - cannot use TypeScript reserved keyword`);
+  }
+
+  // Validate the final name is a valid TypeScript identifier
+  if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(finalName)) {
+    console.error(
+      `Invalid model name: "${name}" - results in invalid TypeScript identifier "${finalName}"`
+    );
+    throw new Error(
+      `Invalid model name: "${name}" - results in invalid TypeScript identifier "${finalName}"`
+    );
+  }
+
+  return finalName;
 };
 
 export const convertFuncSignatureToType = (

@@ -144,49 +144,67 @@ describe("generateTypes", () => {
   });
 });
 
-describe("sanitizeTypeName", () => {
+describe("sanitizeModelName", () => {
   test("handles basic dot notation", () => {
-    expect(generator.sanitizeTypeName("Attachment.files")).toBe("AttachmentFiles");
-    expect(generator.sanitizeTypeName("user.profile")).toBe("UserProfile");
-    expect(generator.sanitizeTypeName("app.settings.config")).toBe("AppSettingsConfig");
+    expect(generator.sanitizeModelName("Attachment.files")).toBe("AttachmentFiles");
+    expect(generator.sanitizeModelName("user.profile")).toBe("UserProfile");
+    expect(generator.sanitizeModelName("app.settings.config")).toBe("AppSettingsConfig");
   });
 
-  test("handles invalid characters", () => {
-    expect(generator.sanitizeTypeName("user-profile")).toBe("UserProfile");
-    expect(generator.sanitizeTypeName("special@#character")).toBe("SpecialCharacter");
-    expect(generator.sanitizeTypeName("__internal$$type##")).toBe("InternalType");
-    expect(generator.sanitizeTypeName("$.weird.@.name")).toBe("WeirdName");
+  test("throws on invalid characters", () => {
+    expect(() => generator.sanitizeModelName("user-profile")).toThrow("Invalid model name");
+    expect(() => generator.sanitizeModelName("special@#character")).toThrow("Invalid model name");
+    expect(() => generator.sanitizeModelName("__internal$$type##")).toThrow("Invalid model name");
+    expect(() => generator.sanitizeModelName("$.weird.@.name")).toThrow("Invalid model name");
   });
 
-  test("handles numbers", () => {
-    expect(generator.sanitizeTypeName("2fa.settings")).toBe("T2faSettings");
-    expect(generator.sanitizeTypeName("user.2fa")).toBe("UserT2fa");
-    expect(generator.sanitizeTypeName("123model")).toBe("T123model");
-    expect(generator.sanitizeTypeName("model123.type")).toBe("Model123Type");
+  test("throws on invalid number starts", () => {
+    expect(() => generator.sanitizeModelName("2fa.settings")).toThrow(
+      "type name cannot start with a number"
+    );
+    expect(() => generator.sanitizeModelName("123model")).toThrow(
+      "type name cannot start with a number"
+    );
   });
 
   test("handles edge cases", () => {
-    expect(generator.sanitizeTypeName("")).toBe("UnknownType");
-    expect(generator.sanitizeTypeName(" ")).toBe("UnknownType");
-    expect(generator.sanitizeTypeName(".")).toBe("UnknownType");
-    expect(generator.sanitizeTypeName("...")).toBe("UnknownType");
+    expect(() => generator.sanitizeModelName("")).toThrow("Model name cannot be empty");
+    expect(() => generator.sanitizeModelName(" ")).toThrow("Model name cannot be empty");
+    expect(() => generator.sanitizeModelName(".")).toThrow(
+      `Invalid model name: "." - results in invalid TypeScript identifier ""`
+    );
+    expect(() => generator.sanitizeModelName("...")).toThrow(
+      `Invalid model name: "..." - results in invalid TypeScript identifier ""`
+    );
     // @ts-expect-error - Testing invalid input
-    expect(generator.sanitizeTypeName(null)).toBe("UnknownType");
+    expect(() => generator.sanitizeModelName(null)).toThrow(
+      "Model name must be a string, received: object"
+    );
     // @ts-expect-error - Testing invalid input
-    expect(generator.sanitizeTypeName(undefined)).toBe("UnknownType");
+    expect(() => generator.sanitizeModelName(undefined)).toThrow(
+      "Model name must be a string, received: undefined"
+    );
+    expect(() => generator.sanitizeModelName("string")).toThrow(
+      'Invalid model name: "string" - cannot use TypeScript reserved keyword'
+    );
+    expect(() => generator.sanitizeModelName("123")).toThrow(
+      'Invalid model name: "123" - type name cannot start with a number'
+    );
+    expect(() => generator.sanitizeModelName("!invalid!")).toThrow(
+      'Invalid model name: "!invalid!" - results in invalid TypeScript identifier "!invalid!"'
+    );
   });
 
   test("preserves camelCase and PascalCase", () => {
-    expect(generator.sanitizeTypeName("UserProfile.settings")).toBe("UserProfileSettings");
-    expect(generator.sanitizeTypeName("camelCase.PascalCase")).toBe("CamelCasePascalCase");
-    expect(generator.sanitizeTypeName("iOS.device")).toBe("IOSDevice");
-    expect(generator.sanitizeTypeName("APIKey.token")).toBe("APIKeyToken");
+    expect(generator.sanitizeModelName("UserProfile.settings")).toBe("UserProfileSettings");
+    expect(generator.sanitizeModelName("camelCase.PascalCase")).toBe("CamelCasePascalCase");
+    expect(generator.sanitizeModelName("iOS.device")).toBe("IOSDevice");
+    expect(generator.sanitizeModelName("APIKey.token")).toBe("APIKeyToken");
   });
 
   test("handles multiple consecutive separators", () => {
-    expect(generator.sanitizeTypeName("user...profile")).toBe("UserProfile");
-    expect(generator.sanitizeTypeName("multiple...dots...here")).toBe("MultipleDotsHere");
-    expect(generator.sanitizeTypeName("mixed.-._.separators")).toBe("MixedSeparators");
+    expect(generator.sanitizeModelName("user...profile")).toBe("UserProfile");
+    expect(generator.sanitizeModelName("multiple...dots...here")).toBe("MultipleDotsHere");
   });
 });
 
@@ -358,6 +376,8 @@ describe("saveFile", () => {
     }).not.toThrow();
 
     expect(fs.existsSync(testFilePath)).toBe(true);
+    fs.unlinkSync(testFilePath);
+    expect(fs.existsSync(testFilePath)).toBe(false);
   });
 
   test("throws error on invalid path", () => {
@@ -366,10 +386,4 @@ describe("saveFile", () => {
       generator.saveFile({ sourceFile, generatedFilePath: "/invalid/path/test.ts" });
     }).toThrow();
   });
-});
-
-test("sanitizeTypeName handles model names with dots", () => {
-  expect(generator.sanitizeTypeName("Landing.Page")).toBe("LandingPage");
-  expect(generator.sanitizeTypeName("User.Profile.Settings")).toBe("UserProfileSettings");
-  expect(generator.sanitizeTypeName("api.v1.User")).toBe("ApiV1User");
 });
