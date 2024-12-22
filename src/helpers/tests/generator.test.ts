@@ -310,12 +310,13 @@ describe("parseFunctions", () => {
     const funcs = {
       validatePassword: () => {},
       updateProfile: () => {},
-      initializeTimestamps: () => {} // should be ignored
+      initializeTimestamps: () => {}
     };
     const result = generator.parseFunctions(funcs, "User", "methods");
-    expect(result).toContain("validatePassword:");
-    expect(result).toContain("updateProfile:");
-    expect(result).not.toContain("initializeTimestamps:");
+    expect(result).toBe(
+      "validatePassword: (this: UserDocument, ...args: any[]) => any;\n" +
+        "updateProfile: (this: UserDocument, ...args: any[]) => any;\n"
+    );
   });
 
   test("parses static functions", () => {
@@ -324,8 +325,10 @@ describe("parseFunctions", () => {
       createWithDefaults: () => {}
     };
     const result = generator.parseFunctions(funcs, "User", "statics");
-    expect(result).toContain("findByEmail:");
-    expect(result).toContain("createWithDefaults:");
+    expect(result).toBe(
+      "findByEmail: (this: UserModel, ...args: any[]) => any;\n" +
+        "createWithDefaults: (this: UserModel, ...args: any[]) => any;\n"
+    );
   });
 
   test("parses query functions", () => {
@@ -334,8 +337,10 @@ describe("parseFunctions", () => {
       active: () => {}
     };
     const result = generator.parseFunctions(funcs, "User", "query");
-    expect(result).toContain("byAge:");
-    expect(result).toContain("active:");
+    expect(result).toBe(
+      "byAge: (this: UserQuery, ...args: any[]) => UserQuery;\n" +
+        "active: (this: UserQuery, ...args: any[]) => UserQuery;\n"
+    );
   });
 
   test("handles empty function object", () => {
@@ -363,6 +368,7 @@ describe("saveFile", () => {
   afterEach(() => {
     // Cleanup test file
     if (fs.existsSync(testFilePath)) {
+      // this is where the cleanup
       fs.unlinkSync(testFilePath);
     }
   });
@@ -375,7 +381,7 @@ describe("saveFile", () => {
       generator.saveFile({ sourceFile, generatedFilePath: testFilePath });
     }).not.toThrow();
 
-    expect(fs.existsSync(testFilePath)).toBe(true);
+    expect(fs.existsSync(testFilePath)).toBe(true); // double check
     fs.unlinkSync(testFilePath);
     expect(fs.existsSync(testFilePath)).toBe(false);
   });
