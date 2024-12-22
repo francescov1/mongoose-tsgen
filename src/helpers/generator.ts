@@ -66,7 +66,6 @@ export const sanitizeModelName = (name: string): string => {
     "this",
     "readonly"
   ]);
-
   // Convert dots to nothing and capitalize first letter after each dot
   const finalName = trimmedName
     .split(".")
