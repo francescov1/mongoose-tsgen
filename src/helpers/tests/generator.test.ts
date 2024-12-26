@@ -252,7 +252,7 @@ describe("convertFuncSignatureToType", () => {
 
   test("handles missing return type", () => {
     const result = generator.convertFuncSignatureToType("(param: string) =>", "methods", "User");
-    expect(result).toBe("(this: UserDocument) => any");
+    expect(result).toBe("(this: UserDocument, ...args: any[]) => any");
   });
 
   test("handles empty parameters", () => {
@@ -262,7 +262,7 @@ describe("convertFuncSignatureToType", () => {
 
   test("handles invalid function signature", () => {
     const result = generator.convertFuncSignatureToType("invalid signature", "methods", "User");
-    expect(result).toBe(`(this: UserDocument) => any`);
+    expect(result).toBe("(this: UserDocument, ...args: any[]) => any");
   });
 
   test("handles existing this parameter", () => {
@@ -299,7 +299,7 @@ describe("convertFuncSignatureToType", () => {
       "methods",
       "User"
     );
-    expect(result).toBe("(this: UserDocument) => any");
+    expect(result).toBe("(this: UserDocument, ...args: any[]) => any");
   });
 });
 
