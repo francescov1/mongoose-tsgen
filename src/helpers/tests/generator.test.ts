@@ -151,11 +151,12 @@ describe("sanitizeModelName", () => {
     expect(generator.sanitizeModelName("app.settings.config")).toBe("AppSettingsConfig");
   });
 
-  test("throws on invalid characters", () => {
-    expect(() => generator.sanitizeModelName("user-profile")).toThrow("Invalid model name");
-    expect(() => generator.sanitizeModelName("special@#character")).toThrow("Invalid model name");
-    expect(() => generator.sanitizeModelName("__internal$$type##")).toThrow("Invalid model name");
-    expect(() => generator.sanitizeModelName("$.weird.@.name")).toThrow("Invalid model name");
+  test("Cleans on invalid characters", () => {
+    expect(generator.sanitizeModelName("user-profile")).toBe("UserProfile");
+    expect(generator.sanitizeModelName("special@#character")).toBe("SpecialCharacter");
+    expect(generator.sanitizeModelName("__internal$$type##")).toBe("__internal$$type");
+    expect(generator.sanitizeModelName("$.weird.@.name")).toBe("$WeirdName");
+    expect(generator.sanitizeModelName("!invalid!")).toBe("Invalid");
   });
 
   test("throws on invalid number starts", () => {
@@ -168,8 +169,8 @@ describe("sanitizeModelName", () => {
   });
 
   test("handles edge cases", () => {
-    expect(() => generator.sanitizeModelName("")).toThrow("Model name cannot be empty");
-    expect(() => generator.sanitizeModelName(" ")).toThrow("Model name cannot be empty");
+    expect(() => generator.sanitizeModelName("")).toThrow("Type identifier cannot be empty");
+    expect(() => generator.sanitizeModelName(" ")).toThrow("Type identifier cannot be empty");
     expect(() => generator.sanitizeModelName(".")).toThrow(
       `Invalid model name: "." - results in invalid TypeScript identifier ""`
     );
@@ -189,9 +190,6 @@ describe("sanitizeModelName", () => {
     );
     expect(() => generator.sanitizeModelName("123")).toThrow(
       'Invalid model name: "123" - type name cannot start with a number'
-    );
-    expect(() => generator.sanitizeModelName("!invalid!")).toThrow(
-      'Invalid model name: "!invalid!" - results in invalid TypeScript identifier "!invalid!"'
     );
   });
 

@@ -5,6 +5,7 @@ import { ParserSchema } from "../parser/schema";
 import { convertBaseTypeToTs, getShouldLeanIncludeVirtuals, loadModels } from "../parser/utils";
 import { MongooseModel } from "../parser/types";
 import { convertKeyValueToLine } from "../writer/stringBuilder";
+import { sanitizeTypeIdentifier } from "./constants";
 
 // TODO next: Pull this file apart. Create a new "file writer" file, move all the ts stuff somewhere else,
 
@@ -18,83 +19,7 @@ export const cleanComment = (comment: string): string => {
     .replace(/(\n)?[^\S\r\n]+\*\/$/, ""); // Remove closing */
 };
 
-/**
- * Sanitizes a model name to be used as a TypeScript type name.
- * Handles dot notation (e.g. "user.profile" -> "UserProfile") and validates the result.
- *
- * @param name - The model name to sanitize
- * @returns The sanitized model name that can be used as a TypeScript type
- * @throws {Error} If the name is empty, invalid, or results in an invalid TypeScript type name
- * @throws {TypeError} If the name is not a string
- */
-export const sanitizeModelName = (name: string): string => {
-  if (typeof name !== "string") {
-    console.error(`Model name must be a string, received: ${typeof name}`);
-    throw new TypeError(`Model name must be a string, received: ${typeof name}`);
-  }
-
-  const trimmedName = name.trim();
-  if (!trimmedName) {
-    console.error("Model name cannot be empty");
-    throw new Error("Model name cannot be empty");
-  }
-
-  // List of TypeScript reserved keywords (we should probably use an external dep for this since I'm sure I missed many)
-  const reservedKeywords = new Set([
-    "string",
-    "number",
-    "boolean",
-    "any",
-    "void",
-    "null",
-    "undefined",
-    "object",
-    "function",
-    "class",
-    "interface",
-    "enum",
-    "type",
-    "abstract",
-    "implements",
-    "extends",
-    "new",
-    "private",
-    "protected",
-    "public",
-    "static",
-    "super",
-    "this",
-    "readonly"
-  ]);
-  // Convert dots to nothing and capitalize first letter after each dot
-  const finalName = trimmedName
-    .split(".")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join("");
-
-  // Check if the final name is valid
-  if (/^[0-9]/.test(finalName)) {
-    console.error(`Invalid model name: "${name}" - type name cannot start with a number`);
-    throw new Error(`Invalid model name: "${name}" - type name cannot start with a number`);
-  }
-
-  if (reservedKeywords.has(finalName.toLowerCase())) {
-    console.error(`Invalid model name: "${name}" - cannot use TypeScript reserved keyword`);
-    throw new Error(`Invalid model name: "${name}" - cannot use TypeScript reserved keyword`);
-  }
-
-  // Validate the final name is a valid TypeScript identifier
-  if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(finalName)) {
-    console.error(
-      `Invalid model name: "${name}" - results in invalid TypeScript identifier "${finalName}"`
-    );
-    throw new Error(
-      `Invalid model name: "${name}" - results in invalid TypeScript identifier "${finalName}"`
-    );
-  }
-
-  return finalName;
-};
+export const sanitizeModelName = (name: string) => sanitizeTypeIdentifier(name);
 
 interface TypeMapping {
   thisType: string;
