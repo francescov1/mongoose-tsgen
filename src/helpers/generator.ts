@@ -28,11 +28,11 @@ interface ParsedSignature {
   thisType: string;
 }
 
-const funcTypeToThisSuffix: Record<"query" | "methods" | "statics", string> = {
+const funcTypeToThisSuffix = {
   query: "Query",
   methods: "Document",
   statics: "Model"
-};
+} as const;
 
 const parseSignature = (
   signature: string,

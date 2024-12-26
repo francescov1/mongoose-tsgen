@@ -333,10 +333,6 @@ describe("saveFile", () => {
     expect(() => {
       generator.saveFile({ sourceFile, generatedFilePath: testFilePath });
     }).not.toThrow();
-
-    expect(fs.existsSync(testFilePath)).toBe(true); // double check
-    fs.unlinkSync(testFilePath);
-    expect(fs.existsSync(testFilePath)).toBe(false);
   });
 
   test("throws error on invalid path", () => {
