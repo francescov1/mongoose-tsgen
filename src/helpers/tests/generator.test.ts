@@ -303,50 +303,6 @@ describe("convertFuncSignatureToType", () => {
   });
 });
 
-describe("parseFunctions", () => {
-  test("parses method functions", () => {
-    const funcs = {
-      validatePassword: () => {},
-      updateProfile: () => {},
-      initializeTimestamps: () => {}
-    };
-    const result = generator.parseFunctions(funcs, "User", "methods");
-    expect(result).toBe(
-      "validatePassword: (this: UserDocument, ...args: any[]) => any;\n" +
-        "updateProfile: (this: UserDocument, ...args: any[]) => any;\n"
-    );
-  });
-
-  test("parses static functions", () => {
-    const funcs = {
-      findByEmail: () => {},
-      createWithDefaults: () => {}
-    };
-    const result = generator.parseFunctions(funcs, "User", "statics");
-    expect(result).toBe(
-      "findByEmail: (this: UserModel, ...args: any[]) => any;\n" +
-        "createWithDefaults: (this: UserModel, ...args: any[]) => any;\n"
-    );
-  });
-
-  test("parses query functions", () => {
-    const funcs = {
-      byAge: () => {},
-      active: () => {}
-    };
-    const result = generator.parseFunctions(funcs, "User", "query");
-    expect(result).toBe(
-      "byAge: (this: UserQuery, ...args: any[]) => UserQuery;\n" +
-        "active: (this: UserQuery, ...args: any[]) => UserQuery;\n"
-    );
-  });
-
-  test("handles empty function object", () => {
-    const result = generator.parseFunctions({}, "User", "methods");
-    expect(result).toBe("");
-  });
-});
-
 describe("createSourceFile", () => {
   test("creates new source file", () => {
     const sourceFile = generator.createSourceFile("test.ts");

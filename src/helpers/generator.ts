@@ -5,7 +5,7 @@ import { ParserSchema } from "../parser/schema";
 import { convertBaseTypeToTs, getShouldLeanIncludeVirtuals, loadModels } from "../parser/utils";
 import { MongooseModel } from "../parser/types";
 import { convertKeyValueToLine } from "../writer/stringBuilder";
-import { sanitizeTypeIdentifier } from "./constants";
+import { sanitizeTypeIdentifier } from "./typeSanitization";
 
 // TODO next: Pull this file apart. Create a new "file writer" file, move all the ts stuff somewhere else,
 
@@ -19,78 +19,69 @@ export const cleanComment = (comment: string): string => {
     .replace(/(\n)?[^\S\r\n]+\*\/$/, ""); // Remove closing */
 };
 
+// Needs to be exported by generator Module
 export const sanitizeModelName = (name: string) => sanitizeTypeIdentifier(name);
-
-interface TypeMapping {
-  thisType: string;
-  returnType: string;
-}
-
-const TYPE_MAPPINGS: Record<"query" | "methods" | "statics", (modelName: string) => TypeMapping> = {
-  query: (modelName: string) => ({
-    thisType: `${modelName}Query`,
-    returnType: `${modelName}Query`
-  }),
-  methods: (modelName: string) => ({
-    thisType: `${modelName}Document`,
-    returnType: "any"
-  }),
-  statics: (modelName: string) => ({
-    thisType: `${modelName}Model`,
-    returnType: "any"
-  })
-};
-
 interface ParsedSignature {
   params: string;
   returnType: string;
+  thisType: string;
 }
 
-const parseSignature = (signature: string): ParsedSignature | null => {
+const funcTypeToThisSuffix: Record<"query" | "methods" | "statics", string> = {
+  query: "Query",
+  methods: "Document",
+  statics: "Model"
+};
+
+const parseSignature = (
+  signature: string,
+  modelName: string,
+  funcType: "query" | "methods" | "statics"
+): ParsedSignature => {
+  const thisSuffix = funcTypeToThisSuffix[funcType];
+  const thisType = `${modelName}${thisSuffix}`;
+  const queryReturnType = `${modelName}Query`;
+
   const match = signature?.match(/\((?:this: \w*(?:, )?)?(?<params>.*)\) => (?<returnType>.*)/);
 
   if (!match?.groups) {
-    return null;
+    console.warn(
+      `Failed to extract types from function signature: ${signature}, falling back to defaults`
+    );
+    const defaultReturnType = funcType === "query" ? queryReturnType : "any";
+    const defaultParams = "...args: any[]";
+
+    return {
+      params: defaultParams,
+      returnType: defaultReturnType,
+      thisType
+    };
   }
+
+  const finalReturnType = funcType === "query" ? queryReturnType : match.groups.returnType;
 
   return {
     params: match.groups.params,
-    returnType: match.groups.returnType
+    returnType: finalReturnType,
+    thisType
   };
 };
 
 export const convertFuncSignatureToType = (
   funcSignature: string,
-  funcType: keyof typeof TYPE_MAPPINGS,
+  funcType: "query" | "methods" | "statics",
   modelName: string
 ): string => {
-  try {
-    const sanitizedModelName = sanitizeModelName(modelName);
-    const typeMapping = TYPE_MAPPINGS[funcType](sanitizedModelName);
+  // Assume there's some existing function sanitizeModelName that cleans up modelName.
+  const sanitizedModelName = sanitizeModelName(modelName);
+  const { params, returnType, thisType } = parseSignature(
+    funcSignature,
+    sanitizedModelName,
+    funcType
+  );
 
-    const parsedSignature = parseSignature(funcSignature);
-    if (!parsedSignature) {
-      console.warn(
-        `Failed to parse function signature: ${funcSignature}, please open an issue if you believe this is an error`
-      );
-      return `(this: ${typeMapping.thisType}) => ${typeMapping.returnType}`;
-    }
-
-    const { params, returnType } = parsedSignature;
-    const paramsString = params?.length > 0 ? `, ${params}` : "";
-
-    const finalReturnType =
-      funcType === "query" ? typeMapping.returnType : returnType || typeMapping.returnType;
-
-    return `(this: ${typeMapping.thisType}${paramsString}) => ${finalReturnType}`;
-  } catch (error) {
-    console.error(
-      "Error converting function signature:",
-      error instanceof Error ? error.message : error
-    );
-    const fallbackMapping = TYPE_MAPPINGS[funcType](modelName);
-    return `(this: ${fallbackMapping.thisType}) => ${fallbackMapping.returnType}`;
-  }
+  const paramsString = params?.length > 0 ? `, ${params}` : "";
+  return `(this: ${thisType}${paramsString}) => ${returnType}`;
 };
 
 export const replaceModelTypes = (
