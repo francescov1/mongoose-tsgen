@@ -68,7 +68,6 @@ describe("generateTypes", () => {
     generator.replaceModelTypes(sourceFile, modelTypes, models);
     generator.addPopulateHelpers(sourceFile);
     generator.overloadQueryPopulate(sourceFile);
-    // fs.writeFileSync('./src/helpers/tests/artifacts/files.gen.ts', sourceFile.getFullText().trim());
     cleanupTs?.();
     expect(sourceFile.getFullText().trim()).toBe(getExpectedString("files.gen.ts").trim());
   });

@@ -21,6 +21,7 @@ export const cleanComment = (comment: string): string => {
 
 // Needs to be exported by generator Module
 export const sanitizeModelName = (name: string) => sanitizeTypeIdentifier(name);
+
 interface ParsedSignature {
   params: string;
   returnType: string;
@@ -72,7 +73,6 @@ export const convertFuncSignatureToType = (
   funcType: "query" | "methods" | "statics",
   modelName: string
 ): string => {
-  // Assume there's some existing function sanitizeModelName that cleans up modelName.
   const sanitizedModelName = sanitizeModelName(modelName);
   const { params, returnType, thisType } = parseSignature(
     funcSignature,

@@ -8,6 +8,20 @@
 import mongoose from "mongoose";
 
 /**
+ * Lean version of TestFilesArrayItemDocument
+ * 
+ * This has all Mongoose getters & functions removed. This type will be returned from `TestFilesDocument.toObject()`.
+ * ```
+ * const testfilesObject = testfiles.toObject();
+ * ```
+ */
+export type TestFilesArrayItem = {
+"item@id"?: string;
+"item#name"?: string;
+_id: mongoose.Types.ObjectId;
+}
+
+/**
  * Lean version of TestFilesDocument
  * 
  * This has all Mongoose getters & functions removed. This type will be returned from `TestFilesDocument.toObject()`. To avoid conflicts with model names, use the type alias `TestFilesObject`.
@@ -16,15 +30,27 @@ import mongoose from "mongoose";
  * ```
  */
 export type TestFiles = {
-"brand-name"?: string;
-"123number"?: string;
-"class"?: string;
+"brand-name": string;
+"123number": string;
+"class"?: "class1" | "class2" | "class3";
 "special@char"?: string;
 "space name"?: string;
-uploads: {
-files?: string;
+uploadsFiles?: string;
+"typeof": "public" | "private" | "restricted";
+meta_data: {
+"size-kb"?: number;
+"mime-type"?: string;
+"created@"?: Date;
 };
+arrayItems: TestFilesArrayItem[];
+"function"?: string;
+interfaceMap?: Map<string, string>;
 _id: mongoose.Types.ObjectId;
+updatedAt?: Date;
+createdAt?: Date;
+full: {
+path: any;
+};
 }
 
 /**
@@ -53,12 +79,18 @@ export type TestFilesQuery = mongoose.Query<any, TestFilesDocument, TestFilesQue
  * This type represents `TestFilesSchema.query`. For most use cases, you should not need to use this type explicitly.
  */
 export type TestFilesQueries = {
+"by.brand": (this: TestFilesQuery, ...args: any[]) => TestFilesQuery;
+"with.metadata": (this: TestFilesQuery, ...args: any[]) => TestFilesQuery;
 }
 
 export type TestFilesMethods = {
+"validate@type": (this: TestFilesDocument, ...args: any[]) => any;
+"get.size": (this: TestFilesDocument, ...args: any[]) => any;
 }
 
 export type TestFilesStatics = {
+"find.byType": (this: TestFilesModel, ...args: any[]) => any;
+"count@extension": (this: TestFilesModel, ...args: any[]) => any;
 }
 
 /**
@@ -82,6 +114,17 @@ export type TestFilesModel = mongoose.Model<TestFilesDocument, TestFilesQueries>
 export type TestFilesSchema = mongoose.Schema<TestFilesDocument, TestFilesModel, TestFilesMethods, TestFilesQueries>
 
 /**
+ * Mongoose Subdocument type
+ * 
+ * Type of `TestFilesDocument["arrayItems"]` element.
+ */
+export type TestFilesArrayItemDocument = mongoose.Types.Subdocument<mongoose.Types.ObjectId> & {
+"item@id"?: string;
+"item#name"?: string;
+_id: mongoose.Types.ObjectId;
+}
+
+/**
  * Mongoose Document type
  * 
  * Pass this type to the Mongoose Model constructor:
@@ -90,15 +133,27 @@ export type TestFilesSchema = mongoose.Schema<TestFilesDocument, TestFilesModel,
  * ```
  */
 export type TestFilesDocument = mongoose.Document<mongoose.Types.ObjectId, TestFilesQueries> & TestFilesMethods & {
-"brand-name"?: string;
-"123number"?: string;
-"class"?: string;
+"brand-name": string;
+"123number": string;
+"class"?: "class1" | "class2" | "class3";
 "special@char"?: string;
 "space name"?: string;
-uploads: {
-files?: string;
+uploadsFiles?: string;
+"typeof": "public" | "private" | "restricted";
+meta_data: {
+"size-kb"?: number;
+"mime-type"?: string;
+"created@"?: Date;
 };
+arrayItems: mongoose.Types.DocumentArray<TestFilesArrayItemDocument>;
+"function"?: string;
+interfaceMap?: mongoose.Types.Map<string>;
 _id: mongoose.Types.ObjectId;
+updatedAt?: Date;
+createdAt?: Date;
+full: {
+path: any;
+};
 }
 
 /**
