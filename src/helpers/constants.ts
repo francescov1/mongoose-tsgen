@@ -3,8 +3,6 @@
  * @see {@link https://github.com/microsoft/TypeScript/issues/2536 TS Reserved Words}
  */
 
-// WARNING: comments are claude generated. not sure if they are accurate
-
 /**
  * Regular JavaScript/TypeScript reserved words that cannot be used as identifiers in any context.
  * These are the core keywords that form the basic syntax and control flow of the language.
@@ -13,7 +11,7 @@
  * @example
  * // These will cause syntax errors:
  * type if = string;    // Error: 'if' is a reserved word
- * interface Class {}   // Error: 'class' is a reserved word
+ * interface class {}   // Error: 'class' is a reserved word
  */
 export const tsReservedWords = [
   "break",
