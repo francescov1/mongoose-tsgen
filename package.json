@@ -34,6 +34,7 @@
     "@tsconfig/node20": "^20.1.4",
     "@types/eslint": "^7.2.4",
     "@types/flat": "^5.0.1",
+    "@types/glob": "^8.1.0",
     "@types/jest": "^26.0.14",
     "@types/lodash": "^4.14.167",
     "@types/mkdirp": "^1.0.1",
