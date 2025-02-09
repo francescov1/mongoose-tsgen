@@ -11,6 +11,7 @@ import {
 import _ from "lodash";
 import * as templates from "../helpers/templates";
 import { MongooseModel, MongooseSchema, ParserSchemaField } from "./types";
+import { sanitizeModelName } from "../helpers/generator";
 
 // old TODOs:
 // - Handle statics method issue
@@ -177,12 +178,15 @@ export class ParserSchema {
   };
 
   parseChildSchemas = (schema: MongooseSchema): ParserSchema[] => {
-    const mongooseChildSchemas = _.cloneDeep(schema.childSchemas);
-
     const childSchemas: ParserSchema[] = [];
 
-    // NOTE: This is a hack for Schema maps. For some reason, when a map of a schema exists, the schema is not included
+    // NOTE: The for loop below is a hack for Schema maps. For some reason, when a map of a schema exists, the schema is not included
     // in childSchemas. So we add it manually and add a few extra properties to ensure the processChild works correctly.
+    // UPDSTE: Newer versions of Mongoose do include the schema map in the child schemas, but in a weird format with "*$" postfix in the path. We can just filter those out which is what were doing directly below.
+    const mongooseChildSchemas = _.cloneDeep(schema.childSchemas).filter(
+      (child) => !child.model.path.endsWith("$*")
+    );
+
     for (const [path, type] of Object.entries(this.mongooseSchema.paths)) {
       // This check tells us that this is a map of a separate schema
       if ((type as any)?.$isSchemaMap && (type as any)?.$__schemaType.schema) {
@@ -205,9 +209,10 @@ export class ParserSchema {
       const isSubdocArray = child.model.$isArraySubdocument;
       const isSchemaMap = child.model.$isSchemaMap ?? false;
       const name = getSubdocName(path, this.modelName);
+      const sanitizedName = sanitizeModelName(name);
 
       child.schema._isReplacedWithSchema = true;
-      child.schema._inferredInterfaceName = name;
+      child.schema._inferredInterfaceName = sanitizedName;
       child.schema._isSubdocArray = isSubdocArray;
       child.schema._isSchemaMap = isSchemaMap;
 
@@ -243,7 +248,7 @@ export class ParserSchema {
 
       const childSchema = new ParserSchema({
         mongooseSchema: child.schema,
-        modelName: name,
+        modelName: sanitizedName,
         model: child.model
       });
 
