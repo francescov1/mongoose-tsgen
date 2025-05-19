@@ -148,14 +148,14 @@ class MongooseTsgen extends Command {
       datesAsStrings
     });
 
+    const modelTypes = tsReader.getModelTypes(modelsPaths);
+    const models = loadModels(modelsPaths);
+    generator.replaceModelTypes(sourceFile, modelTypes, models);
+
     // only get model types (methods, statics, queries & virtuals) if user does not specify `noMongoose`,
     if (noMongoose) {
       this.log("Skipping TS model parsing and sourceFile model type replacement");
     } else {
-      const modelTypes = tsReader.getModelTypes(modelsPaths);
-      const models = loadModels(modelsPaths);
-      generator.replaceModelTypes(sourceFile, modelTypes, models);
-
       // add populate helpers
       await generator.addPopulateHelpers(sourceFile);
       // add mongoose.Query.populate overloads

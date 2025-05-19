@@ -402,14 +402,18 @@ export const getTypeFromKeyValue = ({
     let docRef = val.ref.replace?.(`'`, "");
 
     if (typeof val.ref === "function") {
-      // If we get a function, we cant determine the document that we would populate, so just assume it's an ObjectId
-      valueType = "mongoose.Types.ObjectId";
+      if (noMongoose) {
+        valueType = "string";
+      } else {
+        // If we get a function, we cant determine the document that we would populate, so just assume it's an ObjectId
+        valueType = "mongoose.Types.ObjectId";
 
-      // If generating the document version, we can also provide document as an option to reflect the populated case. But for
-      // lean docs we can't do this cause we don't have a base type to extend from (since we can't determine it when parsing only JS).
-      // Later the tsReader can implement a function typechecker to subtitute the type with the more exact one.
-      if (isDocument) {
-        valueType += " | mongoose.Document";
+        // If generating the document version, we can also provide document as an option to reflect the populated case. But for
+        // lean docs we can't do this cause we don't have a base type to extend from (since we can't determine it when parsing only JS).
+        // Later the tsReader can implement a function typechecker to subtitute the type with the more exact one.
+        if (isDocument) {
+          valueType += " | mongoose.Document";
+        }
       }
     } else if (docRef) {
       // If val.ref is an invalid type (not a string) then this gets skipped.
