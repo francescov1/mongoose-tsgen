@@ -224,7 +224,12 @@ function findTypesInFile(sourceFile: SourceFile, modelTypes: TsReaderModelTypes)
 
       const stringLiteral = callExpr2?.getArguments()[0];
       const propAccessExpr2 = callExpr2?.getFirstChildByKind(SyntaxKind.PropertyAccessExpression);
-      if (propAccessExpr2?.getName() !== "virtual") continue;
+      if (propAccessExpr2?.getName() !== "virtual") {
+        if (process.env.DEBUG) {
+          console.warn("tsreader: virtual found on schema does not have virtual initializer");
+        }
+        continue;
+      }
 
       const virtualName = stringLiteral?.getText();
       let returnType = type?.split("=> ")?.[1];
@@ -241,7 +246,15 @@ function findTypesInFile(sourceFile: SourceFile, modelTypes: TsReaderModelTypes)
        * @experimental trying this out since certain virtual types are indeterminable and get set to void, which creates incorrect TS errors
        * This should be a fine workaround because virtual properties shouldn't return solely `void`, they return real values.
        */
-      if (returnType === "void") returnType = "any";
+      if (returnType === "void") {
+        if (process.env.DEBUG) {
+          console.warn(
+            "tsreader: return type found as void, this usually means we couldn't determine the type"
+          );
+        }
+
+        returnType = "any";
+      }
       const virtualNameSanitized = virtualName.slice(1, virtualName.length - 1);
 
       modelTypes[modelName].virtuals[virtualNameSanitized] = returnType;
