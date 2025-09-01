@@ -372,10 +372,13 @@ export const getModelTypes = (modelsPaths: string[], maxCommentDepth = 2): TsRea
   return allModelTypes;
 };
 
-export const registerUserTs = (
-  basePath: string,
-  noExperimentalResolver: boolean
-): (() => void) | null => {
+export const registerUserTs = ({
+  basePath,
+  enableExperimentalResolver
+}: {
+  basePath: string;
+  enableExperimentalResolver: boolean;
+}): (() => void) | null => {
   const pathToSearch = basePath.endsWith(".json")
     ? basePath
     : path.join(basePath, "**/tsconfig.json");
@@ -395,7 +398,7 @@ export const registerUserTs = (
   require("ts-node").register({
     transpileOnly: true,
     project: foundPath,
-    experimentalResolver: !noExperimentalResolver,
+    experimentalResolver: enableExperimentalResolver,
     compilerOptions: {
       module: "commonjs",
       moduleResolution: "node"

@@ -74,7 +74,7 @@ class MongooseTsgen extends Command {
     }),
     "no-experimental-resolver": Flags.boolean({
       description:
-        "Turn off experimentalResolver of the ts-node. It would help to resolve conflicting issue with some external modules."
+        "Disable experimentalResolver for ts-node. This can resolve issues with external modules."
     })
   };
 
@@ -137,7 +137,11 @@ class MongooseTsgen extends Command {
 
     const modelsPaths = paths.getModelsPaths(args.model_path);
 
-    const cleanupTs = tsReader.registerUserTs(flags.project, flags["no-experimental-resolver"]);
+    const enableExperimentalResolver = !flags["no-experimental-resolver"];
+    const cleanupTs = tsReader.registerUserTs({
+      basePath: flags.project,
+      enableExperimentalResolver
+    });
 
     const generatedFilePath = paths.cleanOutputPath(flags.output);
     let sourceFile = generator.createSourceFile(generatedFilePath);

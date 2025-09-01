@@ -127,37 +127,42 @@ Generate a Typescript file containing Mongoose Schema typings.
 
 ```
 USAGE
-  $ mtgen <MODEL_PATH>
+  $ mtgen [MODEL_PATH] [-c <value>] [-d] [-h] [-i <value>] [--no-format] [-o <value>] [-p <value>] [--debug]
+    [--no-mongoose] [--dates-as-strings] [--no-populate-overload] [--no-experimental-resolver]
 
-OPTIONS
-  -c, --config=config     [default: ./] Path of `mtgen.config.json` or its root folder. CLI flag
-                          options will take precendence over settings in `mtgen.config.json`.
+FLAGS
+  -c, --config=<value>        [default: ./] Path of `mtgen.config.json` or its root folder. CLI flag options will
+                              take precendence over settings in `mtgen.config.json`.
 
-  -d, --dry-run           Print output rather than writing to file.
+  -d, --dry-run               Print output rather than writing to file.
 
-  -h, --help              Show CLI help
+  -h, --help                  Show CLI help.
 
-  -i, --imports=imports   Custom import statements to add to the output file. Useful if you use
-                          third-party types in your mongoose schema definitions. For multiple imports,
-                          specify this flag more than once.
+  -i, --imports=<value>...    Custom import statements to add to the output file. Useful if you use third-party types
+                              in your mongoose schema definitions. For multiple imports, specify this flag more than
+                              once.
 
-  -o, --output=output     [default: ./src/interfaces] Path of output file to write generated typings.
-                          If a folder path is passed, the generator will create a `mongoose.gen.ts` file
-                          in the specified folder.
+  -o, --output=<value>        [default: ./src/interfaces] Path of output file to write generated typings. If a folder
+                              path is passed, the generator will create a `mongoose.gen.ts` file in the specified
+                              folder.
 
-  -p, --project=project   [default: ./] Path of `tsconfig.json` or its root folder.
+  -p, --project=<value>       [default: ./] Path of `tsconfig.json` or its root folder.
 
-  --dates-as-strings      Dates will be typed as strings. Useful for types returned to a frontend by API requests.
+  --dates-as-strings          Dates will be typed as strings. Useful for types returned to a frontend by API
+                              requests.
 
-  --debug                 Print debug information if anything isn't working
+  --debug                     Print debug information if anything isn't working
 
-  --no-format             Disable formatting generated files with prettier.
+  --no-experimental-resolver  Disable experimentalResolver for ts-node. This can resolve issues with external
+                              modules.
 
-  --no-mongoose           Don't generate types that reference mongoose (i.e. documents). Replace ObjectId with
-                          string.
+  --no-format                 Disable formatting generated files with prettier.
 
-  --no-populate-overload  Disable augmenting mongoose with Query.populate overloads (the overloads narrow
-                          the return type of populated documents queries).
+  --no-mongoose               Don't generate types that reference mongoose (i.e. documents). Replace ObjectId with
+                              string.
+
+  --no-populate-overload      Disable augmenting mongoose with Query.populate overloads (the overloads narrow the
+                              return type of populated documents queries).
 ```
 
 Specify the directory of your Mongoose schema definitions using `MODEL_PATH`. Defaults to `"**/models/!(index).ts"`
