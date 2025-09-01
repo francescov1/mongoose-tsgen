@@ -29,7 +29,7 @@ describe("generateTypes", () => {
   test("generate file string success", async () => {
     setupFolderStructure("./models", "user", true);
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/models/user.ts");
-    const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
+    const cleanupTs = tsReader.registerUserTs("tsconfig.test.json", false);
 
     let sourceFile = generator.createSourceFile(generatedFilePath);
     sourceFile = await generator.generateTypes({
@@ -52,7 +52,7 @@ describe("generateTypes", () => {
 
   test("generate file string with alt collection names", async () => {
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/files.ts");
-    const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
+    const cleanupTs = tsReader.registerUserTs("tsconfig.test.json", false);
 
     let sourceFile = generator.createSourceFile(generatedFilePath);
     sourceFile = await generator.generateTypes({
@@ -77,7 +77,7 @@ describe("generateTypes", () => {
   // Both should be split into unit tests once their code has been modularized
   test("generate different types of model inits", async () => {
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/device.ts");
-    const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
+    const cleanupTs = tsReader.registerUserTs("tsconfig.test.json", false);
 
     let sourceFile = generator.createSourceFile(generatedFilePath);
     sourceFile = await generator.generateTypes({
@@ -99,7 +99,7 @@ describe("generateTypes", () => {
   });
   test("generate other schema options", async () => {
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/user2.ts");
-    const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
+    const cleanupTs = tsReader.registerUserTs("tsconfig.test.json", false);
 
     let sourceFile = generator.createSourceFile(generatedFilePath);
     sourceFile = await generator.generateTypes({
@@ -121,7 +121,7 @@ describe("generateTypes", () => {
 
   test("generate model with subdocument field named models", async () => {
     const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/landingPage.ts");
-    const cleanupTs = tsReader.registerUserTs("tsconfig.test.json");
+    const cleanupTs = tsReader.registerUserTs("tsconfig.test.json", false);
 
     let sourceFile = generator.createSourceFile(generatedFilePath);
     sourceFile = await generator.generateTypes({

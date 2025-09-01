@@ -71,6 +71,10 @@ class MongooseTsgen extends Command {
     "no-populate-overload": Flags.boolean({
       description:
         "Disable augmenting mongoose with Query.populate overloads (the overloads narrow the return type of populated documents queries)."
+    }),
+    "no-experimental-resolver": Flags.boolean({
+      description:
+        "Turn off experimentalResolver of the ts-node. It would help to resolve conflicting issue with some external modules."
     })
   };
 
@@ -133,7 +137,7 @@ class MongooseTsgen extends Command {
 
     const modelsPaths = paths.getModelsPaths(args.model_path);
 
-    const cleanupTs = tsReader.registerUserTs(flags.project);
+    const cleanupTs = tsReader.registerUserTs(flags.project, flags["no-experimental-resolver"]);
 
     const generatedFilePath = paths.cleanOutputPath(flags.output);
     let sourceFile = generator.createSourceFile(generatedFilePath);
