@@ -1,15 +1,19 @@
 {
   "compilerOptions": {
-    "declaration": true,
-    "importHelpers": true,
-    "module": "commonjs",
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
     "outDir": "lib",
     "rootDir": "src",
+    "declaration": true,
     "strict": true,
-    "target": "ES2018",
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true
   },
   "include": ["src/**/*"],
-  "exclude": ["./node_modules", "./**/tests", "./**/*.test.*", "./**/jest.*"]
+  "exclude": ["node_modules", "lib", "**/*.test.ts", "**/*.spec.ts"]
 }

@@ -8,6 +8,14 @@ import * as cli from "./helpers/cli";
 import * as types from "./types";
 import { loadModels } from "./parser/utils";
 
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+// At the top level of your file
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
 declare namespace MongooseTsgen {
   export type FlagConfig = types.Normalize<
     Omit<Interfaces.InferredFlags<typeof MongooseTsgen["flags"]>, "help">
@@ -20,6 +28,7 @@ declare namespace MongooseTsgen {
   }
 }
 
+// eslint-disable-next-line no-redeclare
 class MongooseTsgen extends Command {
   static id = ".";
 
@@ -137,14 +146,14 @@ class MongooseTsgen extends Command {
 
     const modelsPaths = paths.getModelsPaths(args.model_path);
 
-    const cleanupTs = tsReader.registerUserTs(flags.project, flags["no-experimental-resolver"]);
+    const cleanupTs = await tsReader.registerUserTs(flags.project);
 
     const generatedFilePath = paths.cleanOutputPath(flags.output);
     let sourceFile = generator.createSourceFile(generatedFilePath);
 
     const noMongoose = flags["no-mongoose"];
     const datesAsStrings = flags["dates-as-strings"];
-    sourceFile = generator.generateTypes({
+    sourceFile = await generator.generateTypes({
       modelsPaths,
       sourceFile,
       imports: flags.imports,
@@ -154,7 +163,7 @@ class MongooseTsgen extends Command {
 
     const modelTypes = tsReader.getModelTypes(modelsPaths);
     const models = loadModels(modelsPaths);
-    generator.replaceModelTypes(sourceFile, modelTypes, models);
+    generator.replaceModelTypes(sourceFile, modelTypes, await models);
 
     // only get model types (methods, statics, queries & virtuals) if user does not specify `noMongoose`,
     if (noMongoose) {
@@ -188,4 +197,8 @@ class MongooseTsgen extends Command {
   }
 }
 
-export = MongooseTsgen;
+export const run = async (): Promise<void> => {
+  return await MongooseTsgen.run(process.argv.slice(2));
+};
+
+export default MongooseTsgen;

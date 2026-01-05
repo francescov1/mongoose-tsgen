@@ -3,6 +3,7 @@ import _ from "lodash";
 import pluralize from "pluralize";
 import { MongooseModel } from "./types";
 import { convertKeyValueToLine } from "../writer/stringBuilder";
+import { pathToFileURL } from "url";
 
 export const getSubdocName = (path: string, modelName = "") => {
   let subDocName =
@@ -157,25 +158,28 @@ export const BASE_TYPES = new Set([
   mongoose.Schema.Types.Decimal128
 ]);
 
-export const loadModels = (modelsPaths: string[]): MongooseModel[] => {
-  // We use a dict with model names as keys to ensure uniqueness. If the user exports the same model twice, we only want to register it once.
+export const loadModels = async (modelsPaths: string[]): Promise<MongooseModel[]> => {
   const nameToModelMap: { [modelName: string]: MongooseModel } = {};
 
-  // TODO: Type guard
   const checkAndRegisterModel = (obj: any): boolean => {
     if (!obj?.modelName || !obj?.schema) return false;
     nameToModelMap[obj.modelName] = obj;
     return true;
   };
 
-  modelsPaths.forEach((singleModelPath: string) => {
+  // Change from forEach to for...of
+  for (const singleModelPath of modelsPaths) {
     let exportedData;
     try {
       if (process.env.DEBUG) {
         console.log("parser: Attempting to import model from path: " + singleModelPath);
       }
 
-      exportedData = require(singleModelPath);
+      exportedData = await import(pathToFileURL(singleModelPath).href);
+
+      if (process.env.DEBUG) {
+        console.log("parser: Successfully imported:", Object.keys(exportedData));
+      }
     } catch (err) {
       const error = (err as Error).message?.includes(`Cannot find module '${singleModelPath}'`)
         ? new Error(`Could not find a module at path ${singleModelPath}.`)
@@ -185,42 +189,8 @@ export const loadModels = (modelsPaths: string[]): MongooseModel[] => {
 
     const prevSchemaCount = Object.keys(nameToModelMap).length;
 
-    // NOTE: This was used to find the most likely names of the model based on the filename, and only check those properties for mongoose models. Now, we check all properties, but this could be used as a "strict" option down the road.
-
-    // we check each file's export object for property names that would commonly export the schema.
-    // Here is the priority (using the filename as a starting point to determine model name):
-    // default export, model name (ie `User`), model name lowercase (ie `user`), collection name (ie `users`), collection name uppercased (ie `Users`).
-    // If none of those exist, we assume the export object is set to the schema directly
-    /*
-    // if exported data has a default export, use that
-    if (checkAndRegisterModel(exportedData.default) || checkAndRegisterModel(exportedData)) return;
-
-    // if no default export, look for a property matching file name
-    const { name: filenameRoot } = path.parse(singleModelPath);
-
-    // capitalize first char
-    const modelName = filenameRoot.charAt(0).toUpperCase() + filenameRoot.slice(1);
-    const collectionNameUppercased = modelName + "s";
-
-    let modelNameLowercase = filenameRoot.endsWith("s") ? filenameRoot.slice(0, -1) : filenameRoot;
-    modelNameLowercase = modelNameLowercase.toLowerCase();
-
-    const collectionName = modelNameLowercase + "s";
-
-    // check likely names that schema would be exported from
-    if (
-      checkAndRegisterModel(exportedData[modelName]) ||
-      checkAndRegisterModel(exportedData[modelNameLowercase]) ||
-      checkAndRegisterModel(exportedData[collectionName]) ||
-      checkAndRegisterModel(exportedData[collectionNameUppercased])
-    )
-      return;
-    */
-
-    // check if exported object is a model
     checkAndRegisterModel(exportedData);
 
-    // iterate through each exported property, check if val is a schema and add to schemas if so
     for (const obj of Object.values(exportedData)) {
       checkAndRegisterModel(obj);
     }
@@ -231,7 +201,7 @@ export const loadModels = (modelsPaths: string[]): MongooseModel[] => {
         `A module was found at ${singleModelPath}, but no new exported models were found. If this file contains a Mongoose schema, ensure it is exported and its name does not conflict with others.`
       );
     }
-  });
+  }
 
   return Object.values(nameToModelMap);
 };

@@ -1,6 +1,6 @@
 import { setupFolderStructure, cleanup } from "./utils";
 import * as paths from "../paths";
-const path = require("path");
+import path from "path";
 
 // TODO: test path aliases
 
@@ -14,14 +14,14 @@ describe("getModelsPaths", () => {
     // here the returned value should be an array containing paths of each individual schema
     const expected = [path.join(__dirname, "dist/models/user.ts")];
 
-    let modelsPath = await paths.getModelsPaths();
+    let modelsPath = paths.getModelsPaths();
     expect(modelsPath).toEqual(expected);
 
     // empty string path
-    modelsPath = await paths.getModelsPaths("");
+    modelsPath = paths.getModelsPaths("");
     expect(modelsPath).toEqual(expected);
 
-    modelsPath = await paths.getModelsPaths("./src/helpers/tests/dist/models");
+    modelsPath = paths.getModelsPaths("./src/helpers/tests/dist/models");
     expect(modelsPath).toEqual(expected);
   });
 
@@ -30,13 +30,13 @@ describe("getModelsPaths", () => {
     // here the returned value should be an array containing paths of each individual schema
     const expected = [path.join(__dirname, "models/user.ts")];
 
-    let modelsPath = await paths.getModelsPaths();
+    let modelsPath = paths.getModelsPaths();
     expect(modelsPath).toEqual(expected);
 
-    modelsPath = await paths.getModelsPaths("");
+    modelsPath = paths.getModelsPaths("");
     expect(modelsPath).toEqual(expected);
 
-    modelsPath = await paths.getModelsPaths("./src/helpers/tests/models");
+    modelsPath = paths.getModelsPaths("./src/helpers/tests/models");
     expect(modelsPath).toEqual(expected);
   });
 

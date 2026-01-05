@@ -372,10 +372,7 @@ export const getModelTypes = (modelsPaths: string[], maxCommentDepth = 2): TsRea
   return allModelTypes;
 };
 
-export const registerUserTs = (
-  basePath: string,
-  noExperimentalResolver: boolean
-): (() => void) | null => {
+export const registerUserTs = async (basePath: string): Promise<(() => void) | null> => {
   const pathToSearch = basePath.endsWith(".json")
     ? basePath
     : path.join(basePath, "**/tsconfig.json");
@@ -388,31 +385,11 @@ export const registerUserTs = (
     );
 
   const foundPath = path.join(process.cwd(), files[0]);
-  if (process.env.DEBUG) {
-    console.log("tsreader: Registering tsconfig.json with ts-node at path: " + foundPath);
-  }
 
-  require("ts-node").register({
-    transpileOnly: true,
-    project: foundPath,
-    experimentalResolver: !noExperimentalResolver,
-    compilerOptions: {
-      module: "commonjs",
-      moduleResolution: "node"
-    }
-    // The solution below would be more ideal, but it breaks for examples like https://github.com/francescov1/mongoose-tsgen/issues/134#issuecomment-2006954270.
-    // The module resolution is getting really weird with all the various module types and import strategies. We probably need to rethink how we handle this.
+  // REMOVE ALL THE TS-NODE REGISTRATION CODE
+  // The loader already handles TypeScript compilation
 
-    // https://github.com/TypeStrong/ts-node/issues/922#issuecomment-913361913
-    // "ts-node": {
-    //   // These options are overrides used only by ts-node
-    //   compilerOptions: {
-    //     module: "commonjs"
-    //   }
-    // }
-  });
-
-  // handle path aliases
+  // Only handle path aliases
   try {
     if (process.env.DEBUG) {
       console.log(
@@ -429,10 +406,12 @@ export const registerUserTs = (
         );
       }
 
-      const cleanup = require("tsconfig-paths").register({
+      const { register: registerPaths } = await import("tsconfig-paths");
+      const cleanup = registerPaths({
         baseUrl,
         paths: tsConfig.compilerOptions.paths
       });
+
       if (process.env.DEBUG) {
         console.log("tsreader: tsconfig-paths registered");
       }

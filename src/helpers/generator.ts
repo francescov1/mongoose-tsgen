@@ -323,7 +323,7 @@ export const getSchemaTypes = (model: MongooseModel) => {
 };
 
 // TODO: This should be split up, shouldn't be writing to file and parsing schema simultaneously. Instead parse schema first then write later.
-export const generateTypes = ({
+export const generateTypes = async ({
   sourceFile,
   imports = [],
   modelsPaths,
@@ -336,7 +336,7 @@ export const generateTypes = ({
   noMongoose: boolean;
   datesAsStrings: boolean;
 }) => {
-  const models = loadModels(modelsPaths);
+  const models = await loadModels(modelsPaths); // Add await here
 
   sourceFile.addStatements((writer) => {
     writer.write(templates.MAIN_HEADER).blankLine();

@@ -1,7 +1,7 @@
-const rimraf = require("rimraf");
-const mkdirp = require("mkdirp");
-const fs = require("fs");
-const path = require("path");
+import rimraf from "rimraf";
+import mkdirp from "mkdirp";
+import fs from "fs";
+import path from "path";
 
 export const setupFolderStructure = (
   relPath: string,

@@ -7,3 +7,5 @@
 /yarn.lock
 node_modules
 .eslintcache
+.idea
+mtgen

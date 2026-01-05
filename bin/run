@@ -1,16 +1,8 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --import=tsx/esm
 
-// const fs = require('fs')
-// const path = require('path')
-// const project = path.join(__dirname, '../tsconfig.json')
-// const dev = fs.existsSync(project)
+import { run } from '../lib/index.js'
+import { flush, handle } from '@oclif/core'
 
-// if (dev) {
-//   require('ts-node').register({project})
-// }
-
-// require(`../${dev ? 'src' : 'lib'}`).run()
-
-require(`../lib`).run()
-.then(require("@oclif/core/flush"))
-.catch(require("@oclif/core/handle"));
+run()
+  .then(flush)
+  .catch(handle)
