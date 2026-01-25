@@ -3,6 +3,7 @@ import _ from "lodash";
 import pluralize from "pluralize";
 import { MongooseModel } from "./types";
 import { convertKeyValueToLine } from "../writer/stringBuilder";
+import { sanitizeTypeIdentifier } from "../helpers/typeSanitization";
 
 export const getSubdocName = (path: string, modelName = "") => {
   let subDocName =
@@ -380,7 +381,53 @@ export const getTypeFromKeyValue = ({
       });
     }
 
-    valueType = "any";
+    // Check for virtual populate refs (ref, refPath, justOne, count are stored in val.options)
+    const opts = val.options ?? {};
+    const isPopulateVirtual =
+      (opts.ref !== null && opts.ref !== undefined) ||
+      (opts.refPath !== null && opts.refPath !== undefined);
+
+    if (isPopulateVirtual) {
+      // Handle virtual populate ref
+      if (opts.count === true) {
+        // count: true means the virtual returns a number (count of matching documents)
+        valueType = "number";
+      } else if (typeof opts.ref === "string") {
+        // We have a string ref, we can determine the target type
+        let sanitizedRefName: string;
+        try {
+          sanitizedRefName = sanitizeTypeIdentifier(opts.ref);
+        } catch {
+          // If sanitization fails, fallback to any
+          valueType = "any";
+          sanitizedRefName = "";
+        }
+
+        if (sanitizedRefName) {
+          const targetType = isDocument ? `${sanitizedRefName}Document` : sanitizedRefName;
+
+          if (opts.justOne === true) {
+            // justOne: true means the virtual returns a single document or null
+            valueType = `${targetType} | null`;
+          } else {
+            // Default: returns an array of documents
+            valueType = isDocument ? `mongoose.Types.Array<${targetType}>` : `${targetType}[]`;
+          }
+        }
+      } else {
+        // ref is a function, model instance, or refPath - fallback to any
+        if (process.env.DEBUG) {
+          console.warn(
+            `parser: Virtual populate ref for "${key}" uses a non-string ref, falling back to "any".`
+          );
+        }
+        valueType = "any";
+      }
+    } else {
+      // Regular virtual getter (not a populate virtual)
+      valueType = "any";
+    }
+
     isOptional = false;
   } else if (
     key &&
