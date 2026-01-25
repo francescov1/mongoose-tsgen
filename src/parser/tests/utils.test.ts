@@ -7,7 +7,8 @@ describe("getTypeFromKeyValue", () => {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
-      datesAsStrings: false
+      datesAsStrings: false,
+      rootSchemaTree: {}
     };
     // see https://mongoosejs.com/docs/schematypes.html#arrays
 
@@ -79,7 +80,8 @@ describe("getTypeFromKeyValue", () => {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
-      datesAsStrings: false
+      datesAsStrings: false,
+      rootSchemaTree: {}
     };
 
     expect(
@@ -154,7 +156,8 @@ describe("getTypeFromKeyValue", () => {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
-      datesAsStrings: false
+      datesAsStrings: false,
+      rootSchemaTree: {}
     };
 
     // should be optional; not required like normal arrays
@@ -180,7 +183,8 @@ describe("getTypeFromKeyValue", () => {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
-      datesAsStrings: false
+      datesAsStrings: false,
+      rootSchemaTree: {}
     };
 
     expect(
@@ -247,7 +251,8 @@ describe("getTypeFromKeyValue", () => {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
-      datesAsStrings: false
+      datesAsStrings: false,
+      rootSchemaTree: {}
     };
 
     expect(
@@ -287,7 +292,8 @@ describe("getTypeFromKeyValue", () => {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
-      datesAsStrings: true
+      datesAsStrings: true,
+      rootSchemaTree: {}
     };
 
     expect(
@@ -320,4 +326,3 @@ describe("getTypeFromKeyValue", () => {
     ).toBe("aDateTypeString?: string;\n");
   });
 });
-

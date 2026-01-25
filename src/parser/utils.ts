@@ -245,7 +245,8 @@ export const getTypeFromKeyValue = ({
   isDocument,
   shouldLeanIncludeVirtuals,
   noMongoose,
-  datesAsStrings
+  datesAsStrings,
+  rootSchemaTree
 }: {
   key: string;
   val: any;
@@ -253,6 +254,7 @@ export const getTypeFromKeyValue = ({
   shouldLeanIncludeVirtuals: boolean;
   noMongoose: boolean;
   datesAsStrings: boolean;
+  rootSchemaTree: Record<string, any>;
 }): string => {
   // if the value is an object, we need to deepClone it to ensure changes to `val` aren't persisted in parent function
   let val = _.isPlainObject(valOriginal) ? _.cloneDeep(valOriginal) : valOriginal;
@@ -377,7 +379,8 @@ export const getTypeFromKeyValue = ({
         isDocument,
         shouldLeanIncludeVirtuals,
         noMongoose,
-        datesAsStrings
+        datesAsStrings,
+        rootSchemaTree
       });
     }
 
@@ -398,7 +401,11 @@ export const getTypeFromKeyValue = ({
         try {
           sanitizedRefName = sanitizeTypeIdentifier(opts.ref);
         } catch {
-          // If sanitization fails, fallback to any
+          if (process.env.DEBUG) {
+            console.warn(
+              `parser: Sanitization failed for model name "${opts.ref}" for field "${key}", falling back to "any".`
+            );
+          }
           valueType = "any";
           sanitizedRefName = "";
         }
@@ -445,6 +452,73 @@ export const getTypeFromKeyValue = ({
     ].includes(key)
   ) {
     return "";
+  } else if (typeof val.refPath === "string" || typeof val.type?.refPath === "string") {
+    // Handle dynamic refs via refPath
+    const refPathValue = val.refPath ?? val.type?.refPath;
+
+    // Try to resolve the discriminator field from the root schema tree
+    const discriminatorField = rootSchemaTree ? _.get(rootSchemaTree, refPathValue) : null;
+
+    // Extract enum values from the discriminator field
+    let enumValues: string[] | null = null;
+    if (discriminatorField) {
+      const enumConfig = discriminatorField.enum ?? discriminatorField.type?.enum;
+      if (enumConfig) {
+        // Support both array of strings and TS enum objects
+        const rawValues = Array.isArray(enumConfig) ? enumConfig : Object.values(enumConfig);
+        enumValues = rawValues.filter((v): v is string => typeof v === "string" && v !== null);
+      }
+    }
+
+    if (enumValues && enumValues.length > 0) {
+      // Build union type from enum values (each value is a model name)
+      const typeUnionParts: string[] = [];
+
+      for (const modelName of enumValues) {
+        let sanitizedName: string;
+        try {
+          sanitizedName = sanitizeTypeIdentifier(modelName);
+        } catch {
+          if (process.env.DEBUG) {
+            console.warn(
+              `parser: Sanitization failed for model name "${modelName}" for field "${key}", skipping.`
+            );
+          }
+          // If sanitization fails, skip this value
+          continue;
+        }
+
+        const targetType = isDocument ? `${sanitizedName}Document` : sanitizedName;
+
+        if (val.autopopulate) {
+          // support for mongoose-autopopulate
+          typeUnionParts.push(targetType);
+        } else {
+          typeUnionParts.push(`${targetType}["_id"] | ${targetType}`);
+        }
+      }
+
+      if (typeUnionParts.length > 0) {
+        valueType = typeUnionParts.join(" | ");
+      } else {
+        // Fallback if no valid model names could be extracted
+        valueType = noMongoose ? "string" : "mongoose.Types.ObjectId";
+        if (isDocument && !noMongoose) {
+          valueType += " | mongoose.Document";
+        }
+      }
+    } else {
+      // Fallback: discriminator path not found or enum values missing
+      if (process.env.DEBUG) {
+        console.warn(
+          `parser: refPath "${refPathValue}" for field "${key}" could not be resolved, falling back to ObjectId.`
+        );
+      }
+      valueType = noMongoose ? "string" : "mongoose.Types.ObjectId";
+      if (isDocument && !noMongoose) {
+        valueType += " | mongoose.Document";
+      }
+    }
   } else if (val.ref) {
     let docRef = val.ref.replace?.(`'`, "");
 
@@ -498,7 +572,8 @@ export const getTypeFromKeyValue = ({
           isDocument,
           shouldLeanIncludeVirtuals,
           noMongoose,
-          datesAsStrings
+          datesAsStrings,
+          rootSchemaTree
         });
       });
 

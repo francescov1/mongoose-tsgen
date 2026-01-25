@@ -186,6 +186,32 @@ describe("generateTypes", () => {
       getExpectedString("virtualPopulate.gen.ts").trim()
     );
   });
+
+  test("generate refPath union refs", async () => {
+    const modelsPaths = await paths.getModelsPaths("./src/helpers/tests/artifacts/refPath.ts");
+    const cleanupTs = tsReader.registerUserTs({
+      basePath: "tsconfig.test.json",
+      enableExperimentalResolver: true
+    });
+
+    let sourceFile = generator.createSourceFile(generatedFilePath);
+    sourceFile = await generator.generateTypes({
+      modelsPaths,
+      sourceFile,
+      noMongoose: false,
+      datesAsStrings: false
+    });
+
+    const modelTypes = tsReader.getModelTypes(modelsPaths);
+    const models = loadModels(modelsPaths);
+
+    generator.replaceModelTypes(sourceFile, modelTypes, models);
+    generator.addPopulateHelpers(sourceFile);
+    generator.overloadQueryPopulate(sourceFile);
+
+    cleanupTs?.();
+    expect(sourceFile.getFullText().trim()).toBe(getExpectedString("refPath.gen.ts").trim());
+  });
 });
 
 describe("sanitizeModelName", () => {
