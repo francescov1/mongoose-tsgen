@@ -156,6 +156,36 @@ describe("generateTypes", () => {
     cleanupTs?.();
     expect(sourceFile.getFullText().trim()).toBe(getExpectedString("landingPage.gen.ts").trim());
   });
+
+  test("generate virtual populate refs (array, justOne, count)", async () => {
+    const modelsPaths = await paths.getModelsPaths(
+      "./src/helpers/tests/artifacts/virtualPopulate.ts"
+    );
+    const cleanupTs = tsReader.registerUserTs({
+      basePath: "tsconfig.test.json",
+      enableExperimentalResolver: true
+    });
+
+    let sourceFile = generator.createSourceFile(generatedFilePath);
+    sourceFile = await generator.generateTypes({
+      modelsPaths,
+      sourceFile,
+      noMongoose: false,
+      datesAsStrings: false
+    });
+
+    const modelTypes = tsReader.getModelTypes(modelsPaths);
+    const models = loadModels(modelsPaths);
+
+    generator.replaceModelTypes(sourceFile, modelTypes, models);
+    generator.addPopulateHelpers(sourceFile);
+    generator.overloadQueryPopulate(sourceFile);
+
+    cleanupTs?.();
+    expect(sourceFile.getFullText().trim()).toBe(
+      getExpectedString("virtualPopulate.gen.ts").trim()
+    );
+  });
 });
 
 describe("sanitizeModelName", () => {
