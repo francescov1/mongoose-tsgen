@@ -7,7 +7,8 @@ describe("getTypeFromKeyValue", () => {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
-      datesAsStrings: false
+      datesAsStrings: false,
+      rootSchemaTree: {}
     };
     // see https://mongoosejs.com/docs/schematypes.html#arrays
 
@@ -79,7 +80,8 @@ describe("getTypeFromKeyValue", () => {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
-      datesAsStrings: false
+      datesAsStrings: false,
+      rootSchemaTree: {}
     };
 
     expect(
@@ -154,7 +156,8 @@ describe("getTypeFromKeyValue", () => {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
-      datesAsStrings: false
+      datesAsStrings: false,
+      rootSchemaTree: {}
     };
 
     // should be optional; not required like normal arrays
@@ -180,7 +183,8 @@ describe("getTypeFromKeyValue", () => {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
-      datesAsStrings: false
+      datesAsStrings: false,
+      rootSchemaTree: {}
     };
 
     expect(
@@ -247,7 +251,8 @@ describe("getTypeFromKeyValue", () => {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
-      datesAsStrings: false
+      datesAsStrings: false,
+      rootSchemaTree: {}
     };
 
     expect(
@@ -287,7 +292,8 @@ describe("getTypeFromKeyValue", () => {
       isDocument: false,
       shouldLeanIncludeVirtuals: false,
       noMongoose: false,
-      datesAsStrings: true
+      datesAsStrings: true,
+      rootSchemaTree: {}
     };
 
     expect(
@@ -319,5 +325,148 @@ describe("getTypeFromKeyValue", () => {
       })
     ).toBe("aDateTypeString?: string;\n");
   });
-});
 
+  test("handles refPath dynamic references", () => {
+    const rootSchemaTree = {
+      scenario_type: {
+        type: String,
+        enum: ["ModelA", "ModelB", "ModelC"]
+      }
+    };
+    const genericParams = {
+      isDocument: false,
+      shouldLeanIncludeVirtuals: false,
+      noMongoose: false,
+      datesAsStrings: false,
+      rootSchemaTree
+    };
+
+    // Basic refPath
+    expect(
+      getTypeFromKeyValue({
+        ...genericParams,
+        key: "scenario",
+        val: { type: mongoose.Schema.Types.ObjectId, refPath: "scenario_type" }
+      })
+    ).toBe(
+      'scenario?: ModelA["_id"] | ModelA | ModelB["_id"] | ModelB | ModelC["_id"] | ModelC;\n'
+    );
+
+    // refPath with autopopulate
+    expect(
+      getTypeFromKeyValue({
+        ...genericParams,
+        key: "scenario",
+        val: {
+          type: mongoose.Schema.Types.ObjectId,
+          refPath: "scenario_type",
+          autopopulate: true
+        }
+      })
+    ).toBe("scenario?: ModelA | ModelB | ModelC;\n");
+
+    // refPath in document mode
+    expect(
+      getTypeFromKeyValue({
+        ...genericParams,
+        isDocument: true,
+        key: "scenario",
+        val: { type: mongoose.Schema.Types.ObjectId, refPath: "scenario_type" }
+      })
+    ).toBe(
+      'scenario?: ModelADocument["_id"] | ModelADocument | ModelBDocument["_id"] | ModelBDocument | ModelCDocument["_id"] | ModelCDocument;\n'
+    );
+  });
+
+  test("handles refPath in nested array format with validation", () => {
+    // This tests the fix for refPath hoisting in nested array format
+    // e.g., { type: [{ type: ObjectId, refPath: "..." }], validate: [...] }
+    const rootSchemaTree = {
+      item_type: {
+        type: String,
+        enum: ["Product", "Service"]
+      }
+    };
+    const genericParams = {
+      isDocument: false,
+      shouldLeanIncludeVirtuals: false,
+      noMongoose: false,
+      datesAsStrings: false,
+      rootSchemaTree
+    };
+
+    // Nested array format with refPath (the format that was previously broken)
+    expect(
+      getTypeFromKeyValue({
+        ...genericParams,
+        key: "items",
+        val: {
+          type: [
+            {
+              type: mongoose.Schema.Types.ObjectId,
+              refPath: "item_type"
+            }
+          ],
+          validate: [() => true]
+        }
+      })
+    ).toBe('items: (Product["_id"] | Product | Service["_id"] | Service)[];\n');
+
+    // Nested array format with refPath and autopopulate
+    expect(
+      getTypeFromKeyValue({
+        ...genericParams,
+        key: "items",
+        val: {
+          type: [
+            {
+              type: mongoose.Schema.Types.ObjectId,
+              refPath: "item_type",
+              autopopulate: true
+            }
+          ],
+          validate: [() => true]
+        }
+      })
+    ).toBe("items: (Product | Service)[];\n");
+  });
+
+  test("handles refPath fallback when discriminator not found", () => {
+    const genericParams = {
+      isDocument: false,
+      shouldLeanIncludeVirtuals: false,
+      noMongoose: false,
+      datesAsStrings: false,
+      rootSchemaTree: {} // Empty schema tree - discriminator won't be found
+    };
+
+    // Should fallback to ObjectId when discriminator field is not found
+    expect(
+      getTypeFromKeyValue({
+        ...genericParams,
+        key: "scenario",
+        val: { type: mongoose.Schema.Types.ObjectId, refPath: "missing_field" }
+      })
+    ).toBe("scenario?: mongoose.Types.ObjectId;\n");
+
+    // Document mode should include mongoose.Document in fallback
+    expect(
+      getTypeFromKeyValue({
+        ...genericParams,
+        isDocument: true,
+        key: "scenario",
+        val: { type: mongoose.Schema.Types.ObjectId, refPath: "missing_field" }
+      })
+    ).toBe("scenario?: mongoose.Types.ObjectId | mongoose.Document;\n");
+
+    // noMongoose mode should fallback to string
+    expect(
+      getTypeFromKeyValue({
+        ...genericParams,
+        noMongoose: true,
+        key: "scenario",
+        val: { type: mongoose.Schema.Types.ObjectId, refPath: "missing_field" }
+      })
+    ).toBe("scenario?: string;\n");
+  });
+});

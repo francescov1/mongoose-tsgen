@@ -150,7 +150,8 @@ export class ParserSchema {
         isDocument,
         noMongoose,
         datesAsStrings,
-        shouldLeanIncludeVirtuals: this.shouldLeanIncludeVirtuals
+        shouldLeanIncludeVirtuals: this.shouldLeanIncludeVirtuals,
+        rootSchemaTree: this.schemaTree
       });
     });
 
