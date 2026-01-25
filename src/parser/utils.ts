@@ -317,6 +317,8 @@ export const getTypeFromKeyValue = ({
        * ```
        */
       if (val.type.ref) val.ref = val.type.ref;
+      if (val.type.refPath) val.refPath = val.type.refPath;
+      if (val.type.autopopulate) val.autopopulate = val.type.autopopulate;
       val.type = val.type.type;
       isOptional = false;
     } else if (val.index === "2dsphere") {
