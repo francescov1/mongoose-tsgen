@@ -1,3 +1,4 @@
+import { version as TS_VERSION } from "typescript";
 import {
   Project,
   Node,
@@ -395,13 +396,15 @@ export const registerUserTs = ({
     console.log("tsreader: Registering tsconfig.json with ts-node at path: " + foundPath);
   }
 
+  const tsMajorVersion = Number.parseInt(TS_VERSION.split(".")[0], 10);
+
   require("ts-node").register({
     transpileOnly: true,
     project: foundPath,
     experimentalResolver: enableExperimentalResolver,
     compilerOptions: {
-      module: "commonjs",
-      moduleResolution: "node"
+      module: tsMajorVersion >= 6 ? "nodenext" : "commonjs",
+      moduleResolution: tsMajorVersion >= 6 ? "nodenext" : "node"
     }
     // The solution below would be more ideal, but it breaks for examples like https://github.com/francescov1/mongoose-tsgen/issues/134#issuecomment-2006954270.
     // The module resolution is getting really weird with all the various module types and import strategies. We probably need to rethink how we handle this.
