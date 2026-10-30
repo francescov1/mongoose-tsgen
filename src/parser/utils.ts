@@ -593,7 +593,7 @@ export const getTypeFromKeyValue = ({
 
   if (isArray) {
     if (isDocument)
-      valueType = `mongoose.Types.${val._isSubdocArray ? "Document" : ""}Array<` + valueType + ">";
+      valueType = `mongoose.Types.${val?._isSubdocArray ? "Document" : ""}Array<` + valueType + ">";
     else {
       // if valueType includes a space, likely means its a union type (ie "number | string") so lets wrap it in brackets when adding the array to the type
       if (valueType.includes(" ")) valueType = `(${valueType})`;
