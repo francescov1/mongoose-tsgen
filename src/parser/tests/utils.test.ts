@@ -74,6 +74,33 @@ describe("getTypeFromKeyValue", () => {
     ).toBe("test4b: any[];\n");
   });
 
+  test("handles untyped Array equivalents in document types as `mongoose.Types.Array<any>`", () => {
+    const genericParams = {
+      isDocument: true,
+      shouldLeanIncludeVirtuals: false,
+      noMongoose: false,
+      datesAsStrings: false,
+      rootSchemaTree: {}
+    };
+
+    const cases: [string, any][] = [
+      ["test1a", { type: [mongoose.Schema.Types.Mixed] }],
+      ["test1b", [mongoose.Schema.Types.Mixed]],
+      ["test2a", { type: [] }],
+      ["test2b", []],
+      ["test3a", { type: Array }],
+      ["test3b", Array],
+      ["test4a", { type: [{}] }],
+      ["test4b", [{}]]
+    ];
+
+    cases.forEach(([key, val]) => {
+      expect(getTypeFromKeyValue({ ...genericParams, key, val })).toBe(
+        `${key}: mongoose.Types.Array<any>;\n`
+      );
+    });
+  });
+
   test("handles Object equivalents as `any`", () => {
     // see https://mongoosejs.com/docs/schematypes.html#mixed
     const genericParams = {
